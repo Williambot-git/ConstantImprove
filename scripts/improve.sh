@@ -452,10 +452,22 @@ fi
 
 # 5b. Remove known stale backup files that are safe to delete
 # (These were explicitly identified as safe targets by the owner)
+# NOTE: paths are relative to backend/src/ subdirectory structure
 STALE_FILES=(
-  "$REPO_DIR/backend/authMiddleware_new.js.bak"
-  "$REPO_DIR/backend/fix_admin_routes3.py.bak"
-  "$REPO_DIR/backend/paymentController.js.new"
+  "$REPO_DIR/backend/src/middleware/authMiddleware_new.js.bak"
+  "$REPO_DIR/backend/src/routes/fix_admin_routes3.py.bak"
+  "$REPO_DIR/backend/src/controllers/paymentController.js.new"
+)
+
+STALE_IMAGE_FILES=(
+  "$REPO_DIR/frontend/images/goodahoy.png.backup"
+  "$REPO_DIR/frontend/images/goodahoy.png.orig"
+  "$REPO_DIR/frontend/images/goodannual.png.backup"
+  "$REPO_DIR/frontend/images/goodannual.png.orig"
+  "$REPO_DIR/frontend/images/quarterlyblue.png.backup"
+  "$REPO_DIR/frontend/images/quarterlyblue.png.orig"
+  "$REPO_DIR/frontend/images/semiannualblue.png.backup"
+  "$REPO_DIR/frontend/images/semiannualblue.png.orig"
 )
 
 STALE_DIRS=(
@@ -465,6 +477,15 @@ STALE_DIRS=(
 for file in "${STALE_FILES[@]}"; do
   if [[ -f "$file" ]]; then
     log "INFO" "  Removing stale file: $file"
+    rm -f "$file"
+    AUTO_IMPROVEMENTS_MADE=true
+  fi
+done
+
+# Remove orphaned image backup files
+for file in "${STALE_IMAGE_FILES[@]}"; do
+  if [[ -f "$file" ]]; then
+    log "INFO" "  Removing orphaned image backup: $file"
     rm -f "$file"
     AUTO_IMPROVEMENTS_MADE=true
   fi
@@ -483,9 +504,9 @@ for dir in "${STALE_DIRS[@]}"; do
   fi
 done
 
-# 5c. Remove orphaned frontend image backup files
-if [[ -d "$REPO_DIR/frontend/public/images" ]]; then
-  ORPHANED=$(find "$REPO_DIR/frontend/public/images" -name "*.orig" -o -name "*.backup" 2>/dev/null || true)
+# 5c. Remove orphaned frontend image backup files (in correct location: frontend/images/)
+if [[ -d "$REPO_DIR/frontend/images" ]]; then
+  ORPHANED=$(find "$REPO_DIR/frontend/images" -name "*.orig" -o -name "*.backup" 2>/dev/null || true)
   if [[ -n "$ORPHANED" ]]; then
     log "INFO" "  Removing orphaned image backups..."
     echo "$ORPHANED" | while read -r f; do
