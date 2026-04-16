@@ -1,4 +1,4 @@
-const { protect } = require('./authMiddleware');
+const { protect } = require('./authMiddleware_new');
 
 const requireAdmin = (req, res, next) => {
   const isApiRoute = req.path.startsWith('/api');

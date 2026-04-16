@@ -26,8 +26,8 @@ router.get('/invoice/:invoiceId/status', paymentController.getInvoiceStatus);
 // AUTHENTICATED ENDPOINTS — require valid JWT via allowInactive
 // ═══════════════════════════════════════════════════════════
 
-const { allowInactive } = require('../middleware/authMiddleware');
-router.use(allowInactive);
+const { protect } = require('../middleware/authMiddleware_new');
+router.use(protect);
 
 router.get('/plans', paymentController.getPlans);
 router.post('/checkout', paymentController.createCheckout);

@@ -2,14 +2,13 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const exportController = require('../controllers/exportController');
-const authMiddleware = require('../middleware/authMiddleware');
-const { csrfProtection, setCsrfToken } = require('../middleware/authMiddleware_new');
+const { protect, csrfProtection, setCsrfToken, require2FA } = require('../middleware/authMiddleware_new');
 
-router.use(authMiddleware.protect);
+router.use(protect);
 router.use(csrfProtection);
 
 router.get('/profile', userController.getProfile);
-router.put('/profile', authMiddleware.require2FA, userController.updateProfile);
+router.put('/profile', require2FA, userController.updateProfile);
 router.get('/devices', userController.getDevices);
 router.delete('/devices/:id', userController.revokeDevice);
 router.get('/activity', userController.getActivity);

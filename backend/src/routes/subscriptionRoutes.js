@@ -1,10 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const subscriptionController = require('../controllers/subscriptionController');
-const authMiddleware = require('../middleware/authMiddleware');
-const { csrfProtection, setCsrfToken } = require('../middleware/authMiddleware_new');
+const { protect, csrfProtection, setCsrfToken } = require('../middleware/authMiddleware_new');
 
-router.use(authMiddleware.protect);
+router.use(protect);
 router.use(csrfProtection);
 
 router.get('/plans', subscriptionController.getPlans);
