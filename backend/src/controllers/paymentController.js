@@ -26,124 +26,6 @@ const { getAuthorizeTransactionDetails } = require('../services/authorizeNetUtil
 
 
 
-// VPN Resellers API Integration
-
-class VPNResellersService {
-
-  constructor() {
-
-    this.apiToken = paymentConfig.vpnResellers.apiToken;
-
-    this.apiUrl = paymentConfig.vpnResellers.apiUrl;
-
-  }
-
-
-
-  async createAccount(userData) {
-
-    try {
-
-      const response = await fetch(`${this.apiUrl}/api/v1/accounts`, {
-
-        method: 'POST',
-
-        headers: {
-
-          'Authorization': `Bearer ${this.apiToken}`,
-
-          'Content-Type': 'application/json'
-
-        },
-
-        body: JSON.stringify({
-
-          username: userData.username,
-
-          password: userData.password,
-
-          email: userData.email || null,
-
-          plan_id: userData.plan_id
-
-        })
-
-      });
-
-
-
-      if (!response.ok) {
-
-        throw new Error(`VPN Resellers API error: ${response.status}`);
-
-      }
-
-
-
-      return await response.json();
-
-    } catch (error) {
-
-      console.error('VPN Resellers API error:', error);
-
-      throw error;
-
-    }
-
-  }
-
-
-
-  async activateAccount(accountId) {
-
-    try {
-
-      const response = await fetch(
-
-        `${this.apiUrl}/api/v1/accounts/${accountId}/activate`,
-
-        {
-
-          method: 'POST',
-
-          headers: {
-
-            'Authorization': `Bearer ${this.apiToken}`,
-
-            'Content-Type': 'application/json'
-
-          }
-
-        }
-
-      );
-
-
-
-      if (!response.ok) {
-
-        throw new Error(`VPN Resellers API error: ${response.status}`);
-
-      }
-
-
-
-      return await response.json();
-
-    } catch (error) {
-
-      console.error('VPN Resellers activation error:', error);
-
-      throw error;
-
-    }
-
-  }
-
-}
-
-
-
 // Authorize.net Integration
 
 class AuthorizeNetService {
@@ -911,10 +793,6 @@ class AuthorizeNetService {
 }
 
 
-
-// Initialize services
-
-const vpnResellersService = new VPNResellersService();
 
 const authorizeNetService = new AuthorizeNetService();
 
@@ -2974,8 +2852,6 @@ module.exports = {
   getInvoiceStatus,
 
   deleteOldAccounts,
-
-  vpnResellersService,
 
   authorizeNetService,
 
