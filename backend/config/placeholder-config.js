@@ -43,7 +43,7 @@ const payment = {
   // ------------------ Plisio (Cryptocurrency) ------------------
   // Plisio API key for cryptocurrency payments
   // Used by: src/controllers/paymentController.js, src/controllers/webhookController.js,
-  //         src/services/plisioService.js, scripts/test-webhook.js
+  //         src/services/plisioService.js
   plisioApiKey: process.env.PLISIO_API_KEY || '',
   
   // Plisio webhook secret for verifying incoming webhooks
@@ -81,7 +81,7 @@ const payment = {
   
   // ------------------ PaymentsCloud ------------------
   // PaymentsCloud secret for webhook signature verification
-  // Used by: src/controllers/webhookController.js, scripts/test-webhook.js
+  // Used by: src/controllers/webhookController.js
   paycloudSecret: process.env.PAYCLOUD_SECRET || '',
   
   // ------------------ ZipTax (Sales Tax) ------------------
@@ -137,27 +137,27 @@ const vpn = {
 
 const email = {
   // SMTP server hostname
-  // Used by: test_smtp.js
+  // Used by: src/services/emailService.js
   smtpHost: process.env.SMTP_HOST || 'smtp.example.com',
   
   // SMTP server port (typically 587 for TLS, 465 for SSL, 25 for plain)
-  // Used by: test_smtp.js
+  // Used by: src/services/emailService.js
   smtpPort: parseInt(process.env.SMTP_PORT) || 587,
   
   // Use TLS/SSL for SMTP connection
-  // Used by: test_smtp.js
+  // Used by: src/services/emailService.js
   smtpSecure: process.env.SMTP_SECURE === 'true',
   
   // SMTP authentication username
-  // Used by: test_smtp.js
+  // Used by: src/services/emailService.js
   smtpUser: process.env.SMTP_USER || '',
   
   // SMTP authentication password
-  // Used by: test_smtp.js
+  // Used by: src/services/emailService.js
   smtpPass: process.env.SMTP_PASS || '',
   
   // From address for transactional emails
-  // Used by: test_smtp.js (commented out EMAIL_FROM_TRANSACTIONAL)
+  // Used by: src/services/emailService.js
   emailFromTransactional: process.env.EMAIL_FROM_TRANSACTIONAL || 'noreply@ahoyvpn.net',
 };
 
@@ -253,7 +253,7 @@ const affiliate = {
 
 const PLANS = {
   // Plan pricing in dollars (these should match the database plan records)
-  // Used by: scripts/test-webhook.js (plan.price references)
+  // Used by: src/config/paymentConfig.js (plan pricing references)
   monthly: parseFloat(process.env.PLAN_PRICE_MONTHLY) || 9.99,
   quarterly: parseFloat(process.env.PLAN_PRICE_QUARTERLY) || 24.99,
   semiAnnual: parseFloat(process.env.PLAN_PRICE_SEMIANNUAL) || 44.99,
