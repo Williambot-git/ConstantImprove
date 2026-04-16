@@ -10,6 +10,10 @@ const mockTransporter = {
   sendMail: jest.fn().mockResolvedValue({ messageId: 'test-msg-id' })
 };
 
+// Track fs.readFileSync calls to control return values per test
+let fsMockImpl;
+let fsCallCount = 0;
+
 // Mock nodemailer before requiring emailService
 jest.unstable_mockModule('nodemailer', () => ({
   default: {
@@ -19,7 +23,13 @@ jest.unstable_mockModule('nodemailer', () => ({
 
 // Mock fs for template loading
 jest.unstable_mockModule('fs', () => ({
-  readFileSync: jest.fn().mockReturnValue('<html>{{name}} - {{content}}</html>')
+  readFileSync: jest.fn((...args) => {
+    fsCallCount++;
+    if (fsMockImpl) {
+      return fsMockImpl(...args);
+    }
+    return '<html>{{name}} - {{content}}</html>';
+  })
 }));
 
 // Mock path
@@ -37,6 +47,23 @@ EmailService.transporter = mockTransporter;
 describe('emailService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    fsMockImpl = null;
+    fsCallCount = 0;
+  });
+
+  describe('loadTemplate', () => {
+    it('should return fallback {{content}} when template file does not exist', () => {
+      // Force fs.readFileSync to throw (template not found)
+      fsMockImpl = jest.fn().mockImplementation(() => {
+        const error = new Error('ENOENT: no such file or directory');
+        error.code = 'ENOENT';
+        throw error;
+      });
+
+      const result = EmailService.loadTemplate('nonExistentTemplate');
+      expect(result).toBe('{{content}}');
+    });
+
   });
 
   describe('sendTransactional', () => {
@@ -67,6 +94,20 @@ describe('emailService', () => {
           { name: 'Test' }
         )
       ).rejects.toThrow('Template nonExistentTemplate not found');
+    });
+
+    it('should re-throw error when sendMail fails', async () => {
+      const sendError = new Error('SMTP connection failed');
+      mockTransporter.sendMail.mockRejectedValueOnce(sendError);
+
+      await expect(
+        EmailService.sendTransactional(
+          'test@example.com',
+          'Test Subject',
+          'welcome',
+          { name: 'Test User', content: 'Test content' }
+        )
+      ).rejects.toThrow('SMTP connection failed');
     });
   });
 
@@ -180,6 +221,92 @@ describe('emailService', () => {
       expect(mockTransporter.sendMail).toHaveBeenCalledWith(
         expect.objectContaining({
           html: expect.stringContaining('3')
+        })
+      );
+    });
+  });
+
+  describe('sendSubscriptionExpiringEmail', () => {
+    it('should send subscription expiring email with renewal details', async () => {
+      await EmailService.sendSubscriptionExpiringEmail(
+        'user@example.com',
+        'Yearly Plan',
+        7,
+        'https://ahoyvpn.com/renew',
+        '2024-12-31'
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'user@example.com',
+          subject: expect.stringContaining('Expires in 7 Days'),
+          from: expect.any(String)
+        })
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('Yearly Plan')
+        })
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('7')
+        })
+      );
+    });
+  });
+
+  describe('sendSubscriptionCancelledEmail', () => {
+    it('should send subscription cancelled email with expiry date', async () => {
+      await EmailService.sendSubscriptionCancelledEmail(
+        'user@example.com',
+        '2024-12-31'
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'user@example.com',
+          subject: expect.stringContaining('Cancelled'),
+          from: expect.any(String)
+        })
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('2024-12-31')
+        })
+      );
+    });
+  });
+
+  describe('sendAccountCreatedEmail', () => {
+    it('should send account created email with VPN credentials', async () => {
+      await EmailService.sendAccountCreatedEmail(
+        'user@example.com',
+        'vpnuser123',
+        'SecurePass!99',
+        '2024-12-31'
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'user@example.com',
+          subject: expect.stringContaining('Account Details'),
+          from: expect.any(String)
+        })
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('vpnuser123')
+        })
+      );
+
+      expect(mockTransporter.sendMail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          html: expect.stringContaining('SecurePass!99')
         })
       );
     });
