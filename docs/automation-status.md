@@ -18,6 +18,7 @@
 | 12 | Backend test coverage expansion (userService + emailService) | **DONE** (commits 7642d8f, 76688e7) |
 | 13 | Remove 21 orphaned check_*.js diagnostic scripts | **DONE** (commit f12f78d) |
 | 14 | cleanupService unit tests + vpnAccountScheduler bugfix | **DONE** (commits ce618da, ab5793f) |
+| 15 | Frontend Jest + RTL scaffolding + Layout tests | **DONE** (commits 327a251, c4ecbdd) |
 
 ---
 
@@ -50,17 +51,22 @@
    - **cleanupService** (6 cleanup functions — straightforward unit tests)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
 3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
-   - Layout.jsx logo: properly converted to `<Image>` with width/height
-   - _app.jsx loading spinner: eslint-disable (pre-hydration, no Next.js context)
-   - checkout.jsx QR code: eslint-disable (dynamic data: URI, next/image doesn't support)
-4. **Frontend test scaffolding**: Like backend, frontend could benefit from Jest + React Testing Library setup.
-5. ~~**roleMiddleware.js cleanup**~~ — **DONE** (commit b2186cd)
+4. ~~**Frontend Jest + RTL scaffolding**~~ — **DONE** (commits 327a251, c4ecbdd)
+   - 33 tests now passing: 3 smoke + 30 Layout component tests
+   - Next: page-level integration tests, ProtectedRoute tests, checkout flow tests
+5. **Frontend test coverage**: page-level and integration tests for auth/checkout/dashboard flows
 
 ---
 
 ## Notes for William
 
-- **Backend test suite now 59 tests**: 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
+- **Frontend test suite now 33 tests**: 3 smoke tests + 30 Layout component tests. All passing.
+- **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
+- **Layout component tested**: auth-state navigation (logged-out/customer/affiliate/admin), footer links, floating support button, logo href, copyright
+- **Key gotcha discovered during setup**: `@testing-library/jest-dom` matchers (toBeInTheDocument, toHaveAttribute) are NOT global — must be explicitly imported per test file. This caused initial test failures.
+- **Another gotcha**: `jest.mock()` factory functions cannot reference out-of-scope variables including `React` from the outer scope. Must `require('react')` inside the factory.
+- **Another gotcha**: Next.js `<Link>` renders as `<a><a>` (nested anchors). `screen.getAllByText('X')` returns the inner `<a>` (the styled element), while `document.querySelector('a[href="/"]')` finds the outer `<a>`. Use `getAllByRole('link')` + `.find()` to get the right element.
+- **Backend test suite: 59 tests** (unchanged from previous session): 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
 - **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
 - **vpnAccountScheduler bug fixed**: Was calling `deactivateAccount({ account_id })` which doesn't exist — replaced with `disableAccount(accountId)` (matches vpnResellersService.js API)
 - **userService at 98% line coverage** (only untested: expiry date warning log in createVpnAccount)
@@ -94,14 +100,11 @@ f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
 ## All Commits This Session (chronological)
 
 ```
-ab5793f test: add cleanupService unit tests — 11 tests, 100% line coverage
-ce618da fix: vpnAccountScheduler use disableAccount() instead of non-existent deactivateAccount()
-f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
-76688e7 test: add emailService unit tests with mocked nodemailer
-7642d8f test: add userService unit tests with mocked DB and VPN service
+327a251 feat(tests): add Jest + React Testing Library infrastructure for frontend
+c4ecbdd test: add Layout component tests — 30 tests covering auth state, nav links, footer, logo
 ```
-b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
-```
+
+*Last updated: 2026-04-16T14:20:00Z*
 
 ---
 
