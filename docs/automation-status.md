@@ -22,6 +22,8 @@
 | 16 | Remove 30 orphaned backend scripts (migrate/test/debug/utility) | **DONE** (commit 0cd18a7) |
 | 17 | Plan: checkout page decomposition (PlanSelector, CryptoSelector, PaymentMethodSelector) | **PLAN DONE** (docs/plans/2026-04-16-checkout-decomposition.md) |
 | 18 | Clean outdated script references in placeholder-config.js | **DONE** (commit 84b4403) |
+| 19 | Checkout page decomposition — extract PlanSelector, CryptoSelector, PaymentMethodSelector | **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8) |
+| 20 | Checkout flow integration test | **DONE** (commit 92ef4d8) |
 
 ---
 
@@ -62,9 +64,11 @@
    - 33 tests now passing: 3 smoke + 30 Layout component tests
    - Next: page-level integration tests, ProtectedRoute tests, checkout flow tests
 5. **Frontend test coverage**: page-level and integration tests for auth/checkout/dashboard flows
-6. ~~**Checkout page decomposition**~~ — **PLAN DONE** (docs/plans/2026-04-16-checkout-decomposition.md)
-   - Decompose checkout.jsx (1161 lines) into PlanSelector, CryptoSelector, PaymentMethodSelector components
-   - 5-task plan with TDD approach ready for subagent execution
+   - ~~Checkout flow~~ — **DONE** (5 integration tests added, 47 total frontend tests)
+6. ~~**Checkout page decomposition**~~ — **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8)
+   - checkout.jsx: 1139 lines (down from 1161 — net -22 lines after wiring components)
+   - 3 new components in `frontend/components/checkout/` with unit tests
+   - 5 integration tests in `frontend/tests/checkout-flow.test.jsx`
 7. **Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and dashboard.jsx (659 lines) — similar pattern to checkout decomposition
 
 ---
@@ -101,18 +105,28 @@
 ## Recent Commits (from this session)
 
 ```
-84b4403 docs(backend): clean up outdated script references in placeholder-config.js
-0cd18a7 cleanup: remove 30 orphaned backend scripts
+92ef4d8 test(frontend): add checkout flow integration test
+9c3acc5 refactor(frontend): wire extracted checkout components into checkout.jsx
+77499e4 feat(frontend): extract PaymentMethodSelector component from checkout
+f08c69d feat(frontend): extract CryptoSelector component from checkout
+bb646c2 feat(frontend): extract PlanSelector component from checkout
+22e09dd docs: update automation status — task 16-18 complete
 ```
 
 ## All Commits This Session (chronological)
 
 ```
+92ef4d8 test(frontend): add checkout flow integration test
+9c3acc5 refactor(frontend): wire extracted checkout components into checkout.jsx
+77499e4 feat(frontend): extract PaymentMethodSelector component from checkout
+f08c69d feat(frontend): extract CryptoSelector component from checkout
+bb646c2 feat(frontend): extract PlanSelector component from checkout
+22e09dd docs: update automation status — task 16-18 complete
 84b4403 docs(backend): clean up outdated script references in placeholder-config.js
 0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T14:45:00Z*
+*Last updated: 2026-04-16T15:15:00Z*
 
 ---
 
