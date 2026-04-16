@@ -40,6 +40,10 @@
 | 41 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
 | 42 | Consolidate duplicate AuthorizeNetService class — single canonical class in authorizeNetUtils.js, removed 765-line inline duplicate from paymentController.js | **DONE** (commit 6465fdd) |
 | 43 | paymentProcessingService unit tests (10 tests, 96.82% line coverage — covers invoice resolution, VPN activation, email, commission, tax, error handling) | **DONE** (commit 2924be3) |
+| 44 | Frontend ProtectedRoute unit tests (14 tests — auth redirect, loading, role matching, null role) | **DONE** (commit f63ec5a) |
+| 45 | Frontend UI primitive tests — Alert, Button, Card, Form, Modal, Spinner (75 tests) | **DONE** (commit f63ec5a) |
+| 46 | Frontend CancelModal + DeleteModal unit tests (12 tests) | **DONE** (commit f63ec5a) |
+| 47 | Frontend PlanCard unit tests (13 tests) | **DONE** (commit f63ec5a) |
 
 ---
 
@@ -79,12 +83,17 @@
    - ~~**paymentProcessingService**~~ — **DONE** (10 tests, 96.82% line coverage)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
 3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
-4. ~~**Frontend Jest + RTL scaffolding**~~ — **DONE** (commits 327a251, c4ecbdd)
-   - 33 tests now passing: 3 smoke + 30 Layout component tests
-   - Next: page-level integration tests, ProtectedRoute tests, checkout flow tests
-5. **Frontend test coverage**: page-level and integration tests for auth/checkout/dashboard flows
-   - ~~Checkout flow~~ — **DONE** (5 integration tests added, 47 total frontend tests)
-   - ~~Affiliate dashboard~~ — **DONE** (24 component tests + 6 integration tests, 105 total)
+## Priority Queue
+
+1. ~~**Backend test coverage expansion**:~~
+   - ~~paymentProcessingService~~ — **DONE** (10 tests, 96.82%)
+2. ~~**Frontend test coverage**:~~ — **DONE** (task 44-47)
+   - ~~UI primitives~~ — **DONE** (75 tests: Alert, Button, Card, Form, Modal, Spinner)
+   - ~~ProtectedRoute~~ — **DONE** (14 tests)
+   - ~~Modals + PlanCard~~ — **DONE** (25 tests)
+3. **Frontend: remaining affiliate-dashboard tab component tests** (LinksTab, OverviewTab, PayoutTab, ReferralsTab, TransactionsTab)
+4. **Frontend: Head.jsx unit tests** (1 file, simple component)
+5. **Backend: paymentController routes unit tests** (requires supertest — highest-value remaining coverage target)
 6. ~~**Checkout page decomposition**~~ — **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8)
    - checkout.jsx: 1139 lines (down from 1161 — net -22 lines after wiring components)
    - 3 new components in `frontend/components/checkout/` with unit tests
@@ -99,8 +108,13 @@
 
 ## Notes for William
 
-- **paymentProcessingService at 96.82% line coverage** (10 tests: invoice not found, happy path with all side effects, switched invoice chain resolution, promo code marking, affiliate commission, tax transaction recording, Plisio API amount resolution, non-blocking tax failure, missing email skip, paid_id fallback)
-- **Full backend test suite: 207 tests passing** (was 197): 10 new paymentProcessingService tests
+- **Frontend test suite: 232 tests passing** (was 118): +114 new tests across ProtectedRoute, UI primitives (Alert, Button, Card, Form, Modal, Spinner), CancelModal, DeleteModal, and PlanCard
+- **Backend test suite: 297 tests passing** (unchanged)
+- **Total test count: 529 tests** across frontend and backend
+- **Jest mocking discovery**: Components using `module.exports = ComponentName` (CommonJS) must be required WITHOUT `.default` in test files. Using `.default` causes "Element type is invalid: expected a string...got: undefined"
+- **Router spy limitation in jsdom**: `useRouter().push` calls can't be directly spied on in jsdom. Instead, verify redirect behavior indirectly: if wrong role → check that "Access Denied" screen renders and protected content doesn't. If correct role → check that protected content renders.
+- **requiredRole=null quirk in ProtectedRoute**: Due to `if (requiredRole && auth.role !== requiredRole)`, when `requiredRole=null` (falsy), the role check short-circuits and ANY logged-in user is allowed. This is actually useful behavior but worth documenting.
+- **All 529 tests passing**: Frontend 232 (26 suites) + Backend 297 (15 suites)
 - **Key call-sequence discovery**: `createVpnAccount()` in `processPlisioPaymentAsync` is an external service call, NOT a DB query. The actual DB call sequence is: SELECT sub → UPDATE status → SELECT email → INSERT payment (4 calls). VPN creation happens between UPDATE status and SELECT email. This caught 3 failing tests that had wrong mock chain lengths.
 - **invoicePollingService at 97.26% line coverage** (13 tests covering all scenarios: no subscriptions, invoice completed, cancelled_duplicate with activeInvoiceId, pending invoice, max poll attempts, checkpoint age skip, getInvoiceStatus error, ARB suspended/canceled/active/settled/null)
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
@@ -138,17 +152,18 @@
 ## Recent Commits (from this session)
 
 ```
-2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
-bef2373 test(backend): fix invoicePollingService test — add missing subscription row and remove debug console.logs
-f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
+f63ec5a test(frontend): add unit tests for ProtectedRoute, UI primitives, and dashboard components (114 new tests, 232 total frontend tests)
+3968e92 test: add coverage for authorizeNetUtils (99%) and purewlService (98.8%)
+81d1a8e docs: update automation status — task 43 complete (paymentProcessingService tests)
 ```
 
 ## All Commits This Session (chronological)
 
 ```
+f63ec5a test(frontend): add unit tests for ProtectedRoute, UI primitives, and dashboard components (114 new tests, 232 total frontend tests)
+3968e92 test: add coverage for authorizeNetUtils (99%) and purewlService (98.8%)
+81d1a8e docs: update automation status — task 43 complete (paymentProcessingService tests)
 2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
-bef2373 test(backend): fix invoicePollingService test — add missing subscription row
-f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
 ```
 
-*Last updated: 2026-04-16T21:20:00Z*
+*Last updated: 2026-04-17T03:30:00Z*
