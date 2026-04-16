@@ -7,6 +7,8 @@ import { FormGroup, Input } from '../components/ui/Form';
 import api from '../api/client';
 import { AuthContext } from './_app';
 import { getAffiliateId } from '../lib/cookies';
+import PlanSelector from '../components/checkout/PlanSelector';
+import PaymentMethodSelector from '../components/checkout/PaymentMethodSelector';
 
 const PLANS = [
   { id: 'monthly', name: 'Monthly', price: '$5.99', period: '/month + tax', cryptoOnly: false },
@@ -303,25 +305,11 @@ export default function Checkout() {
       {step === 'plan' && (
         <div style={styles.stepContainer}>
           <h2 style={styles.stepTitle}>Choose Your Plan</h2>
-          <div style={styles.plansGrid}>
-            {PLANS.map((plan) => (
-              <div
-                key={plan.id}
-                onClick={() => setSelectedPlan(plan.id)}
-                style={{
-                  ...styles.planOption,
-                  ...(selectedPlan === plan.id && styles.planOptionSelected),
-                }}
-              >
-                <h3 style={styles.planName}>{plan.name}</h3>
-                <p style={styles.planPrice}>{plan.price}</p>
-                <p style={styles.planPeriod}>{plan.period}</p>
-                {plan.cryptoOnly && (
-                  <span style={styles.cryptoOnlyBadge}>Crypto only</span>
-                )}
-              </div>
-            ))}
-          </div>
+          <PlanSelector
+            plans={PLANS}
+            selectedPlan={selectedPlan}
+            onSelect={setSelectedPlan}
+          />
           <Button
             onClick={() => setStep('payment')}
             style={styles.nextButton}
@@ -416,21 +404,11 @@ export default function Checkout() {
           </p>
 
           <h2 style={{ ...styles.stepTitle, marginTop: '2rem' }}>Payment Method</h2>
-          <div style={styles.paymentGrid}>
-            {availablePaymentMethods.map((method) => (
-              <div
-                key={method.id}
-                onClick={() => setSelectedPayment(method.id)}
-                style={{
-                  ...styles.paymentOption,
-                  ...(selectedPayment === method.id && styles.paymentOptionSelected),
-                }}
-              >
-                <h3 style={styles.paymentName}>{method.name}</h3>
-                <p style={styles.paymentProvider}>via {method.provider}</p>
-              </div>
-            ))}
-          </div>
+          <PaymentMethodSelector
+            methods={availablePaymentMethods}
+            selected={selectedPayment}
+            onSelect={setSelectedPayment}
+          />
 
           {isCryptoOnly && (
             <p style={styles.cryptoOnlyNote}>
