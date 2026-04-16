@@ -8,46 +8,7 @@ import api from '../api/client';
 import { AuthContext } from './_app';
 import styles from '../components/dashboard/styles';
 import PlanCard from '../components/dashboard/PlanCard';
-
-const PLANS = [
-  {
-    id: 'monthly',
-    name: 'Monthly',
-    price: '$5.99',
-    period: '/month + tax',
-    description: 'Perfect for trying AHOY VPN',
-    features: ['10 simultaneous connections', '50+ server locations', '24/7 support'],
-    cryptoOnly: false,
-  },
-  {
-    id: 'quarterly',
-    name: 'Quarterly',
-    price: '$16.99',
-    period: '/3 months + tax',
-    description: 'Great value, save a bit',
-    features: ['10 simultaneous connections', '50+ server locations', '24/7 support', 'Save 5%'],
-    highlight: true,
-    cryptoOnly: false,
-  },
-  {
-    id: 'semiannual',
-    name: 'Semi-Annual',
-    price: '$31.99',
-    period: '/6 months + tax',
-    description: 'Best savings',
-    features: ['10 simultaneous connections', '50+ server locations', '24/7 support', 'Save 10%'],
-    cryptoOnly: true,
-  },
-  {
-    id: 'annual',
-    name: 'Annual',
-    price: '$59.99',
-    period: '/year + tax',
-    description: 'Ultimate savings',
-    features: ['10 simultaneous connections', '50+ server locations', '24/7 support', 'Save 15%'],
-    cryptoOnly: true,
-  },
-];
+import SubscriptionSection from '../components/dashboard/SubscriptionSection';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -62,7 +23,6 @@ export default function Dashboard() {
 
   const [subscription, setSubscription] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [selectedPlan, setSelectedPlan] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('crypto');
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showNewKit, setShowNewKit] = useState(false);
@@ -267,12 +227,6 @@ export default function Dashboard() {
     }
   };
 
-  const handlePurchase = async (plan) => {
-    setSelectedPlan(plan);
-    // Redirect to checkout with plan ID
-    router.push(`/checkout?plan=${plan.id}&method=${paymentMethod}`);
-  };
-
   if (!auth?.isLoggedIn) {
     return null;
   }
@@ -282,33 +236,11 @@ export default function Dashboard() {
       <h1 style={styles.title}>Dashboard</h1>
 
       {/* Subscription Status */}
-      <Card style={styles.card}>
-        <h2>Subscription Status</h2>
-        {subscription ? (
-          <div>
-            <p><strong>Plan:</strong> {subscription.planName}</p>
-            <p><strong>Status:</strong> {subscription.status}</p>
-            <p><strong>Next Billing:</strong> {subscription.nextBilling}</p>
-            <Button onClick={() => setShowCancelModal(true)} style={styles.cancelButton}>
-              Cancel Subscription
-            </Button>
-          </div>
-        ) : (
-          <div>
-            <p style={{ marginBottom: '1rem' }}>No active subscription. Choose a plan below to get started.</p>
-            <div style={styles.plansGrid}>
-              {PLANS.map((plan) => (
-                <PlanCard
-                  key={plan.id}
-                  plan={plan}
-                  onSelect={() => handlePurchase(plan)}
-                  selected={selectedPlan?.id === plan.id}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </Card>
+      <SubscriptionSection
+        subscription={subscription}
+        paymentMethod={paymentMethod}
+        onCancel={() => setShowCancelModal(true)}
+      />
 
       {/* Account Settings */}
       <Card style={styles.card}>
