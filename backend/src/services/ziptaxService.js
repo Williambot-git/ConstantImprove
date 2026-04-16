@@ -109,6 +109,11 @@ class ZipTaxService {
     } catch (error) {
       // Avoid leaking secrets; only log high-level details.
       console.error('ZipTax lookup error:', error.message || error);
+      // Re-throw API errors with their original messages; wrap network errors generically
+      const msg = error.message || '';
+      if (msg.startsWith('ZipTax error') || msg.startsWith('Unexpected ZipTax')) {
+        throw error;
+      }
       throw new Error('ZipTax lookup failed');
     }
   }
