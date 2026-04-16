@@ -37,6 +37,7 @@
 | 38 | userService coverage improvement (100% line coverage — one unreachable default case in plan interval switch) | **DONE** |
 | 39 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
 | 40 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
+| 41 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
 
 ---
 
@@ -95,7 +96,7 @@
 
 ## Notes for William
 
-- **Backend test suite now 184 tests**: 29 userService + 14 emailService + 19 promoService + 11 cleanupService + 16 vpnResellersService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController + 17 exportService tests. All passing.
+- **invoicePollingService at 97.26% line coverage** (13 tests covering all scenarios: no subscriptions, invoice completed, cancelled_duplicate with activeInvoiceId, pending invoice, max poll attempts, checkpoint age skip, getInvoiceStatus error, ARB suspended/canceled/active/settled/null)
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
@@ -131,29 +132,19 @@
 ## Recent Commits (from this session)
 
 ```
-8b2bd3f test(backend): add exportService unit tests
-da2a80a docs: update automation status — tasks 35-38 complete
+bef2373 test(backend): fix invoicePollingService test — add missing subscription row and remove debug console.logs
+f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
+800369f test(backend): improve promoService coverage from 73% to 97.95% (9 new tests)
 ```
 
 ## All Commits This Session (chronological)
 
 ```
-93e9570 refactor(frontend): complete dashboard decomposition (tasks 2-9)
-b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
-646fc1a feat(frontend): add CodesTab test
-33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
-a663118 feat(frontend): extract PayoutsTab from ahoyman-dashboard
-d1cd66e feat(frontend): extract AffiliatesTab from ahoyman-dashboard
-d22813d chore(frontend): add @testing-library/user-event for RTL interaction tests
-1e5f709 docs: update automation status — checkout decomposition complete (tasks 19-20)
-92ef4d8 test(frontend): add checkout flow integration test
-9c3acc5 refactor(frontend): wire extracted checkout components into checkout.jsx
-77499e4 feat(frontend): extract PaymentMethodSelector component from checkout
-f08c69d feat(frontend): extract CryptoSelector component from checkout
-bb646c2 feat(frontend): extract PlanSelector component from checkout
-22e09dd docs: update automation status — task 16-18 complete
-84b4403 docs(backend): clean up outdated script references in placeholder-config.js
-0cd18a7 cleanup: remove 30 orphaned backend scripts
+bef2373 test(backend): fix invoicePollingService test — add missing subscription row
+f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
+800369f test(backend): improve promoService coverage from 73% to 97.95% (9 new tests)
+f769537 docs: update automation status — task 39 complete (exportService tests)
+8f54957 test(backend): add exportService unit tests
 ```
 
-*Last updated: 2026-04-16T20:25:00Z*
+*Last updated: 2026-04-16T21:20:00Z*
