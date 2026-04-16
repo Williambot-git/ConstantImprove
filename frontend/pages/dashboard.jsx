@@ -419,7 +419,7 @@ export default function Dashboard() {
 
         <p style={{ marginTop: '0.75rem' }}>
           After payment, download a client from{' '}
-          <a href="/downloads" style={{ color: '#1E90FF' }}>https://ahoyvpn.net/downloads</a>
+          <Link href="/downloads" style={{ color: '#1E90FF' }}>https://ahoyvpn.net/downloads</Link>
           {' '}and sign in with these credentials.
         </p>
 

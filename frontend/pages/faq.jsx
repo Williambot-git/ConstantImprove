@@ -133,9 +133,9 @@ export default function FAQ() {
         <p style={{ marginBottom: '1rem', color: '#B0C4DE', lineHeight: 1.6 }}>
           Learn how to encrypt your DNS traffic to prevent your ISP and network administrators from seeing which websites you visit—even when you're not using a VPN.
         </p>
-        <a href="/dns-guide" style={{ color: '#1E90FF', textDecoration: 'none', fontWeight: '500', fontSize: '1.1rem' }}>
+        <Link href="/dns-guide" style={{ color: '#1E90FF', textDecoration: 'none', fontWeight: '500', fontSize: '1.1rem' }}>
           View our DNS Encryption Guide →
-        </a>
+        </Link>
       </Card>
     </div>
   );

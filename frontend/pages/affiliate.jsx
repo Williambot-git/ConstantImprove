@@ -197,7 +197,7 @@ export default function AffiliateLogin() {
 
         <Card title="Not an affiliate?" style={styles.infoCard}>
           <p style={styles.infoText}>
-            If you are a customer, please login from the <a href="/login" style={styles.link}>customer login page</a>.
+            If you are a customer, please login from the <Link href="/login" style={styles.link}>customer login page</Link>.
           </p>
         </Card>
       </div>

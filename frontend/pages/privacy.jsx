@@ -151,7 +151,7 @@ export default function PrivacyPolicy() {
 
         <Section title="15. Enhancing Your Privacy">
           <p>Want to go beyond VPN protection? Learn how to encrypt your DNS traffic to prevent your ISP and network administrators from seeing which websites you visit.</p>
-          <p><a href="/dns-guide" style={{ color: '#1E90FF', textDecoration: 'none', fontWeight: '500' }}>View our DNS Encryption Guide →</a></p>
+          <p><Link href="/dns-guide" style={{ color: '#1E90FF', textDecoration: 'none', fontWeight: '500' }}>View our DNS Encryption Guide →</Link></p>
         </Section>
       </div>
     </div>
