@@ -21,7 +21,7 @@
 #   ALERT_LOG  - alert file for errors (default: LOG_DIR/ahoyvpn_alerts.log)
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail  # Note: 'e' removed — xargs rc=123 (resource limit) is not a real failure
 
 # --- Paths ----------------------------------------------------------------
 REPO_DIR="${REPO_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
