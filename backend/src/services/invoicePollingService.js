@@ -1,7 +1,7 @@
 const db = require('../config/database');
 const plisioService = require('./plisioService');
 const VpnResellersService = require('./vpnResellersService');
-const { processPlisioPaymentAsync } = require('../controllers/webhookController');
+const { processPlisioPaymentAsync } = require('./paymentProcessingService');
 
 const vpnResellersService = new VpnResellersService();
 
@@ -108,10 +108,35 @@ async function runOnce() {
   }
 }
 
-// Poll Authorize.net ARB subscriptions for payment status
-async function pollArbSubscriptions() {
-  const { AuthorizeNetService } = require('./authorizeNetUtils');
-  const authorizeService = new AuthorizeNetService();
+// AuthorizeNetService instance — hoisted to module level so tests can inject a mock.
+// Accepts an optional injectable for testing; falls back to creating a real instance.
+// This avoids an inner require() that would create a fresh mock on every call.
+let _authorizeService = null;
+function _getAuthorizeService() {
+  if (!_authorizeService) {
+    const { AuthorizeNetService } = require('./authorizeNetUtils');
+    _authorizeService = new AuthorizeNetService();
+  }
+  return _authorizeService;
+}
+
+/**
+ * Reset the cached AuthorizeNetService instance.
+ * CRITICAL FOR TESTS: Call this in beforeEach to ensure each test gets a fresh
+ * instance with the correct mock setup. Without this, the first test to call
+ * _getAuthorizeService caches an instance that subsequent tests can't override.
+ */
+function _resetAuthorizeService() {
+  _authorizeService = null;
+}
+
+/**
+ * Poll Authorize.net ARB subscriptions for payment status.
+ * @param {object} opts - Optional overrides for testing
+ * @param {object} opts.authorizeService - Injectable AuthorizeNetService instance
+ */
+async function pollArbSubscriptions(opts = {}) {
+  const authorizeService = opts.authorizeService || _getAuthorizeService();
 
   // Find ARB subscriptions that are active/trialing and poll their status
   const { rows: subs } = await db.query(`
@@ -194,5 +219,6 @@ async function pollArbSubscriptions() {
 module.exports = {
   runOnce,
   pollArbSubscriptions,
-  CHECKPOINT_MINUTES
+  CHECKPOINT_MINUTES,
+  _resetAuthorizeService
 };

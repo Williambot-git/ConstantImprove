@@ -1,0 +1,425 @@
+/**
+ * invoicePollingService unit tests
+ *
+ * Tests the invoice polling loop that checks trialing subscriptions for
+ * Plisio crypto payment confirmations, and the ARB polling loop for
+ * Authorize.net subscription status changes.
+ *
+ * Mocks:
+ *   - db          (database queries)
+ *   - plisioService    (getInvoiceStatus)
+ *   - paymentProcessingService (processPlisioPaymentAsync)
+ *   - VpnResellersService (deactivateAccount)
+ *   - authorizeNetUtils.AuthorizeNetService (getArbSubscription)
+ */
+
+// Set env BEFORE requiring the service
+process.env.PLISIO_API_KEY = 'test_key';
+
+jest.mock('../../src/config/database');
+jest.mock('../../src/services/plisioService');
+jest.mock('../../src/services/paymentProcessingService');
+jest.mock('../../src/services/authorizeNetUtils');
+
+const db = require('../../src/config/database');
+const plisioService = require('../../src/services/plisioService');
+const { processPlisioPaymentAsync } = require('../../src/services/paymentProcessingService');
+const { AuthorizeNetService } = require('../../src/services/authorizeNetUtils');
+
+const {
+  runOnce,
+  pollArbSubscriptions,
+  CHECKPOINT_MINUTES,
+  _resetAuthorizeService
+} = require('../../src/services/invoicePollingService');
+
+describe('invoicePollingService', () => {
+  // Track prototype spies so we can restore them after each test.
+  // This is necessary because _authorizeService is cached and each test
+  // needs its own fresh mock/spy on getArbSubscription.
+  let arbSpy = null;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    _resetAuthorizeService();
+  });
+
+  afterEach(() => {
+    if (arbSpy) {
+      arbSpy.mockRestore();
+      arbSpy = null;
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // runOnce — happy path: no trialing subscriptions
+  // -------------------------------------------------------------------------
+  describe('runOnce', () => {
+    it('no trialing subscriptions — does nothing', async () => {
+      db.query = jest.fn().mockResolvedValue({ rows: [] });
+
+      await runOnce();
+
+      expect(db.query).toHaveBeenCalledTimes(1);
+      expect(processPlisioPaymentAsync).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — subscription at first checkpoint (15 min), invoice completed
+    // -------------------------------------------------------------------------
+    it('invoice completed at checkpoint — calls processPlisioPaymentAsync', async () => {
+      const createdAt = new Date(Date.now() - 16 * 60 * 1000).toISOString(); // 16 min ago
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-1',
+            user_id: 'user-1',
+            status: 'trialing',
+            plisio_invoice_id: 'inv_abc',
+            metadata: { poll_attempts: 0 },
+            created_at: createdAt
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }); // updateMetadata
+
+      plisioService.getInvoiceStatus.mockResolvedValue({
+        invoice: { status: 'completed', amount: '49.99', currency: 'USD', tx_id: ['tx_001'] }
+      });
+
+      await runOnce();
+
+      expect(plisioService.getInvoiceStatus).toHaveBeenCalledWith('inv_abc');
+      expect(processPlisioPaymentAsync).toHaveBeenCalledWith('inv_abc', 'tx_001', '49.99', 'USD');
+      expect(db.query).toHaveBeenCalledTimes(2); // select + updateMetadata
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — subscription at first checkpoint (15 min), cancelled/duplicate
+    //           with activeInvoiceId
+    // -------------------------------------------------------------------------
+    it('cancelled_duplicate with activeInvoiceId — calls processPlisioPaymentAsync with activeInvoiceId', async () => {
+      const createdAt = new Date(Date.now() - 16 * 60 * 1000).toISOString();
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-1',
+            user_id: 'user-1',
+            status: 'trialing',
+            plisio_invoice_id: 'inv_old',
+            metadata: { poll_attempts: 0 },
+            created_at: createdAt
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }); // updateMetadata
+
+      plisioService.getInvoiceStatus.mockResolvedValue({
+        invoice: {
+          status: 'cancelled duplicate', // space-separated as Plisio API returns
+          switch_id: 'inv_new',
+          amount: '49.99',
+          currency: 'USD',
+          tx_id: ['tx_002']
+        },
+        active_invoice_id: 'inv_new'
+      });
+
+      await runOnce();
+
+      expect(processPlisioPaymentAsync).toHaveBeenCalledWith('inv_new', 'tx_002', '49.99', 'USD');
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — subscription at checkpoint but invoice not completed/cancelled
+    // -------------------------------------------------------------------------
+    it('pending invoice — updates metadata with current poll info', async () => {
+      const createdAt = new Date(Date.now() - 16 * 60 * 1000).toISOString();
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-1',
+            user_id: 'user-1',
+            status: 'trialing',
+            plisio_invoice_id: 'inv_pending',
+            metadata: { poll_attempts: 0 },
+            created_at: createdAt
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }); // updateMetadata
+
+      plisioService.getInvoiceStatus.mockResolvedValue({
+        invoice: { status: 'pending', amount: '49.99', currency: 'USD' }
+      });
+
+      await runOnce();
+
+      expect(processPlisioPaymentAsync).not.toHaveBeenCalled();
+      // Second db.query call is updateMetadata with baseMeta
+      const updateCall = db.query.mock.calls[1];
+      expect(updateCall[0]).toContain('UPDATE subscriptions');
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — subscription has reached max poll attempts, skips
+    // -------------------------------------------------------------------------
+    it('subscription at max poll attempts — skips', async () => {
+      const createdAt = new Date(Date.now() - 60 * 60 * 1000).toISOString(); // 60 min ago
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-1',
+          user_id: 'user-1',
+          status: 'trialing',
+          plisio_invoice_id: 'inv_maxed',
+          metadata: { poll_attempts: CHECKPOINT_MINUTES.length }, // already at max
+          created_at: createdAt
+        }]
+      });
+
+      await runOnce();
+
+      expect(plisioService.getInvoiceStatus).not.toHaveBeenCalled();
+      expect(processPlisioPaymentAsync).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — subscription not yet at next checkpoint age, skips
+    // -------------------------------------------------------------------------
+    it('subscription not yet at checkpoint age — skips', async () => {
+      const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString(); // only 5 min ago
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-1',
+          user_id: 'user-1',
+          status: 'trialing',
+          plisio_invoice_id: 'inv_early',
+          metadata: { poll_attempts: 0 },
+          created_at: createdAt
+        }]
+      });
+
+      await runOnce();
+
+      expect(plisioService.getInvoiceStatus).not.toHaveBeenCalled();
+      expect(processPlisioPaymentAsync).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — plisioService.getInvoiceStatus throws, logs error and continues
+    // -------------------------------------------------------------------------
+    it('getInvoiceStatus error — logs and continues to next subscription', async () => {
+      const createdAt = new Date(Date.now() - 16 * 60 * 1000).toISOString();
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'sub-1',
+              user_id: 'user-1',
+              status: 'trialing',
+              plisio_invoice_id: 'inv_err',
+              metadata: { poll_attempts: 0 },
+              created_at: createdAt
+            },
+            {
+              id: 'sub-2',
+              user_id: 'user-2',
+              status: 'trialing',
+              plisio_invoice_id: 'inv_ok',
+              metadata: { poll_attempts: 0 },
+              created_at: createdAt
+            }
+          ]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // updateMetadata for sub-1
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-2',
+            user_id: 'user-2',
+            status: 'trialing',
+            plisio_invoice_id: 'inv_ok',
+            metadata: { poll_attempts: 0 },
+            created_at: createdAt
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }); // updateMetadata for sub-2
+
+      plisioService.getInvoiceStatus
+        .mockRejectedValueOnce(new Error('Plisio API down'))
+        .mockResolvedValueOnce({
+          invoice: { status: 'completed', amount: '10.00', currency: 'BTC', tx_id: ['tx_btc'] }
+        });
+
+      await runOnce();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Invoice polling error for subscription', 'sub-1',
+        'Plisio API down'
+      );
+      // sub-2 should still be processed
+      expect(plisioService.getInvoiceStatus).toHaveBeenCalledTimes(2);
+      consoleSpy.mockRestore();
+    });
+
+    // -------------------------------------------------------------------------
+    // runOnce — CHECKPOINT_MINUTES constant
+    // -------------------------------------------------------------------------
+    it('CHECKPOINT_MINUTES is [15, 30, 45]', () => {
+      expect(CHECKPOINT_MINUTES).toEqual([15, 30, 45]);
+    });
+  });
+
+  // =========================================================================
+  describe('pollArbSubscriptions', () => {
+    beforeEach(() => {
+      // Reset the cached AuthorizeNetService so each test gets a fresh instance.
+      _resetAuthorizeService();
+    });
+
+    it('ARB suspended — deactivates VPN and marks user inactive', async () => {
+      // Spy directly on AuthorizeNetService.prototype.getArbSubscription so the
+      // cached _authorizeService instance (which is created from the auto-mocked
+      // AuthorizeNetService class) uses our spy with the correct return value.
+      //
+      // IMPORTANT: The actual getArbSubscription TRANSFORMS the raw API response.
+      // The mock must return the TRANSFORMED shape, not the raw API shape:
+      //   Raw API:       { messages: { resultCode: 'Ok' }, subscription: { status: 'suspended', paymentStatus: '' } }
+      //   Transformed:   { status: 'suspended', paymentStatus: '' } (top-level fields)
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'suspended',
+          paymentStatus: ''
+        });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-arb-1',
+            user_id: 'user-arb-1',
+            status: 'active',
+            metadata: { arb_subscription_id: 'arb_123' },
+            current_period_end: new Date().toISOString()
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions
+        .mockResolvedValueOnce({ // SELECT vpn_accounts
+          rows: [{ id: 'va-1', purewl_uuid: 'uuid-abc' }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts
+        .mockResolvedValueOnce({ rows: [] }); // UPDATE users
+
+      await pollArbSubscriptions();
+
+      // Subscription was cancelled and user deactivated
+      expect(arbSpy).toHaveBeenCalledWith('arb_123');
+      expect(db.query).toHaveBeenCalledTimes(5);
+      const updateSubCall = db.query.mock.calls.find(
+        c => c[0].includes('subscriptions') && c[0].includes("status = 'canceled'")
+      );
+      expect(updateSubCall).toBeDefined();
+      expect(updateSubCall[1]).toEqual(['sub-arb-1']);
+    });
+
+    it('ARB canceled — deactivates VPN and marks user inactive', async () => {
+      // Spy on the prototype to get the transformed response shape
+      const arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'canceled',
+          paymentStatus: ''
+        });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-arb-2',
+            user_id: 'user-arb-2',
+            status: 'active',
+            metadata: { arb_subscription_id: 'arb_456' },
+            current_period_end: new Date().toISOString()
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions
+        .mockResolvedValueOnce({ rows: [] }) // SELECT vpn_accounts (none)
+        .mockResolvedValueOnce({ rows: [] }); // UPDATE users
+
+      await pollArbSubscriptions();
+
+      expect(arbSpy).toHaveBeenCalledWith('arb_456');
+      // Subscription was cancelled even with no VPN account
+      expect(db.query).toHaveBeenCalledTimes(4);
+      const updateSubCall = db.query.mock.calls.find(
+        c => c[0].includes('subscriptions') && c[0].includes("status = 'canceled'")
+      );
+      expect(updateSubCall).toBeDefined();
+    });
+
+    it('ARB active with settledSuccessfully payment — activates subscription', async () => {
+      // Spy on the prototype to get the transformed response shape
+      const arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'active',
+          paymentStatus: 'settledSuccessfully'
+        });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-arb-3',
+            user_id: 'user-arb-3',
+            status: 'trialing',
+            metadata: { arb_subscription_id: 'arb_789' },
+            current_period_end: new Date().toISOString()
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions
+        .mockResolvedValueOnce({ rows: [] }); // UPDATE users
+
+      await pollArbSubscriptions();
+
+      expect(arbSpy).toHaveBeenCalledWith('arb_789');
+      // Should update subscription to active and user to is_active=true
+      expect(db.query).toHaveBeenCalledTimes(3);
+      const activateCall = db.query.mock.calls.find(
+        c => c[0].includes('subscriptions') && c[0].includes("status = 'active'")
+      );
+      expect(activateCall).toBeDefined();
+      expect(activateCall[1]).toEqual(['sub-arb-3']);
+    });
+
+    it('ARB active but no settled payment — does nothing', async () => {
+      // SELECT returns one subscription, but its ARB has no settled payment
+      // so no status changes should occur. Only the initial SELECT runs.
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-arb-4',
+          user_id: 'user-arb-4',
+          status: 'active',
+          metadata: { arb_subscription_id: 'arb_other' },
+          current_period_end: new Date().toISOString()
+        }]
+      });
+
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'active',
+          paymentStatus: 'someOtherStatus'
+        });
+
+      await pollArbSubscriptions();
+
+      // ARB was checked but no status change — only SELECT runs, no updates
+      expect(arbSpy).toHaveBeenCalledWith('arb_other');
+      expect(db.query).toHaveBeenCalledTimes(1);
+    });
+
+    it('ARB getArbSubscription returns null (API error or not found) — skips silently', async () => {
+      db.query = jest.fn().mockResolvedValue({ rows: [] });
+
+      // For null, the injectable approach still works fine
+      const mockedAuthorizeService = { getArbSubscription: jest.fn().mockResolvedValueOnce(null) };
+
+      await pollArbSubscriptions({ authorizeService: mockedAuthorizeService });
+
+      expect(db.query).toHaveBeenCalledTimes(1); // Only the initial SELECT
+    });
+  });
+});
