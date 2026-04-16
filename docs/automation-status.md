@@ -28,6 +28,7 @@
 | 22 | ~~dashboard.jsx decomposition~~ | **DONE** — affiliate-dashboard.jsx (a70c98b) |
 | 23 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
 | 24 | vpnResellersService unit tests (16 tests, 100% line coverage) | **DONE** (commit c7a243b) |
+| 25 | ziptaxService unit tests (13 tests, 100% line coverage) | **DONE** (commit 938660d) |
 
 ---
 
@@ -84,7 +85,8 @@
 
 ## Notes for William
 
-- **Backend test suite now 75 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
+- **Backend test suite now 89 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService tests. All passing.
+- **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
 - **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
