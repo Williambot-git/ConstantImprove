@@ -36,6 +36,7 @@
 | 37 | emailService coverage improvement (100% line coverage — added missing email function tests) | **DONE** (commit fb63ef4) |
 | 38 | userService coverage improvement (100% line coverage — one unreachable default case in plan interval switch) | **DONE** |
 | 39 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
+| 40 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
 
 ---
 
@@ -94,7 +95,7 @@
 
 ## Notes for William
 
-- **Backend test suite now 175 tests**: 29 userService + 14 emailService + 10 promoService + 11 cleanupService + 16 vpnResellersService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController + 17 exportService tests. All passing.
+- **Backend test suite now 184 tests**: 29 userService + 14 emailService + 19 promoService + 11 cleanupService + 16 vpnResellersService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController + 17 exportService tests. All passing.
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
@@ -155,4 +156,4 @@ bb646c2 feat(frontend): extract PlanSelector component from checkout
 0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T20:10:00Z*
+*Last updated: 2026-04-16T20:25:00Z*
