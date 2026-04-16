@@ -17,6 +17,7 @@
 | 11 | Wire Jest test runner + clear frontend img warnings | **DONE** (commit 03c8298) |
 | 12 | Backend test coverage expansion (userService + emailService) | **DONE** (commits 7642d8f, 76688e7) |
 | 13 | Remove 21 orphaned check_*.js diagnostic scripts | **DONE** (commit f12f78d) |
+| 14 | cleanupService unit tests + vpnAccountScheduler bugfix | **DONE** (commits ce618da, ab5793f) |
 
 ---
 
@@ -59,7 +60,9 @@
 
 ## Notes for William
 
-- **Backend test suite now 48 tests**: 29 userService tests + 9 emailService tests + 10 promoService tests. All passing.
+- **Backend test suite now 59 tests**: 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
+- **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
+- **vpnAccountScheduler bug fixed**: Was calling `deactivateAccount({ account_id })` which doesn't exist — replaced with `disableAccount(accountId)` (matches vpnResellersService.js API)
 - **userService at 98% line coverage** (only untested: expiry date warning log in createVpnAccount)
 - **emailService at 81% line coverage** (untested: sendSubscriptionExpiringEmail, sendSubscriptionCancelledEmail, sendAccountCreatedEmail — require template files)
 - **Jest wired up**: `npm test` in backend runs Jest with coverage. All 48 tests pass.
@@ -81,20 +84,22 @@
 ## Recent Commits (from this session)
 
 ```
+ab5793f test: add cleanupService unit tests — 11 tests, 100% line coverage
+ce618da fix: vpnAccountScheduler use disableAccount() instead of non-existent deactivateAccount()
 f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
 76688e7 test: add emailService unit tests with mocked nodemailer
 7642d8f test: add userService unit tests with mocked DB and VPN service
-05ebeb9 docs: update automation status — Jest wired up, img warnings cleared
 ```
 
 ## All Commits This Session (chronological)
 
 ```
+ab5793f test: add cleanupService unit tests — 11 tests, 100% line coverage
+ce618da fix: vpnAccountScheduler use disableAccount() instead of non-existent deactivateAccount()
 f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
 76688e7 test: add emailService unit tests with mocked nodemailer
 7642d8f test: add userService unit tests with mocked DB and VPN service
-05ebeb9 docs: update automation status — Jest wired up, img warnings cleared
-03c8298 fix: wire up Jest test runner and clear 3 frontend img warnings
+```
 b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
 ```
 
