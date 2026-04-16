@@ -24,6 +24,8 @@
 | 18 | Clean outdated script references in placeholder-config.js | **DONE** (commit 84b4403) |
 | 19 | Checkout page decomposition — extract PlanSelector, CryptoSelector, PaymentMethodSelector | **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8) |
 | 20 | Checkout flow integration test | **DONE** (commit 92ef4d8) |
+| 21 | Ahoyman dashboard decomposition (5 tabs + tests + integration) | **DONE** (commit b3afed5) |
+| 22 | ~~dashboard.jsx decomposition~~ | Pending — same pattern as ahoyman-dashboard |
 
 ---
 
@@ -69,13 +71,15 @@
    - checkout.jsx: 1139 lines (down from 1161 — net -22 lines after wiring components)
    - 3 new components in `frontend/components/checkout/` with unit tests
    - 5 integration tests in `frontend/tests/checkout-flow.test.jsx`
-7. **Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and dashboard.jsx (659 lines) — similar pattern to checkout decomposition
+7. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and dashboard.jsx (659 lines) — similar pattern to checkout decomposition~~ — **AHoyMan DONE** (b3afed5), dashboard.jsx pending
 
 ---
 
 ## Notes for William
 
-- **Frontend test suite now 33 tests**: 3 smoke tests + 30 Layout component tests. All passing.
+- **Frontend test suite now 100 tests**: 12 suites, all passing. New: 9 ahoyman-dashboard integration tests + 10 tab component tests (AffiliatesTab 10, PayoutsTab 8, SalesTaxTab 7, SettingsTab 9, CodesTab tested via integration).
+- **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
+- **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
 - **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
 - **Layout component tested**: auth-state navigation (logged-out/customer/affiliate/admin), footer links, floating support button, logo href, copyright
 - **Key gotcha discovered during setup**: `@testing-library/jest-dom` matchers (toBeInTheDocument, toHaveAttribute) are NOT global — must be explicitly imported per test file. This caused initial test failures.
@@ -105,17 +109,25 @@
 ## Recent Commits (from this session)
 
 ```
-92ef4d8 test(frontend): add checkout flow integration test
-9c3acc5 refactor(frontend): wire extracted checkout components into checkout.jsx
-77499e4 feat(frontend): extract PaymentMethodSelector component from checkout
-f08c69d feat(frontend): extract CryptoSelector component from checkout
-bb646c2 feat(frontend): extract PlanSelector component from checkout
-22e09dd docs: update automation status — task 16-18 complete
+b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
+646fc1a feat(frontend): add CodesTab test
+33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
+a663118 feat(frontend): extract PayoutsTab from ahoyman-dashboard
+d1cd66e feat(frontend): extract AffiliatesTab from ahoyman-dashboard
+d22813d chore(frontend): add @testing-library/user-event for RTL interaction tests
+1e5f709 docs: update automation status — checkout decomposition complete (tasks 19-20)
 ```
 
 ## All Commits This Session (chronological)
 
 ```
+b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
+646fc1a feat(frontend): add CodesTab test
+33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
+a663118 feat(frontend): extract PayoutsTab from ahoyman-dashboard
+d1cd66e feat(frontend): extract AffiliatesTab from ahoyman-dashboard
+d22813d chore(frontend): add @testing-library/user-event for RTL interaction tests
+1e5f709 docs: update automation status — checkout decomposition complete (tasks 19-20)
 92ef4d8 test(frontend): add checkout flow integration test
 9c3acc5 refactor(frontend): wire extracted checkout components into checkout.jsx
 77499e4 feat(frontend): extract PaymentMethodSelector component from checkout
@@ -126,7 +138,7 @@ bb646c2 feat(frontend): extract PlanSelector component from checkout
 0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T15:15:00Z*
+*Last updated: 2026-04-16T16:45:00Z*
 
 ---
 
