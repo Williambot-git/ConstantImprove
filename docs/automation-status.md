@@ -39,6 +39,7 @@
 | 40 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
 | 41 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
 | 42 | Consolidate duplicate AuthorizeNetService class — single canonical class in authorizeNetUtils.js, removed 765-line inline duplicate from paymentController.js | **DONE** (commit 6465fdd) |
+| 43 | paymentProcessingService unit tests (10 tests, 96.82% line coverage — covers invoice resolution, VPN activation, email, commission, tax, error handling) | **DONE** (commit 2924be3) |
 
 ---
 
@@ -75,6 +76,7 @@
    - ~~subscriptionController~~ — **DONE** (30 tests, 84.6% line coverage)
    - **paymentController routes** (requires supertest — good next target)
    - **cleanupService** (6 cleanup functions — straightforward unit tests)
+   - ~~**paymentProcessingService**~~ — **DONE** (10 tests, 96.82% line coverage)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
 3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
 4. ~~**Frontend Jest + RTL scaffolding**~~ — **DONE** (commits 327a251, c4ecbdd)
@@ -97,6 +99,9 @@
 
 ## Notes for William
 
+- **paymentProcessingService at 96.82% line coverage** (10 tests: invoice not found, happy path with all side effects, switched invoice chain resolution, promo code marking, affiliate commission, tax transaction recording, Plisio API amount resolution, non-blocking tax failure, missing email skip, paid_id fallback)
+- **Full backend test suite: 207 tests passing** (was 197): 10 new paymentProcessingService tests
+- **Key call-sequence discovery**: `createVpnAccount()` in `processPlisioPaymentAsync` is an external service call, NOT a DB query. The actual DB call sequence is: SELECT sub → UPDATE status → SELECT email → INSERT payment (4 calls). VPN creation happens between UPDATE status and SELECT email. This caught 3 failing tests that had wrong mock chain lengths.
 - **invoicePollingService at 97.26% line coverage** (13 tests covering all scenarios: no subscriptions, invoice completed, cancelled_duplicate with activeInvoiceId, pending invoice, max poll attempts, checkpoint age skip, getInvoiceStatus error, ARB suspended/canceled/active/settled/null)
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
@@ -133,19 +138,17 @@
 ## Recent Commits (from this session)
 
 ```
+2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
 bef2373 test(backend): fix invoicePollingService test — add missing subscription row and remove debug console.logs
 f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
-800369f test(backend): improve promoService coverage from 73% to 97.95% (9 new tests)
 ```
 
 ## All Commits This Session (chronological)
 
 ```
+2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
 bef2373 test(backend): fix invoicePollingService test — add missing subscription row
 f6fc8b2 docs: update automation status — task 40 complete (promoService coverage)
-800369f test(backend): improve promoService coverage from 73% to 97.95% (9 new tests)
-f769537 docs: update automation status — task 39 complete (exportService tests)
-8f54957 test(backend): add exportService unit tests
 ```
 
 *Last updated: 2026-04-16T21:20:00Z*
