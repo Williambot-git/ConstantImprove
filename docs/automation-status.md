@@ -38,6 +38,7 @@
 | 39 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
 | 40 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
 | 41 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
+| 42 | Consolidate duplicate AuthorizeNetService class — single canonical class in authorizeNetUtils.js, removed 765-line inline duplicate from paymentController.js | **DONE** (commit TBD) |
 
 ---
 
