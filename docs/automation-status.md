@@ -14,6 +14,7 @@
 | 8 | VPN controller stubs + dead code removal | **DONE** (commits 671e5ac, 8d71d0a) |
 | 9 | Frontend lint errors fixed (<a> → <Link>) | **DONE** (commit 945bc04) |
 | 10 | Dead code cleanup (3 Python scripts + roleMiddleware.js) | **DONE** (commit b2186cd) |
+| 11 | Wire Jest test runner + clear frontend img warnings | **DONE** (commit 03c8298) |
 
 ---
 
@@ -44,18 +45,19 @@
    - emailService (requires SMTP stub/mock)
    - paymentController routes (requires supertest)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
-   - `authMiddleware.js` deleted — all routes now use `authMiddleware_new.js`
-   - Dual-import pattern eliminated from 4 routes
-   - `allowInactive` replaced with `protect` (functionally identical — neither checks `is_active`)
-   - roleMiddleware.js migrated (though file is unused — consider removal separately)
-3. **Frontend img → next/image**: 3 warnings remain (Layout.jsx, _app.jsx, checkout.jsx). Low priority — requires more involved refactor.
+3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
+   - Layout.jsx logo: properly converted to `<Image>` with width/height
+   - _app.jsx loading spinner: eslint-disable (pre-hydration, no Next.js context)
+   - checkout.jsx QR code: eslint-disable (dynamic data: URI, next/image doesn't support)
 4. **Frontend test scaffolding**: Like backend, frontend could benefit from Jest + React Testing Library setup.
-5. ~~**roleMiddleware.js cleanup**~~ — **DONE** (commit b2186cd) — 38-line file was never imported anywhere; removed along with 3 abandoned Python migration scripts (`fix_admin_routes3.py`, `fix_requirerole.py`, `fix_auth_middleware.py`) that pointed to a different machine's path.
+5. ~~**roleMiddleware.js cleanup**~~ — **DONE** (commit b2186cd)
 
 ---
 
 ## Notes for William
 
+- **Jest now wired up**: `npm test` in backend runs Jest with coverage. 10/10 promoService tests pass.
+- **Frontend lint clean**: 0 errors, 0 warnings (was 3 `<img>` warnings). Remaining advisory is a harmless `type: module` module-format suggestion in package.json (low priority, non-blocking).
 - **VPN controller now functional** (commits 671e5ac, 8d71d0a):
   - `GET /api/vpn/servers` → returns mock server list (development/testing)
   - `GET /api/vpn/config/wireguard` → generates WireGuard config from user's vpn_accounts row + vpnResellersService.getAccount()
@@ -73,6 +75,7 @@
 ## Recent Commits (from this session)
 
 ```
+03c8298 fix: wire up Jest test runner and clear 3 frontend img warnings
 b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
 945bc04 fix: replace <a> with <Link> in 4 pages (Next.js lint errors)
 671e5ac feat(vpn): replace 501 stubs with mock servers + config generation
@@ -85,6 +88,7 @@ b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.
 ## All Commits This Session (chronological)
 
 ```
+03c8298 fix: wire up Jest test runner and clear 3 frontend img warnings
 b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
 1c8e12f docs: mark auth-middleware-audit as resolved
 6b21030 docs: update automation status — auth middleware consolidation complete
@@ -108,4 +112,4 @@ a975294 feat(tests): add Jest infrastructure for backend testing
 
 ---
 
-*Last updated: 2026-04-16T13:05:00Z*
+*Last updated: 2026-04-16T13:20:00Z*
