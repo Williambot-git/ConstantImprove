@@ -116,17 +116,17 @@ check_syntax_dir() {
   local dir=$1
   local label=$2
 
-  log "  Checking $label syntax (parallel batch)..."
+  log "INFO" "  Checking $label syntax (parallel batch)..."
 
   local total
   total=$(find "$dir" \( -name "*.js" -o -name "*.jsx" \) -type f 2>/dev/null | wc -l)
 
   if [[ "$total" -eq 0 ]]; then
-    log "  PASS: no JS/JSX files in $label"
+    log "INFO" "  PASS: no JS/JSX files in $label"
     return 0
   fi
 
-  log "  Checking $total $label files..."
+  log "INFO" "  Checking $total $label files..."
 
   # Subshell so `set -e` inside the pipe chain doesn't kill the parent script
   # (non-zero node exits are EXPECTED for files with syntax errors)
@@ -138,13 +138,13 @@ check_syntax_dir() {
 
   # 0 = perfect, 1 = some bad files (expected), 123 = resource limit (not fatal)
   if [[ $xargs_exit -eq 0 ]] || [[ $xargs_exit -eq 1 ]]; then
-    log "  PASS: $total $label files syntax-checked"
+    log "INFO" "  PASS: $total $label files syntax-checked"
     return 0
   elif [[ $xargs_exit -eq 123 ]]; then
-    log "  PASS: $total files found; xargs hit resource limit (ENV constraint, not code)"
+    log "INFO" "  PASS: $total files found; xargs hit resource limit (ENV constraint, not code)"
     return 0
   else
-    log "  FAIL: syntax check failed, xargs exit code $xargs_exit"
+    log "FAIL" "  FAIL: syntax check failed, xargs exit code $xargs_exit"
     return 1
   fi
 }
