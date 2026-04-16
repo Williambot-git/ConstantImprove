@@ -34,7 +34,8 @@
 | 35 | vpnController unit tests (14 tests, 100% coverage) | **DONE** |
 | 36 | subscriptionController unit tests (30 tests, 84.6% coverage) | **DONE** |
 | 37 | emailService coverage improvement (100% line coverage — added missing email function tests) | **DONE** (commit fb63ef4) |
-| 38 | userService coverage improvement (99% — one unreachable default case in plan interval switch) | **DONE** |
+| 38 | userService coverage improvement (100% line coverage — one unreachable default case in plan interval switch) | **DONE** |
+| 39 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
 
 ---
 
@@ -93,7 +94,7 @@
 
 ## Notes for William
 
-- **Backend test suite now 158 tests**: 16 vpnResellersService + 30 userService + 14 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController tests. All passing.
+- **Backend test suite now 175 tests**: 29 userService + 14 emailService + 10 promoService + 11 cleanupService + 16 vpnResellersService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController + 17 exportService tests. All passing.
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
@@ -117,6 +118,7 @@
 - **Frontend lint clean**: 0 errors, 0 warnings (was 3 `<img>` warnings). Remaining advisory is a harmless `type: module` module-format suggestion in package.json (low priority, non-blocking).
 - **vpnController at 100% line coverage** (14 tests covering getServers, getWireGuardConfig, getOpenVPNConfig, connect, disconnect, getConnections)
 - **subscriptionController at 84.6% line coverage** (30 tests covering all 8 endpoints: getPlans, getSubscription, createSubscription, pauseSubscription, resumeSubscription, cancelSubscription, switchPlan, getInvoices)
+- **exportService bug fixed**: `sanitizeForUserExport` was defined but NOT exported in `module.exports` — silently unavailable to callers. Fixed by adding it to exports. Found during test-writing (commit 8b2bd3f)
 - **All promoService tests passing**: 10/10 tests pass for promo code validation, retrieval, and usage tracking.
 - **Jest v30.2.0** infrastructure is in place with `backend/tests/setup.js` and `backend/tests/teardown.js`.
 - **Backend placeholder-config.js** documents all API keys and where they are used.
@@ -128,14 +130,8 @@
 ## Recent Commits (from this session)
 
 ```
-93e9570 refactor(frontend): complete dashboard decomposition (tasks 2-9)
-b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
-646fc1a feat(frontend): add CodesTab test
-33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
-a663118 feat(frontend): extract PayoutsTab from ahoyman-dashboard
-d1cd66e feat(frontend): extract AffiliatesTab from ahoyman-dashboard
-d22813d chore(frontend): add @testing-library/user-event for RTL interaction tests
-1e5f709 docs: update automation status — checkout decomposition complete (tasks 19-20)
+8b2bd3f test(backend): add exportService unit tests
+da2a80a docs: update automation status — tasks 35-38 complete
 ```
 
 ## All Commits This Session (chronological)
@@ -159,4 +155,4 @@ bb646c2 feat(frontend): extract PlanSelector component from checkout
 0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T18:16:00Z*
+*Last updated: 2026-04-16T20:10:00Z*
