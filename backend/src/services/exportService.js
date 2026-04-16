@@ -45,6 +45,11 @@ const BLOCKED_EXPORT_PATTERNS = [
   /^ip$/i
 ];
 
+/** @type {Set<string>} */
+const BLOCKED_FIELDS = BLOCKED_EXPORT_FIELDS;
+/** @type {Array<RegExp>} */
+const BLOCKED_PATTERNS = BLOCKED_EXPORT_PATTERNS;
+
 const sanitizeForUserExport = (value) => {
   if (Array.isArray(value)) {
     return value
@@ -204,6 +209,7 @@ const redactSensitiveFields = (data) => {
 };
 
 module.exports = {
+  sanitizeForUserExport,
   gatherUserData,
   redactSensitiveFields,
 };
