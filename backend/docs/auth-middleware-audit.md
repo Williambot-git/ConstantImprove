@@ -1,5 +1,9 @@
 # Auth Middleware Audit
 
+> **Status:** ✅ RESOLVED — `authMiddleware.js` deleted, all routes consolidated onto `authMiddleware_new.js`
+
+## Resolution Summary (2026-04-16)
+
 ## 1. Overview of Both Middleware Files
 
 ### authMiddleware.js (Original)
