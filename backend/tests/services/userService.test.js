@@ -345,6 +345,31 @@ describe('userService', () => {
       expect(result.username).toBe('user_12345');
       expect(result.accountId).toBe('vpn-account-789');
     });
+
+    it('should handle checkUsername failure gracefully by using timestamp suffix', async () => {
+      const mockUser = { id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 };
+      const mockVpnResponse = { data: { id: 'vpn-account-err', allowed_countries: ['US'] } };
+      const mockDbResult = {
+        rows: [{
+          id: 'db-vpn-uuid-err',
+          user_id: 'user-uuid-1',
+          purewl_username: expect.stringContaining('user_12345_'),
+          purewl_password: expect.any(String),
+          purewl_uuid: 'vpn-account-err',
+          status: 'active'
+        }]
+      };
+
+      User.findById.mockResolvedValueOnce(mockUser);
+      mockCheckUsername.mockRejectedValueOnce(new Error('Network error'));
+      mockCreateAccount.mockResolvedValueOnce(mockVpnResponse);
+      db.query.mockResolvedValueOnce(mockDbResult);
+
+      const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month');
+
+      expect(result.username).toMatch(/^user_12345_\d{4}$/);
+      expect(result.accountId).toBe('vpn-account-err');
+    });
   });
 
   describe('createSubscription', () => {
