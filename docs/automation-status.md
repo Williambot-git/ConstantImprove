@@ -31,6 +31,10 @@
 | 25 | ziptaxService unit tests (13 tests, 100% line coverage) | **DONE** (commit 938660d) |
 | 26 | plisioService unit tests (9 tests, 96.7% line coverage) | **DONE** (commit 04c9271) |
 | 27 | vpnAccountScheduler unit tests (10 tests, 92.1% line coverage) | **DONE** (commit 04c9271) |
+| 35 | vpnController unit tests (14 tests, 100% coverage) | **DONE** |
+| 36 | subscriptionController unit tests (30 tests, 84.6% coverage) | **DONE** |
+| 37 | emailService coverage improvement (100% line coverage — added missing email function tests) | **DONE** (commit fb63ef4) |
+| 38 | userService coverage improvement (99% — one unreachable default case in plan interval switch) | **DONE** |
 
 ---
 
@@ -61,8 +65,10 @@
 ## Priority Queue
 
 1. **Backend test coverage expansion**: ~~promoService has 10 passing tests. Next candidates:~~
-   - ~~userService~~ — **DONE** (29 tests, 98% line coverage)
-   - ~~emailService~~ — **DONE** (9 tests, 81% line coverage)
+   - ~~userService~~ — **DONE** (29 tests, 99% line coverage — 1 unreachable default case)
+   - ~~emailService~~ — **DONE** (14 tests, 100% line coverage)
+   - ~~vpnController~~ — **DONE** (14 tests, 100% line coverage)
+   - ~~subscriptionController~~ — **DONE** (30 tests, 84.6% line coverage)
    - **paymentController routes** (requires supertest — good next target)
    - **cleanupService** (6 cleanup functions — straightforward unit tests)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
@@ -87,7 +93,7 @@
 
 ## Notes for William
 
-- **Backend test suite now 108 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler tests. All passing.
+- **Backend test suite now 158 tests**: 16 vpnResellersService + 30 userService + 14 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler + 14 vpnController + 30 subscriptionController tests. All passing.
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
@@ -105,16 +111,12 @@
 - **Backend test suite: 59 tests** (unchanged from previous session): 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
 - **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
 - **vpnAccountScheduler bug fixed**: Was calling `deactivateAccount({ account_id })` which doesn't exist — replaced with `disableAccount(accountId)` (matches vpnResellersService.js API)
-- **userService at 98% line coverage** (only untested: expiry date warning log in createVpnAccount)
-- **emailService at 81% line coverage** (untested: sendSubscriptionExpiringEmail, sendSubscriptionCancelledEmail, sendAccountCreatedEmail — require template files)
+- **userService at 99% line coverage** (30 tests — 1 unreachable default case in plan interval switch)
+- **emailService at 100% line coverage** (14 tests covering all email functions including sendSubscriptionExpiringEmail, sendSubscriptionCancelledEmail, sendAccountCreatedEmail)
 - **Jest wired up**: `npm test` in backend runs Jest with coverage. All 48 tests pass.
 - **Frontend lint clean**: 0 errors, 0 warnings (was 3 `<img>` warnings). Remaining advisory is a harmless `type: module` module-format suggestion in package.json (low priority, non-blocking).
-- **VPN controller now functional** (commits 671e5ac, 8d71d0a):
-  - `GET /api/vpn/servers` → returns mock server list (development/testing)
-  - `GET /api/vpn/config/wireguard` → generates WireGuard config from user's vpn_accounts row + vpnResellersService.getAccount()
-  - `GET /api/vpn/config/openvpn` → same pattern, .ovpn format
-  - Config endpoints return 404 if user has no VPN account (guides them to complete payment first)
-  - connect/disconnect/getConnections remain 501 — daemon integration needed (these track active VPN connections server-side)
+- **vpnController at 100% line coverage** (14 tests covering getServers, getWireGuardConfig, getOpenVPNConfig, connect, disconnect, getConnections)
+- **subscriptionController at 84.6% line coverage** (30 tests covering all 8 endpoints: getPlans, getSubscription, createSubscription, pauseSubscription, resumeSubscription, cancelSubscription, switchPlan, getInvoices)
 - **All promoService tests passing**: 10/10 tests pass for promo code validation, retrieval, and usage tracking.
 - **Jest v30.2.0** infrastructure is in place with `backend/tests/setup.js` and `backend/tests/teardown.js`.
 - **Backend placeholder-config.js** documents all API keys and where they are used.
