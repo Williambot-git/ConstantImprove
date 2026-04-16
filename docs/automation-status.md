@@ -15,6 +15,8 @@
 | 9 | Frontend lint errors fixed (<a> → <Link>) | **DONE** (commit 945bc04) |
 | 10 | Dead code cleanup (3 Python scripts + roleMiddleware.js) | **DONE** (commit b2186cd) |
 | 11 | Wire Jest test runner + clear frontend img warnings | **DONE** (commit 03c8298) |
+| 12 | Backend test coverage expansion (userService + emailService) | **DONE** (commits 7642d8f, 76688e7) |
+| 13 | Remove 21 orphaned check_*.js diagnostic scripts | **DONE** (commit f12f78d) |
 
 ---
 
@@ -40,10 +42,11 @@
 
 ## Priority Queue
 
-1. **Backend test coverage expansion**: promoService has 10 passing tests. Next candidates:
-   - userService (complex, many DB queries — good integration test targets)
-   - emailService (requires SMTP stub/mock)
-   - paymentController routes (requires supertest)
+1. **Backend test coverage expansion**: ~~promoService has 10 passing tests. Next candidates:~~
+   - ~~userService~~ — **DONE** (29 tests, 98% line coverage)
+   - ~~emailService~~ — **DONE** (9 tests, 81% line coverage)
+   - **paymentController routes** (requires supertest — good next target)
+   - **cleanupService** (6 cleanup functions — straightforward unit tests)
 2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
 3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
    - Layout.jsx logo: properly converted to `<Image>` with width/height
@@ -56,7 +59,10 @@
 
 ## Notes for William
 
-- **Jest now wired up**: `npm test` in backend runs Jest with coverage. 10/10 promoService tests pass.
+- **Backend test suite now 48 tests**: 29 userService tests + 9 emailService tests + 10 promoService tests. All passing.
+- **userService at 98% line coverage** (only untested: expiry date warning log in createVpnAccount)
+- **emailService at 81% line coverage** (untested: sendSubscriptionExpiringEmail, sendSubscriptionCancelledEmail, sendAccountCreatedEmail — require template files)
+- **Jest wired up**: `npm test` in backend runs Jest with coverage. All 48 tests pass.
 - **Frontend lint clean**: 0 errors, 0 warnings (was 3 `<img>` warnings). Remaining advisory is a harmless `type: module` module-format suggestion in package.json (low priority, non-blocking).
 - **VPN controller now functional** (commits 671e5ac, 8d71d0a):
   - `GET /api/vpn/servers` → returns mock server list (development/testing)
@@ -66,50 +72,32 @@
   - connect/disconnect/getConnections remain 501 — daemon integration needed (these track active VPN connections server-side)
 - **All promoService tests passing**: 10/10 tests pass for promo code validation, retrieval, and usage tracking.
 - **Jest v30.2.0** infrastructure is in place with `backend/tests/setup.js` and `backend/tests/teardown.js`.
-- **Frontend lint clean**: 4 errors fixed (all `<a>` → `<Link>`). Only 3 warnings remain (img → next/image suggestions).
 - **Backend placeholder-config.js** documents all API keys and where they are used.
 - **Frontend placeholder-config.js** documents all frontend API URLs and payment processor redirects.
+- **Orphaned diagnostic scripts removed**: 21 `check_*.js` files removed (never imported in src/, were one-off DB query scripts)
 
 ---
 
 ## Recent Commits (from this session)
 
 ```
-03c8298 fix: wire up Jest test runner and clear 3 frontend img warnings
-b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
-945bc04 fix: replace <a> with <Link> in 4 pages (Next.js lint errors)
-671e5ac feat(vpn): replace 501 stubs with mock servers + config generation
-8d71d0a cleanup: remove dead VPNResellersService inline class from paymentController
-5db87af docs: add VPN controller stub refactor plan
+f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
+76688e7 test: add emailService unit tests with mocked nodemailer
+7642d8f test: add userService unit tests with mocked DB and VPN service
+05ebeb9 docs: update automation status — Jest wired up, img warnings cleared
 ```
-
----
 
 ## All Commits This Session (chronological)
 
 ```
+f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
+76688e7 test: add emailService unit tests with mocked nodemailer
+7642d8f test: add userService unit tests with mocked DB and VPN service
+05ebeb9 docs: update automation status — Jest wired up, img warnings cleared
 03c8298 fix: wire up Jest test runner and clear 3 frontend img warnings
 b2186cd cleanup: remove dead Python migration scripts and unused roleMiddleware.js
-1c8e12f docs: mark auth-middleware-audit as resolved
-6b21030 docs: update automation status — auth middleware consolidation complete
-d4716f7 feat(lint): add ESLint flat config for backend
-4b73723 refactor(auth): remove deprecated authMiddleware.js after full migration
-0c383ed refactor(auth): consolidate onto authMiddleware_new — remove all authMiddleware.js imports
-845159a docs: update automation status — VPN stubs fixed, dead code removed, lint clean
-8d71d0a cleanup: remove dead VPNResellersService inline class from paymentController
-671e5ac feat(vpn): replace 501 stubs with mock servers + config generation
-5db87af docs: add VPN controller stub refactor plan
-945bc04 fix: replace <a> with <Link> in 4 pages (Next.js lint errors)
-73b1e8e docs: update automation status with authorizeNetUtils fix and VPN investigation findings
-211b382 fix: replace malformed Authorize.net URL placeholder with valid endpoint
-38a4926 fix: add missing log level args in check_syntax_dir (set -u fix)
-c0e8391 perf: parallel xargs syntax check — frontend 10k+ files no longer timeout
-b9d8099 feat: add test scaffolding, config consolidation, and auth audit
-a924889 cleanup: remove duplicate promo test scripts
-a975294 feat(tests): add Jest infrastructure for backend testing
-75efb21 feat(config): add placeholder config consolidation file
 ```
 
 ---
 
-*Last updated: 2026-04-16T13:20:00Z*
+*Last updated: 2026-04-16T13:50:00Z*
