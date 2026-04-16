@@ -29,6 +29,8 @@
 | 23 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
 | 24 | vpnResellersService unit tests (16 tests, 100% line coverage) | **DONE** (commit c7a243b) |
 | 25 | ziptaxService unit tests (13 tests, 100% line coverage) | **DONE** (commit 938660d) |
+| 26 | plisioService unit tests (9 tests, 96.7% line coverage) | **DONE** (commit 04c9271) |
+| 27 | vpnAccountScheduler unit tests (10 tests, 92.1% line coverage) | **DONE** (commit 04c9271) |
 
 ---
 
@@ -85,10 +87,14 @@
 
 ## Notes for William
 
-- **Backend test suite now 89 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService tests. All passing.
+- **Backend test suite now 108 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService + 14 ziptaxService + 9 plisioService + 10 vpnAccountScheduler tests. All passing.
 - **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
 - **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
-- **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
+- **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
+- **vpnAccountScheduler at 92.1% line coverage** (10 tests covering all 4 cleanup functions)
+- **Key mocking discovery for Jest 30**: `jest.mock('axios')` without a factory returns a module where `axios.get` is a bare function with no `.mockResolvedValue()`. Fix: create `__mocks__/axios.js` manual mock with `module.exports = { get: jest.fn() }`. Then `jest.mock('axios')` uses it automatically and `require('axios').get.mockResolvedValue(...)` works correctly.
+- **Another axios mocking issue**: `jest.mock('axios', () => jest.fn())` makes `axios` itself a bare jest mock fn, so `axios.get(url)` throws "axios.get is not a function". Always mock axios as `{ get: jest.fn() }`.
+- **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
 - **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
 - **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
 - **Layout component tested**: auth-state navigation (logged-out/customer/affiliate/admin), footer links, floating support button, logo href, copyright
