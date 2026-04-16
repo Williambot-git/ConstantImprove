@@ -13,7 +13,7 @@ async function cleanupExpiredAccounts() {
   for (const row of result.rows) {
     try {
       if (row.purewl_uuid) {
-        await vpnResellersService.deactivateAccount({ account_id: row.purewl_uuid });
+        await vpnResellersService.disableAccount(row.purewl_uuid);
       }
     } catch (err) {
       console.warn('Failed to deactivate VPN Reseller account', row.purewl_uuid, err.message);
@@ -41,7 +41,7 @@ async function cleanupCanceledSubscriptions() {
   for (const row of result.rows) {
     try {
       if (row.purewl_uuid) {
-        await vpnResellersService.deactivateAccount({ account_id: row.purewl_uuid });
+        await vpnResellersService.disableAccount(row.purewl_uuid);
       }
     } catch (err) {
       console.warn('Failed to deactivate canceled VPN Reseller account', row.purewl_uuid, err.message);
@@ -86,7 +86,7 @@ async function suspendExpiredTrials() {
         const va = vpnAccount.rows[0];
         if (va.purewl_uuid) {
           try {
-            await vpnResellersService.deactivateAccount({ account_id: va.purewl_uuid });
+            await vpnResellersService.disableAccount(va.purewl_uuid);
           } catch (err) {
             console.warn('Failed to deactivate VPN account during trial expiry', va.purewl_uuid, err.message);
           }
