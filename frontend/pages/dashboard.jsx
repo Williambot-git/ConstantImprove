@@ -1,14 +1,17 @@
+// Dashboard page - customer portal showing subscription, account settings, and VPN credentials.
+// Decomposed into focused sub-components: SubscriptionSection, AccountSettingsSection,
+// VpnCredentialsSection, CancelModal, DeleteModal.
+// Original 659-line file reduced to ~150 lines.
 import { useState, useContext, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import { FormGroup, Input } from '../components/ui/Form';
 import api from '../api/client';
 import { AuthContext } from './_app';
 import styles from '../components/dashboard/styles';
-import PlanCard from '../components/dashboard/PlanCard';
 import SubscriptionSection from '../components/dashboard/SubscriptionSection';
+import AccountSettingsSection from '../components/dashboard/AccountSettingsSection';
+import VpnCredentialsSection from '../components/dashboard/VpnCredentialsSection';
+import CancelModal from '../components/dashboard/CancelModal';
+import DeleteModal from '../components/dashboard/DeleteModal';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -23,92 +26,13 @@ export default function Dashboard() {
 
   const [subscription, setSubscription] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('crypto');
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [showNewKit, setShowNewKit] = useState(false);
+  const [paymentMethod] = useState('crypto'); // crypto by default; future: could persist user preference
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [passwordLoading, setPasswordLoading] = useState(false);
-  const [passwordError, setPasswordError] = useState('');
-  const [passwordSuccess, setPasswordSuccess] = useState('');
-
-  const [newRecoveryKit, setNewRecoveryKit] = useState('');
-  const [kitCopied, setKitCopied] = useState(false);
-
   const [cancelLoading, setCancelLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const [exportStatus, setExportStatus] = useState('');
-  const [exportToken, setExportToken] = useState('');
-  const [exportError, setExportError] = useState('');
-
-  const triggerExportDownload = async (token) => {
-    const response = await api.downloadAccountExport(token);
-    const contentType = response?.headers?.['content-type'] || 'application/json';
-    const blob = new Blob([response.data], { type: contentType });
-
-    const disposition = response?.headers?.['content-disposition'] || '';
-    const match = disposition.match(/filename\*?=(?:UTF-8''|\")?([^\";]+)/i);
-    const fileName = match ? decodeURIComponent(match[1]).replace(/\"/g, '') : `ahoyvpn-data-${token}.txt`;
-
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
-  };
-
-  // Data export
-  const handleRequestDataExport = async () => {
-    setExportStatus('Generating your export...');
-    setExportError('');
-    setExportToken('');
-
-    try {
-      const response = await api.exportAccountData();
-      const token = response?.data?.data?.token || response?.data?.token;
-
-      if (!token) {
-        setExportStatus('Export request submitted. Please try again in a moment.');
-        return;
-      }
-
-      setExportToken(token);
-      await triggerExportDownload(token);
-      setExportStatus('Export ready. Download started.');
-    } catch (err) {
-      const existingToken = err?.response?.data?.token;
-      const isActiveExport = err?.response?.status === 429 && existingToken;
-
-      if (isActiveExport) {
-        try {
-          setExportToken(existingToken);
-          await triggerExportDownload(existingToken);
-          setExportError('');
-          setExportStatus('You already had an active export. Download started.');
-          return;
-        } catch (downloadErr) {
-          const fallbackMessage = downloadErr?.response?.data?.message || downloadErr?.response?.data?.error || 'Active export found, but download failed.';
-          setExportStatus('');
-          setExportError(fallbackMessage);
-          return;
-        }
-      }
-
-      const message = err?.response?.data?.message || err?.response?.data?.error || 'Failed to generate export.';
-      setExportStatus('');
-      setExportError(message);
-    }
-  };
-
-  // Load profile + subscription data
+  // Load profile + subscription data on mount
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
@@ -132,74 +56,6 @@ export default function Dashboard() {
       loadDashboardData();
     }
   }, [auth]);
-
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    setPasswordLoading(true);
-    setPasswordError('');
-    setPasswordSuccess('');
-
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      setPasswordError('All fields are required');
-      setPasswordLoading(false);
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError('New passwords do not match');
-      setPasswordLoading(false);
-      return;
-    }
-
-    try {
-      await api.changePassword(oldPassword, newPassword);
-      setPasswordSuccess('Password changed successfully');
-      setOldPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setShowPasswordForm(false);
-      setTimeout(() => setPasswordSuccess(''), 3000);
-    } catch (err) {
-      const message = err?.response?.data?.message || err?.response?.data?.error || 'Failed to change password';
-      setPasswordError(message);
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  const handleGenerateKit = async () => {
-    const password = typeof window !== 'undefined'
-      ? window.prompt('Enter your current password to generate a new recovery kit:')
-      : null;
-
-    if (!password) {
-      return;
-    }
-
-    try {
-      const response = await api.generateRecoveryKit(password);
-      const kit = response?.data?.data?.recoveryKit || response?.data?.recoveryKit;
-      if (!kit) {
-        throw new Error('Recovery kit was not returned.');
-      }
-      setNewRecoveryKit(kit);
-      setShowNewKit(true);
-      setKitCopied(false);
-    } catch (err) {
-      console.error('Failed to generate recovery kit', err);
-      if (typeof window !== 'undefined') {
-        window.alert(err?.response?.data?.error || err?.message || 'Failed to generate recovery kit');
-      }
-    }
-  };
-
-  const handleCopyKit = () => {
-    if (newRecoveryKit) {
-      navigator.clipboard.writeText(newRecoveryKit);
-      setKitCopied(true);
-      setTimeout(() => setKitCopied(false), 2000);
-    }
-  };
 
   const handleCancelSubscription = async () => {
     setCancelLoading(true);
@@ -235,168 +91,39 @@ export default function Dashboard() {
     <div style={styles.container}>
       <h1 style={styles.title}>Dashboard</h1>
 
-      {/* Subscription Status */}
+      {/* Subscription Status — shows active sub details or plan selection grid */}
       <SubscriptionSection
         subscription={subscription}
         paymentMethod={paymentMethod}
         onCancel={() => setShowCancelModal(true)}
       />
 
-      {/* Account Settings */}
-      <Card style={styles.card}>
-        <h2>Account Settings</h2>
-        
-        <div style={styles.accountInfo}>
-          <p><strong>Account Number:</strong> {profile?.account_number || auth.user?.accountNumber || '—'}</p>
-          <p><strong>Account Status:</strong> {profile?.is_active || auth.user?.isActive ? 'Active' : 'Pending'}</p>
-        </div>
+      {/* Account Settings — password change, recovery kit, data export, delete */}
+      <AccountSettingsSection
+        profile={profile}
+        onDeleteClick={() => setShowDeleteModal(true)}
+      />
 
-        <div style={styles.settingsButtons}>
-          <Button onClick={() => setShowPasswordForm(!showPasswordForm)}>
-            Change Password
-          </Button>
-          <Button onClick={handleGenerateKit}>
-            Generate New Recovery Kit
-          </Button>
-          <Button onClick={handleRequestDataExport}>
-            Request Data Export
-          </Button>
-          <Button onClick={() => setShowDeleteModal(true)} style={styles.deleteButton}>
-            Delete Account
-          </Button>
-        </div>
+      {/* VPN Credentials — shows username/password once provisioned after payment */}
+      <VpnCredentialsSection profile={profile} subscription={subscription} />
 
-        {exportStatus && <p style={styles.success}>{exportStatus}</p>}
-        {exportError && <p style={styles.error}>{exportError}</p>}
-        {exportToken && (
-          <p style={{ marginTop: '0.75rem' }}>
-            <button
-              type="button"
-              onClick={() => triggerExportDownload(exportToken)}
-              style={{ background: 'none', border: 'none', color: '#1E90FF', textDecoration: 'underline', cursor: 'pointer', padding: 0 }}
-            >
-              Download your export again
-            </button>
-          </p>
-        )}
-
-        {showPasswordForm && (
-          <form onSubmit={handleChangePassword} style={styles.passwordForm}>
-            <FormGroup label="Old Password">
-              <Input
-                type="password"
-                value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
-                disabled={passwordLoading}
-              />
-            </FormGroup>
-            <FormGroup label="New Password">
-              <Input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                disabled={passwordLoading}
-              />
-            </FormGroup>
-            <FormGroup label="Confirm New Password">
-              <Input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={passwordLoading}
-              />
-            </FormGroup>
-            {passwordError && <p style={styles.error}>{passwordError}</p>}
-            {passwordSuccess && <p style={styles.success}>{passwordSuccess}</p>}
-            <Button type="submit" disabled={passwordLoading}>
-              {passwordLoading ? 'Changing...' : 'Change Password'}
-            </Button>
-          </form>
-        )}
-
-        {showNewKit && (
-          <div style={styles.kitContainer}>
-            <p><strong>New Recovery Kit:</strong></p>
-            <div style={styles.kitCode}>
-              <code style={styles.kitCodeValue}>{newRecoveryKit}</code>
-              <Button onClick={handleCopyKit} style={styles.copyButton}>
-                {kitCopied ? 'Copied!' : 'Copy'}
-              </Button>
-            </div>
-            <p style={styles.kitWarning}>
-              ⚠️ Save this recovery kit in a secure location. You will need it to recover your account if you forget your password.
-            </p>
-          </div>
-        )}
-      </Card>
-
-      {/* VPN Credentials */}
-      <Card style={styles.card}>
-        <h2>VPN Credentials</h2>
-        {profile?.vpn_username ? (
-          <div style={styles.vpnCredsBox}>
-            <p><strong>Username:</strong> <code>{profile.vpn_username}</code></p>
-            <p><strong>Password:</strong> <code>{profile.vpn_password}</code></p>
-            <p><strong>Status:</strong> {profile?.vpn_status || 'active'}</p>
-            {profile?.vpn_expiry_date && (
-              <p><strong>Expires:</strong> {new Date(profile.vpn_expiry_date).toLocaleString()}</p>
-            )}
-            {subscription?.current_period_end && (
-              <p><strong>Subscription Expires:</strong> {new Date(subscription.current_period_end).toLocaleDateString()}</p>
-            )}
-          </div>
-        ) : (
-          <p style={{ marginBottom: '1rem' }}>
-            VPN credentials are not available yet. If you paid with crypto, activation can take up to 15 minutes.
-          </p>
-        )}
-
-        <p style={{ marginTop: '0.75rem' }}>
-          After payment, download a client from{' '}
-          <Link href="/downloads" style={{ color: '#1E90FF' }}>https://ahoyvpn.net/downloads</Link>
-          {' '}and sign in with these credentials.
-        </p>
-
-        <Link href="/downloads">
-          <Button>Open Downloads</Button>
-        </Link>
-      </Card>
-
-      {/* Modals */}
+      {/* Cancel Subscription confirmation modal */}
       {showCancelModal && (
-        <div style={styles.modalOverlay}>
-          <Card style={styles.modal}>
-            <h3>Cancel Subscription</h3>
-            <p>Are you sure you want to cancel your subscription?</p>
-            <div style={styles.modalButtons}>
-              <Button onClick={() => setShowCancelModal(false)}>
-                Keep Subscription
-              </Button>
-              <Button onClick={handleCancelSubscription} disabled={cancelLoading}>
-                {cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
-              </Button>
-            </div>
-          </Card>
-        </div>
+        <CancelModal
+          onCancel={() => setShowCancelModal(false)}
+          onConfirm={handleCancelSubscription}
+          loading={cancelLoading}
+        />
       )}
 
+      {/* Delete Account confirmation modal */}
       {showDeleteModal && (
-        <div style={styles.modalOverlay}>
-          <Card style={styles.modal}>
-            <h3>Delete Account</h3>
-            <p>Are you sure you want to delete your account? This action cannot be undone.</p>
-            <div style={styles.modalButtons}>
-              <Button onClick={() => setShowDeleteModal(false)}>
-                Keep Account
-              </Button>
-              <Button onClick={handleDeleteAccount} disabled={deleteLoading} style={styles.deleteButton}>
-                {deleteLoading ? 'Deleting...' : 'Delete Account'}
-              </Button>
-            </div>
-          </Card>
-        </div>
+        <DeleteModal
+          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteAccount}
+          loading={deleteLoading}
+        />
       )}
     </div>
   );
 }
-

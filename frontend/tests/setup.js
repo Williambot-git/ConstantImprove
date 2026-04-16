@@ -2,20 +2,20 @@
  * AhoyVPN Frontend — Jest Test Setup
  * ==================================
  * This file runs before any test files are loaded.
- * 
+ *
  * WHAT THIS SETUP DOES:
  * 1. Sets NODE_ENV to 'test' — some libraries (like Next.js) behave differently in test mode
  * 2. Mocks the Next.js router/hooks so page navigation tests work without a real router
  * 3. Suppresses console noise during tests — keeps test output clean
  * 4. Suppresses Next.js hydration warnings that clutter output during component testing
- * 
+ *
  * WHY EACH MOCK:
  * - jest.mock('next/navigation') — Layout uses useRouter() in _app.jsx indirectly via
  *   ProtectedRoute components. Tests that render Layout need a mock router or they fail.
  * - jest.mock('next/image') — next/image requires actual image files; in tests we just
  *   verify the component is being used correctly (width/height props), not actual rendering.
  * - jest.mock('next/link') — next/link is the <Link> component; we test it indirectly.
- * 
+ *
  * CAVEATS:
  * - If a component UNDER test uses useRouter(), the mock below provides it.
  * - If a component UNDER test uses next/image, the mock renders an <img> tag.
@@ -82,7 +82,7 @@ jest.mock('next/link', () => {
  * Suppress console.log/error noise from application code during tests.
  * Application console.log statements (e.g., API error logging) would otherwise
  * flood test output and make it hard to read real test results.
- * 
+ *
  * HOW TO TEMPORARILY ENABLE for debugging:
  * Remove the .mockImplementation lines below and run tests with --verbose.
  * Or in a specific test: global.console = { ...originalConsole, log: console.log };
