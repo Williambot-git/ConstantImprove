@@ -23,9 +23,13 @@
   - `getWireGuardConfig` and `getOpenVPNConfig` look up user's vpn_accounts row and call vpnResellersService.getAccount() to generate configs
   - `connect`/`disconnect`/`getConnections` remain 501 with descriptive error (daemon integration needed)
 - ~~**authorizeNetUtils.js malformed URL**~~ — **FIXED** (commit 211b382)
-- **Inline VPNResellersService dead code** — **FIXED** (commit 8d71d0a)
+- ~~**Inline VPNResellersService dead code**~~ — **FIXED** (commit 8d71d0a)
   - paymentController had a 118-line v1 API class that was never called — removed entirely
   - Exported vpnResellersService.js (v3_2 API) handles all real VPN account operations
+- ~~**Auth middleware consolidation**~~ — **FIXED** (commits 0c383ed, 4b73723)
+  - Both middlewares used PostgreSQL (userModel was PostgreSQL, not MongoDB as initially suspected)
+  - All routes migrated to `authMiddleware_new.js`; `authMiddleware.js` deleted
+  - Dual-import pattern eliminated; single canonical auth middleware
 
 ---
 
@@ -35,9 +39,14 @@
    - userService (complex, many DB queries — good integration test targets)
    - emailService (requires SMTP stub/mock)
    - paymentController routes (requires supertest)
-2. **Auth middleware consolidation**: Two versions exist (authMiddleware.js and authMiddleware_new.js). Need to pick a winner and remove the loser. Documented in `backend/docs/auth-middleware-audit.md`.
+2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
+   - `authMiddleware.js` deleted — all routes now use `authMiddleware_new.js`
+   - Dual-import pattern eliminated from 4 routes
+   - `allowInactive` replaced with `protect` (functionally identical — neither checks `is_active`)
+   - roleMiddleware.js migrated (though file is unused — consider removal separately)
 3. **Frontend img → next/image**: 3 warnings remain (Layout.jsx, _app.jsx, checkout.jsx). Low priority — requires more involved refactor.
 4. **Frontend test scaffolding**: Like backend, frontend could benefit from Jest + React Testing Library setup.
+5. **roleMiddleware.js cleanup**: This file is dead code (never imported anywhere). Consider removing or repurposing.
 
 ---
 
@@ -72,6 +81,9 @@
 ## All Commits This Session (chronological)
 
 ```
+d4716f7 feat(lint): add ESLint flat config for backend
+4b73723 refactor(auth): remove deprecated authMiddleware.js after full migration
+0c383ed refactor(auth): consolidate onto authMiddleware_new — remove all authMiddleware.js imports
 945bc04 fix: replace <a> with <Link> in 4 pages (Next.js lint errors)
 671e5ac feat(vpn): replace 501 stubs with mock servers + config generation
 8d71d0a cleanup: remove dead VPNResellersService inline class from paymentController
@@ -88,4 +100,4 @@ a975294 feat(tests): add Jest infrastructure for backend testing
 
 ---
 
-*Last updated: 2026-04-16T12:30:00Z*
+*Last updated: 2026-04-16T12:58:00Z*
