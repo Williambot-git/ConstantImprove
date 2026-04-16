@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { AuthContext } from '../pages/_app';
 
 export default function Layout({ children }) {
@@ -27,7 +28,7 @@ function Header({ auth }) {
           <div style={styles.logo} className="ahoy-logoWrap">
             <Link href="/">
               <a style={styles.logoLink} className="ahoy-logoLink">
-                <img src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" style={{ height: '2.5em', verticalAlign: 'middle', marginRight: '0.5rem' }} /> AHOY VPN
+                <Image src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" width={120} height={40} style={{ height: '2.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5rem' }} /> AHOY VPN
               </a>
             </Link>
           </div>

@@ -120,7 +120,10 @@ function LoadingScreen() {
       backgroundColor: '#121212',
     }}>
       <div style={{ textAlign: 'center' }}>
-        <h1 style={{ color: '#1E90FF', marginBottom: '1rem' }}><img src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" style={{ height: '2.5em', verticalAlign: 'middle', marginRight: '0.5rem' }} /> AHOY VPN</h1>
+        <h1 style={{ color: '#1E90FF', marginBottom: '1rem' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" style={{ height: '2.5em', verticalAlign: 'middle', marginRight: '0.5rem' }} /> AHOY VPN
+        </h1>
         <p style={{ color: '#B0C4DE' }}>Loading...</p>
       </div>
     </div>

@@ -9,7 +9,7 @@
     "migrate": "node db/runMigrations.js",
     "seed": "node db/seed.js",
     "lint": "eslint src",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "webhook:test": "node scripts/test-webhook.js"
   },
   "repository": {
@@ -52,7 +52,9 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@jest/globals": "^30.3.0",
     "eslint": "^10.2.0",
+    "jest": "^30.3.0",
     "nodemon": "^3.1.4"
   }
 }

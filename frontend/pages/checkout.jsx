@@ -564,6 +564,7 @@ export default function Checkout() {
 
                 {invoice.qrCode && (
                   <div style={styles.qrWrapper}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={invoice.qrCode} alt="Invoice QR code" style={styles.qrCode} />
                   </div>
                 )}
