@@ -203,11 +203,13 @@ class AuthorizeNetService {
   // ─── Methods previously duplicated inline in paymentController.js ──────────
 
   /**
-   * Returns the Authorize.net XML API endpoint.
+   * Returns the Authorize.net XML API endpoint URL.
    * Used by createTransaction, createHostedPaymentPage, createArbSubscription, etc.
+   * Note: This was previously mistakenly referenced as paymentConfig.authorizeNet.endpoints.charge
+   * which was never imported — this method now correctly returns the AUTHORIZE_API_URL constant.
    */
   getApiEndpoint() {
-    return paymentConfig.authorizeNet.endpoints.charge;
+    return AUTHORIZE_API_URL;
   }
 
   /**
