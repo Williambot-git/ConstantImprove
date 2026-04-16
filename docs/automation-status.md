@@ -27,6 +27,7 @@
 | 21 | Ahoyman dashboard decomposition (5 tabs + tests + integration) | **DONE** (commit b3afed5) |
 | 22 | ~~dashboard.jsx decomposition~~ | **DONE** — affiliate-dashboard.jsx (a70c98b) |
 | 23 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
+| 24 | vpnResellersService unit tests (16 tests, 100% line coverage) | **DONE** (commit c7a243b) |
 
 ---
 
@@ -83,7 +84,8 @@
 
 ## Notes for William
 
-- **Frontend test suite now 118 tests**: 16 suites, all passing. New in this run: dashboard decomposition tests (6 dashboard.test.jsx + 3 AccountSettingsSection.test.jsx + 3 SubscriptionSection.test.jsx).
+- **Backend test suite now 75 tests**: 16 vpnResellersService + 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
+- **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
 - **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
 - **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
 - **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
