@@ -1,7 +1,9 @@
 // Shared Authorize.net utility functions
 // Kept separate to avoid circular dependency between paymentController and webhookController
 
-const AUTHORIZE_API_URL = 'https://api.authorize.net/xml/v1/request.api';
+// Authorize.net XML API endpoint — do not change without consulting Authorize.net docs
+// This URL must match the dashboard configuration for relay responses
+const AUTHORIZE_API_URL = process.env.AUTHORIZE_API_URL || 'https://api.authorize.net/xml/v1/request.api';
 
 /**
  * Look up full transaction details from Authorize.net by transaction ID.
