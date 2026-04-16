@@ -25,7 +25,7 @@
 | 19 | Checkout page decomposition — extract PlanSelector, CryptoSelector, PaymentMethodSelector | **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8) |
 | 20 | Checkout flow integration test | **DONE** (commit 92ef4d8) |
 | 21 | Ahoyman dashboard decomposition (5 tabs + tests + integration) | **DONE** (commit b3afed5) |
-| 22 | ~~dashboard.jsx decomposition~~ | Pending — same pattern as ahoyman-dashboard |
+| 22 | ~~dashboard.jsx decomposition~~ | **DONE** — affiliate-dashboard.jsx (a70c98b) |
 
 ---
 
@@ -67,17 +67,21 @@
    - Next: page-level integration tests, ProtectedRoute tests, checkout flow tests
 5. **Frontend test coverage**: page-level and integration tests for auth/checkout/dashboard flows
    - ~~Checkout flow~~ — **DONE** (5 integration tests added, 47 total frontend tests)
+   - ~~Affiliate dashboard~~ — **DONE** (24 component tests + 6 integration tests, 105 total)
 6. ~~**Checkout page decomposition**~~ — **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8)
    - checkout.jsx: 1139 lines (down from 1161 — net -22 lines after wiring components)
    - 3 new components in `frontend/components/checkout/` with unit tests
    - 5 integration tests in `frontend/tests/checkout-flow.test.jsx`
-7. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and dashboard.jsx (659 lines) — similar pattern to checkout decomposition~~ — **AHoyMan DONE** (b3afed5), dashboard.jsx pending
+7. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and affiliate-dashboard.jsx (471 lines)~~ — **BOTH DONE**
+   - ~~Ahoyman dashboard~~ — **DONE** (b3afed5)
+   - ~~Affiliate dashboard~~ — **DONE** (a70c98b)
+8. **Frontend: Decompose customer dashboard.jsx (659 lines)** — similar tab structure to affiliate-dashboard pattern
 
 ---
 
 ## Notes for William
 
-- **Frontend test suite now 100 tests**: 12 suites, all passing. New: 9 ahoyman-dashboard integration tests + 10 tab component tests (AffiliatesTab 10, PayoutsTab 8, SalesTaxTab 7, SettingsTab 9, CodesTab tested via integration).
+- **Frontend test suite now 105 tests**: 13 suites, all passing. New: 6 affiliate-dashboard integration tests + 24 affiliate-dashboard tab component tests (OverviewTab 5, LinksTab 6, ReferralsTab 4, TransactionsTab 3, PayoutTab 6).
 - **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
 - **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
 - **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
