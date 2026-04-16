@@ -19,6 +19,9 @@
 | 13 | Remove 21 orphaned check_*.js diagnostic scripts | **DONE** (commit f12f78d) |
 | 14 | cleanupService unit tests + vpnAccountScheduler bugfix | **DONE** (commits ce618da, ab5793f) |
 | 15 | Frontend Jest + RTL scaffolding + Layout tests | **DONE** (commits 327a251, c4ecbdd) |
+| 16 | Remove 30 orphaned backend scripts (migrate/test/debug/utility) | **DONE** (commit 0cd18a7) |
+| 17 | Plan: checkout page decomposition (PlanSelector, CryptoSelector, PaymentMethodSelector) | **PLAN DONE** (docs/plans/2026-04-16-checkout-decomposition.md) |
+| 18 | Clean outdated script references in placeholder-config.js | **DONE** (commit 84b4403) |
 
 ---
 
@@ -36,9 +39,13 @@
   - Both middlewares used PostgreSQL (userModel was PostgreSQL, not MongoDB as initially suspected)
   - All routes migrated to `authMiddleware_new.js`; `authMiddleware.js` deleted
   - Dual-import pattern eliminated; single canonical auth middleware
+- ~~**Orphaned backend debug/test scripts**~~ — **REMOVED** (commit 0cd18a7)
+  - 30 orphaned scripts deleted: 6 migrate_*.js, 14 test_*/fix_*/reset_*/discover/diag scripts, 8 utility scripts, 2 scripts/ utilities, and scripts/legacy_tests/
+  - placeholder-config.js comments updated to remove stale references to deleted files
 - ~~**Dead Python migration scripts**~~ — **REMOVED** (commit b2186cd)
   - `fix_admin_routes3.py`, `fix_requirerole.py`, `fix_auth_middleware.py` pointed to `/home/ahoy/BackEnd/` (different machine) and were never executed in this repo; removed as noise
   - `roleMiddleware.js` (38 lines) was never imported anywhere; removed as dead code
+- ~~**Inline VPNResellersService dead code**~~ — **FIXED** (commit 8d71d0a)
 
 ---
 
@@ -55,6 +62,10 @@
    - 33 tests now passing: 3 smoke + 30 Layout component tests
    - Next: page-level integration tests, ProtectedRoute tests, checkout flow tests
 5. **Frontend test coverage**: page-level and integration tests for auth/checkout/dashboard flows
+6. ~~**Checkout page decomposition**~~ — **PLAN DONE** (docs/plans/2026-04-16-checkout-decomposition.md)
+   - Decompose checkout.jsx (1161 lines) into PlanSelector, CryptoSelector, PaymentMethodSelector components
+   - 5-task plan with TDD approach ready for subagent execution
+7. **Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and dashboard.jsx (659 lines) — similar pattern to checkout decomposition
 
 ---
 
@@ -90,21 +101,18 @@
 ## Recent Commits (from this session)
 
 ```
-ab5793f test: add cleanupService unit tests — 11 tests, 100% line coverage
-ce618da fix: vpnAccountScheduler use disableAccount() instead of non-existent deactivateAccount()
-f12f78d cleanup: remove 21 orphaned check_*.js diagnostic scripts
-76688e7 test: add emailService unit tests with mocked nodemailer
-7642d8f test: add userService unit tests with mocked DB and VPN service
+84b4403 docs(backend): clean up outdated script references in placeholder-config.js
+0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
 ## All Commits This Session (chronological)
 
 ```
-327a251 feat(tests): add Jest + React Testing Library infrastructure for frontend
-c4ecbdd test: add Layout component tests — 30 tests covering auth state, nav links, footer, logo
+84b4403 docs(backend): clean up outdated script references in placeholder-config.js
+0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T14:20:00Z*
+*Last updated: 2026-04-16T14:45:00Z*
 
 ---
 
