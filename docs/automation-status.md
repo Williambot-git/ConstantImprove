@@ -26,6 +26,7 @@
 | 20 | Checkout flow integration test | **DONE** (commit 92ef4d8) |
 | 21 | Ahoyman dashboard decomposition (5 tabs + tests + integration) | **DONE** (commit b3afed5) |
 | 22 | ~~dashboard.jsx decomposition~~ | **DONE** — affiliate-dashboard.jsx (a70c98b) |
+| 23 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
 
 ---
 
@@ -75,13 +76,14 @@
 7. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and affiliate-dashboard.jsx (471 lines)~~ — **BOTH DONE**
    - ~~Ahoyman dashboard~~ — **DONE** (b3afed5)
    - ~~Affiliate dashboard~~ — **DONE** (a70c98b)
-8. **Frontend: Decompose customer dashboard.jsx (659 lines)** — similar tab structure to affiliate-dashboard pattern
+8. ~~**Frontend: Decompose customer dashboard.jsx (659 lines)**~~ — similar tab structure to affiliate-dashboard pattern | **DONE** (commit 93e9570)
+9. **Backend: Implement VPN server list and config download endpoints** (all 6 return 501 — needed for customer self-service)
 
 ---
 
 ## Notes for William
 
-- **Frontend test suite now 105 tests**: 13 suites, all passing. New: 6 affiliate-dashboard integration tests + 24 affiliate-dashboard tab component tests (OverviewTab 5, LinksTab 6, ReferralsTab 4, TransactionsTab 3, PayoutTab 6).
+- **Frontend test suite now 118 tests**: 16 suites, all passing. New in this run: dashboard decomposition tests (6 dashboard.test.jsx + 3 AccountSettingsSection.test.jsx + 3 SubscriptionSection.test.jsx).
 - **Key test fix discovered**: `jest.mock` factory variables (e.g., `const mockGetSettings = jest.fn()`) are NOT the same as the functions the factory creates internally. Always set `api.getSettings = jest.fn().mockResolvedValue(...)` directly in `beforeEach` to control the exact mock the component will use.
 - **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
 - **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
@@ -89,6 +91,7 @@
 - **Key gotcha discovered during setup**: `@testing-library/jest-dom` matchers (toBeInTheDocument, toHaveAttribute) are NOT global — must be explicitly imported per test file. This caused initial test failures.
 - **Another gotcha**: `jest.mock()` factory functions cannot reference out-of-scope variables including `React` from the outer scope. Must `require('react')` inside the factory.
 - **Another gotcha**: Next.js `<Link>` renders as `<a><a>` (nested anchors). `screen.getAllByText('X')` returns the inner `<a>` (the styled element), while `document.querySelector('a[href="/"]')` finds the outer `<a>`. Use `getAllByRole('link')` + `.find()` to get the right element.
+- **AuthContext mock discovery**: `frontend/__mocks__/pages/_app.js` provides a global mock for the AuthContext. Local `jest.mock('../pages/_app')` overrides this with a broken mock that doesn't properly attach `.Provider`. Always use the global mock + per-test `<AuthContext.Provider value={...}>` wrapper pattern.
 - **Backend test suite: 59 tests** (unchanged from previous session): 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
 - **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
 - **vpnAccountScheduler bug fixed**: Was calling `deactivateAccount({ account_id })` which doesn't exist — replaced with `disableAccount(accountId)` (matches vpnResellersService.js API)
@@ -113,6 +116,7 @@
 ## Recent Commits (from this session)
 
 ```
+93e9570 refactor(frontend): complete dashboard decomposition (tasks 2-9)
 b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
 646fc1a feat(frontend): add CodesTab test
 33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
@@ -125,6 +129,7 @@ d22813d chore(frontend): add @testing-library/user-event for RTL interaction tes
 ## All Commits This Session (chronological)
 
 ```
+93e9570 refactor(frontend): complete dashboard decomposition (tasks 2-9)
 b3afed5 feat(frontend): complete ahoyman-dashboard decomposition (tasks 1-7)
 646fc1a feat(frontend): add CodesTab test
 33461c3 feat(frontend): extract CodesTab from ahoyman-dashboard
@@ -142,8 +147,4 @@ bb646c2 feat(frontend): extract PlanSelector component from checkout
 0cd18a7 cleanup: remove 30 orphaned backend scripts
 ```
 
-*Last updated: 2026-04-16T16:45:00Z*
-
----
-
-*Last updated: 2026-04-16T13:50:00Z*
+*Last updated: 2026-04-16T18:16:00Z*
