@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { validatePasswordComplexity, isPasswordReused, hashPassword, addToPasswordHistory, SALT_ROUNDS } = require('../middleware/passwordValidation');
 
 const User = {
@@ -250,6 +251,78 @@ const User = {
     const daysSinceChange = (now - passwordChangedAt) / (1000 * 60 * 60 * 24);
 
     return daysSinceChange > 90;
+  },
+
+  // Generic update — updates arbitrary fields for a user (called by authController for last_login)
+  async update(userId, fields) {
+    const setClauses = Object.keys(fields)
+      .map((key, i) => `${key} = $${i + 2}`)
+      .join(', ');
+    const values = [userId, ...Object.values(fields)];
+    const query = `UPDATE users SET ${setClauses}, updated_at = NOW() WHERE id = $1 RETURNING *`;
+    const result = await db.query(query, values);
+    return result.rows[0];
+  },
+
+  // Update last 2FA verification timestamp (called by verify2FALogin, verifyRecoveryCode)
+  async updateLast2faVerification(userId) {
+    const query = `UPDATE users SET last_2fa_verification = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *`;
+    const result = await db.query(query, [userId]);
+    return result.rows[0];
+  },
+
+  // Store TOTP secret temporarily (not yet enabled) — called by enable2FA
+  async setTotpSecret(userId, secret) {
+    const query = `UPDATE users SET totp_secret = $1, updated_at = NOW() WHERE id = $2 RETURNING *`;
+    const result = await db.query(query, [secret, userId]);
+    return result.rows[0];
+  },
+
+  // Enable TOTP for a user (totp_enabled = true) — called by verify2FA after token validation
+  async enableTotp(userId) {
+    const query = `UPDATE users SET totp_enabled = true, updated_at = NOW() WHERE id = $1 RETURNING *`;
+    const result = await db.query(query, [userId]);
+    return result.rows[0];
+  },
+
+  // Generate and store recovery codes for a user — called by verify2FA
+  async generateAndStoreRecoveryCodes(userId, count = 10) {
+    const recoveryCodes = [];
+    for (let i = 0; i < count; i++) {
+      const code = crypto.randomBytes(4).toString('hex').toUpperCase();
+      recoveryCodes.push(code);
+    }
+    // Store hashed versions in DB (plaintext returned to user once only)
+    const hashedCodes = recoveryCodes.map(code => crypto.createHash('sha256').update(code).digest('hex'));
+    const query = `UPDATE users SET recovery_codes = $1, updated_at = NOW() WHERE id = $2 RETURNING *`;
+    await db.query(query, [JSON.stringify(hashedCodes), userId]);
+    return recoveryCodes; // Return plaintext for one-time display
+  },
+
+  // Verify a recovery code against stored hashed codes — called by verifyRecoveryCode
+  async verifyRecoveryCode(userId, code) {
+    const user = await this.findById(userId);
+    if (!user || !user.recovery_codes) return false;
+    const hashedInput = crypto.createHash('sha256').update(code.toUpperCase()).digest('hex');
+    try {
+      const storedCodes = JSON.parse(user.recovery_codes);
+      const index = storedCodes.indexOf(hashedInput);
+      if (index === -1) return false;
+      // Remove used code (one-time use)
+      storedCodes.splice(index, 1);
+      const query = `UPDATE users SET recovery_codes = $1, updated_at = NOW() WHERE id = $2 RETURNING *`;
+      await db.query(query, [JSON.stringify(storedCodes), userId]);
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  // Disable TOTP for a user — called by disable2FA
+  async disableTotp(userId) {
+    const query = `UPDATE users SET totp_enabled = false, totp_secret = NULL, recovery_codes = NULL, updated_at = NOW() WHERE id = $1 RETURNING *`;
+    const result = await db.query(query, [userId]);
+    return result.rows[0];
   }
 };
 

@@ -514,7 +514,7 @@ const verifyRecoveryCode = async (req, res) => {
       return res.status(400).json({ error: '2FA is not enabled for this account' });
     }
     
-    const isValid = await User.verifyAndConsumeRecoveryCode(user.id, recoveryCode);
+    const isValid = await User.verifyRecoveryCode(user.id, recoveryCode);
     if (!isValid) {
       return res.status(400).json({ error: 'Invalid recovery code' });
     }
@@ -632,7 +632,7 @@ const verifyEmail = async (req, res) => {
       [tokenHash]
     );
     
-    res.json({
+    res.status(200).json({
       success: true,
       message: 'Email verified successfully',
       email: tokenData.email
@@ -657,4 +657,5 @@ module.exports = {
   generateNewRecoveryCodes,
   verifyRecoveryCode,
   disable2FA,
+  temp2faTokens,  // exported for test access to the in-memory Map
 };
