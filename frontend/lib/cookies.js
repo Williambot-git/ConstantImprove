@@ -120,15 +120,21 @@ export function extractAffiliateIdFromUrl(url = null) {
   const urlToParse = url || window.location.href;
   const urlObj = new URL(urlToParse);
 
+  // Check for query parameter first (explicit ?affiliate= or ?ref= takes precedence
+  // over path — this is more intuitive: a user who clicks a link with ?affiliate=X
+  // clearly wants that value used, even if they also land on /affiliate/Y path).
+  const queryAffiliate = urlObj.searchParams.get('affiliate') || urlObj.searchParams.get('ref');
+  if (queryAffiliate) return queryAffiliate;
+
   // Check for affiliate path: /affiliate/ABC123
   const pathParts = urlObj.pathname.split('/');
   const affiliateIndex = pathParts.indexOf('affiliate');
-  if (affiliateIndex !== -1 && affiliateIndex < pathParts.length - 1) {
-    return pathParts[affiliateIndex + 1];
+  const pathAffiliate = pathParts[affiliateIndex + 1];
+  if (affiliateIndex !== -1 && pathAffiliate) {
+    return pathAffiliate;
   }
 
-  // Check for query parameter: ?affiliate=ABC123 or ?ref=ABC123
-  return urlObj.searchParams.get('affiliate') || urlObj.searchParams.get('ref');
+  return null;
 }
 
 /**
