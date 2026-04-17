@@ -43,8 +43,8 @@ const { createVpnAccount } = require('./userService');
 const { applyAffiliateCommissionIfEligible } = require('../controllers/paymentController');
 
 async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
-  // Full implementation moved from webhookController.js lines 223-390
-  // (see actual file for complete code)
+  // Full implementation moved from webhookController.js
+  // See: backend/src/services/paymentProcessingService.js (already extracted)
 }
 
 module.exports = {
