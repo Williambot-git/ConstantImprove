@@ -67,6 +67,9 @@
 | 67 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
 | 68 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
 | 69 | fix(authController_csrf): login — add explicit res.status(200) on active-user success path | **DONE** (commit 567d328) |
+| 70 | supportController unit tests (11 cases) + real implementation (replace 501 stubs) | **DONE** (commit cfacecc) |
+| 71 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
+| 72 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
 
 ---
 
@@ -134,8 +137,10 @@ dc19648 docs: update automation-status — task 69, 1,392 total tests (870 backe
 
 ## Notes for William
 
-- **Backend test suite: 888 tests passing** (was 870, +18 pageController tests)
+- **Backend test suite: 917 tests passing** (was 888, +29: 18 userController + 11 supportController)
 - **Frontend test suite: 522 tests passing** (unchanged)
-- **Total test count: 1,410 tests** across frontend and backend (522 frontend + 888 backend)
+- **Total test count: 1,439 tests** across frontend and backend (522 frontend + 917 backend)
+- **Backend controllers with tests now: 14** (admin, affiliateAuth, affiliateController, ahoyman, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
+- **Backend controllers still without tests: 2** (authController.js and affiliateDashboardController.js — both use User model and jwt utils with complex dependencies)
 
-*Last updated: 2026-04-17T19:05:00Z*
+*Last updated: 2026-04-17T19:20:00Z*
