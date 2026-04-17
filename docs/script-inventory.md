@@ -21,27 +21,14 @@ These scripts are part of normal operations and are referenced in documentation 
 
 ---
 
-## ⚠️ One-Time Patch Artifacts (Do Not Use)
+## ⚠️ One-Time Patch Artifacts (DELETED)
 
-These scripts were used once to patch the codebase and are now obsolete. They reference specific server paths (`/home/ahoy/BackEnd/`) or were used for a single deployment event. They should NOT be run again.
+These scripts were used once to patch the codebase and are now obsolete. They have been deleted from the repository.
 
-| Script | Why Obsolete |
-|--------|--------------|
-| `fix_arb.py` | One-time ARB fix — the fix was applied to webhookController.js and committed |
-| `fix_arb_complete.py` | Same — complete ARB fix, applied to webhookController.js |
-| `fix_arb_webhook.py` | Same — ARB webhook fix, applied |
-| `fix_frontend.py` | One-time frontend patch (applied to Next.js pages) |
-| `fix_payment_controller.py` | One-time payment controller patch |
-| `fix_payment_final.py` | One-time final payment patch |
-| `fix_payment_remote.py` | One-time remote payment patch |
-| `patch_checkout.py` | One-time checkout page patch |
-| `patch_checkout_frontend.py` | One-time checkout frontend patch |
-| `patch_payment_remote.py` | (duplicate of above) |
-| `process_logo.py` | One-time logo processing script |
-| `debug_pattern.py` | One-time debug pattern analysis script |
-| `generate_env.py` | One-time .env generation script (generated env file, not needed as template) |
-| `deploy_frontend.py` | One-time deployment script |
-| `deploy_frontend2.py` | One-time deployment script (v2) |
+The following were deleted in commit c5d0f6e:
+`fix_arb.py`, `fix_arb_complete.py`, `fix_arb_webhook.py`, `fix_frontend.py`, `patch_checkout.py`, `patch_checkout_frontend.py`, `process_logo.py`, `debug_pattern.py`, `generate_env.py`, `deploy_frontend.py`, `deploy_frontend2.py`
+
+Note: `fix_payment_controller.py`, `fix_payment_final.py`, `patch_payment_remote.py` were already absent.
 
 ---
 
@@ -79,8 +66,8 @@ These scripts exist but it's unclear if they're still used or relevant.
 
 ## Recommended Actions
 
-1. **Delete** the 10+ one-time patch scripts (`fix_*.py`, `patch_*.py`, `process_logo.py`, `debug_pattern.py`, `generate_env.py`)
-2. **Move** `deploy.sh` to deprecated if `deploy_frontend.py` is current
+1. ~~**Delete** the 10+ one-time patch scripts (`fix_*.py`, `patch_*.py`, `process_logo.py`, `debug_pattern.py`, `generate_env.py`)** — DONE
+2. ~~**Move** `deploy.sh` to deprecated if `deploy_frontend.py` is current** — N/A, deploy_frontend.py deleted
 3. **Review** `atom_service_install.iss`, `openclaw-backup.sh`, `parse-ical.js` — determine if they're still relevant
 4. **Review** `check_db.py`, `psql-helper.py`, `ssh-helper.py` — the `/home/krabs/.ssh/truekey` reference should be replaced with documented SSH key management
 5. **Consider** whether `backup_users_to_github.js` is superseded by `backup-to-github.js`
