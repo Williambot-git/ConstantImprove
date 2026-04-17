@@ -65,6 +65,7 @@
 | 66 | fix(adminController): generate real recovery codes instead of literal 'placeholder' string in createAffiliate | **DONE** (commit 9163530) |
 | 67 | fix(pageController): remove stale TODO comment — emailService.sendTransactional already called below it | **DONE** (commit 9163530) |
 | 68 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
+69 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
 
 ---
 
@@ -130,8 +131,8 @@
 
 ## Notes for William
 
-- **Backend test suite: 852 tests passing** (unchanged — 18 new tests added, all passing)
-- **Frontend test suite: 522 tests passing** (was 509, +13 new seo.js tests)
-- **Total test count: 1,374 tests** across frontend and backend (522 frontend + 852 backend)
+- **Backend test suite: 870 tests passing** (was 852, +18 new pageController tests)
+- **Frontend test suite: 522 tests passing** (unchanged)
+- **Total test count: 1,392 tests** across frontend and backend (522 frontend + 870 backend)
 
 *Last updated: 2026-04-17T17:50:00Z*
