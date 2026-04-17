@@ -1,5 +1,5 @@
 const User = require('../models/userModel');
-const { generateToken, generateRefreshToken } = require('../utils/jwt');
+const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
 const { generateCsrfToken, storeCsrfToken } = require('../middleware/authMiddleware_new');
@@ -156,7 +156,7 @@ const login = async (req, res) => {
       [user.id]
     );
 
-    res.json({
+    res.status(200).json({
       message: 'Login successful',
       user: {
         id: user.id,
