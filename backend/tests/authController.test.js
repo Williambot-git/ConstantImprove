@@ -815,27 +815,13 @@ describe('verifyRecoveryCode', () => {
   });
 
   test('200 — valid recovery code: sets cookies and returns tokens', async () => {
-    // verifyRecoveryCode hashes the input code via crypto.createHash('sha256').update().digest()
-    // The beforeEach mock's createHash.digest() ALWAYS returns Buffer.from(TEST_RECOVERY_CODE_HASH).
-    // So hashed input = TEST_RECOVERY_CODE_HASH. Stored hash must also be TEST_RECOVERY_CODE_HASH.
-    //
-    // verifyRecoveryCode flow (5 db.query calls total):
-    //   1. findByEmail(email)                        → mock #1
-    //   2. findById(userId) [inside verifyPassword] → mock #2
-    //   3. findById(userId) [inside verifyRecoveryCode] → mock #3  ← BEFORE the UPDATE
-    //   4. UPDATE recovery_codes [inside verifyRecoveryCode] → mock #4
-    //   5. update(last_login)                       → mock #5
-    // verifyRecoveryCode flow (6 db.query calls total):
-    //   1. findByEmail(email)                        → mock #1
-    //   2. findById(userId) [inside verifyPassword] → mock #2
-    //   3. findById(userId) [inside verifyRecoveryCode] → mock #3  ← BEFORE the UPDATE
-    //   4. UPDATE recovery_codes [inside verifyRecoveryCode] → mock #4
-    //   5. update(last_login)                         → mock #5
-    //   6. updateLast2faVerification(userId)          → mock #6  ← ADDED (line 524 in controller)
+    // CRITICAL FIX: The 3rd mock (findById inside verifyRecoveryCode) must also return
+    // a user with recovery_codes set. MOCK_USER has recovery_codes: undefined.
+    // Without this, User.verifyRecoveryCode hits the guard "!user.recovery_codes" and returns false.
     mockDbQuery
       .mockResolvedValueOnce({ rows: [{ ...MOCK_USER, totp_enabled: true, recovery_codes: JSON.stringify([TEST_RECOVERY_CODE_HASH]) }] }) // 1. findByEmail
       .mockResolvedValueOnce({ rows: [MOCK_USER] })  // 2. verifyPassword → findById
-      .mockResolvedValueOnce({ rows: [MOCK_USER] })  // 3. verifyRecoveryCode → findById (gets user with stored codes)
+      .mockResolvedValueOnce({ rows: [{ ...MOCK_USER, totp_enabled: true, recovery_codes: JSON.stringify([TEST_RECOVERY_CODE_HASH]) }] })  // 3. verifyRecoveryCode → findById (MUST have recovery_codes!)
       .mockResolvedValueOnce({ rows: [] })            // 4. UPDATE recovery_codes (removes used code)
       .mockResolvedValueOnce({ rows: [] })            // 5. update last_login
       .mockResolvedValueOnce({ rows: [] });           // 6. updateLast2faVerification
