@@ -73,6 +73,7 @@
 | 73 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
+| 76 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
 
 ---
 
@@ -133,6 +134,7 @@
 ## Recent Commits (from this session)
 
 ```
+4d9f9ba chore(backend): move vpnController.test.js into tests/controllers/ for consistency
 34ce604 test(backend): add errorMiddleware unit tests (9 cases, 100% coverage)
 ```
 
