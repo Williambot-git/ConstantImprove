@@ -53,6 +53,7 @@
 | 54 | Document route overlap architecture decision (ahoymanRoutes vs adminRoutes) | **DONE** (commit aafb833) |
 | 55 | fix(authController): verifyRecoveryCode test — missing recovery_codes on mock #3 caused 400 instead of 200 | **DONE** (commit 0eeb399) |
 | 56 | Fix cookies.test.js jsdom window.location mocking + 4 pre-existing test bugs | **DONE** (commit 52a89eb) |
+| 57 | webhookController unit tests (47 tests, 76% line coverage — WebhookVerifier, plisioWebhook, paymentsCloudWebhook, authorizeNetWebhook, logAuthorizeEvent) | **DONE** (commit 24c009b) |
 
 ---
 
@@ -125,8 +126,8 @@ aee0277 test(backend): add customerController unit tests (43 tests, covers auth,
 - **Frontend function coverage: 52.78%** (unchanged — new tests target existing untested functions)
 - **Frontend function coverage: 49.44% → 52.78%** — now PASSES 50% threshold
 - **lib/sanitize.js: 0% → 96.87% line coverage** — 63 unit tests covering all 8 functions
-- **Backend test suite: 530 tests passing**
-- **Total test count: 915 tests** across frontend and backend (385 frontend + 530 backend)
+- **Backend test suite: 577 tests passing** (was 530, +47 new webhookController tests)
+- **Total test count: 962 tests** across frontend and backend (385 frontend + 577 backend)
 - **lib/cookies.js: 45 unit tests, 96%+ line coverage** — 7 previously failing tests now fixed: jsdom window.location mocking (non-configurable descriptor), URL-encoding round-trip in buildCookieString, Number vs String for localStorage expiry, query-vs-path precedence in extractAffiliateIdFromUrl, empty-string guard for /affiliate/ paths.
 
-*Last updated: 2026-04-17T11:45:00Z*
+*Last updated: 2026-04-17T12:00:00Z*
