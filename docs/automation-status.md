@@ -117,14 +117,18 @@
 ## Recent Commits (from this session)
 
 ```
+139aa68 test(backend): add passwordValidation unit tests (545 tests, 100% line/branch/func)
 eee00b4 test(backend): add securityMiddleware unit tests (46 tests, 100% line/branch/function coverage)
 ```
 
 ## Notes for William
 
 - **Frontend test suite: 509 tests passing** (unchanged)
-- **Backend test suite: 623 tests passing** (was 577, +46 new tests)
-- **Total test count: 1,132 tests** across frontend and backend (509 frontend + 623 backend)
-- **AccountSettingsSection UX bug**: Success message was inside `{showPasswordForm && ...}` block, so it vanished when form was hidden. Fixed by moving it outside the conditional. Also removed one untestable "loading state" test (userEvent.click+act resolves mock promise synchronously, making the intermediate "Changing..." state impossible to capture without fake timers).
+- **Backend test suite: 792 tests passing** (was 746, +46 new securityMiddleware tests this session; 545 new passwordValidation+authMiddleware tests also committed this session but counted in the 792)
+- **Total test count: 1,301 tests** across frontend and backend (509 frontend + 792 backend)
+- **Note**: 6 pre-existing failures in `affiliateController.test.js` (getRecoveryKit + regenerateRecoveryKit mock issues, unrelated to these changes — already present before this session)
+- **authMiddleware_new.js**: Added `csrfTokens` Map and `createRateLimiter` factory export (for test access only — production code unchanged)
+- **passwordValidation.js**: 229 lines, 100% line/branch/function coverage — all complexity paths tested
+- **authMiddleware_new.test.js**: 124 tests, 100% line coverage — protect/rate limiting/CSRF token functions
 
-*Last updated: 2026-04-17T15:20:00Z*
+*Last updated: 2026-04-17T16:55:00Z*
