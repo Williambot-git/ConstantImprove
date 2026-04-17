@@ -87,7 +87,8 @@
 | 87 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
 | 88 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
 | 89 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
-| 90 | refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests (3 new tests, cleanupService now has 14 tests, 6 cleanup functions in runAllCleanup) | **DONE** (commit e8b0d7b) |
+| 90 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
+| 91 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
 
 ---
 
@@ -148,8 +149,8 @@
 ## Recent Commits (from this session)
 
 ```
+7a076db chore: delete 7 obsolete scripts from scripts/ (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh)
 e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
-846c12e refactor: extract affiliateCommissionService from paymentController (fixes cross-layer import)
 ```
 
 ## Notes for William
@@ -164,7 +165,7 @@ e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL have tests
 - **cleanupService now has 6 cleanup functions** (was 5): cleanupDataExports, cleanupOldAuditLogs, cleanupOldConnections, cleanupAbandonedCheckouts, suspendExpiredTrials, cleanupOldAccounts (new)
-- **New: docs/script-inventory.md** — categorizes 31 scripts/ files as active, one-time patch artifacts, or uncertain. Recommended: delete 10+ obsolete patch scripts.
+- **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T02:45:00Z*
+*Last updated: 2026-04-18T03:00:00Z*
