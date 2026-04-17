@@ -77,6 +77,7 @@
 | 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage — all 10 functions: getMetrics/getLinks/generateLink/getReferrals/getTransactions/getPayoutRequests/requestPayout/createCode/deleteCode) | **DONE** (commit ec373d3) |
 | 78 | backend: Remove dead code from paymentController.js — getDefaultDiscountCents (never called), duplicate plisioWebhook (superseded by webhookController), deleteOldAccounts (never wired) — 131 lines removed | **DONE** (commit f32d931) |
 | 79 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
+| 80 | refRoute unit tests (the only route file without coverage) + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
 
 ---
 
@@ -137,18 +138,20 @@
 ## Recent Commits (from this session)
 
 ```
+d2ca19b feat(backend): add refRoute unit tests (12 cases — the only route file previously uncovered)
 4d9f9ba chore(backend): move vpnController.test.js into tests/controllers/ for consistency
 34ce604 test(backend): add errorMiddleware unit tests (9 cases, 100% coverage)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 961 tests passing** (was 964 — removed 3 debug_bcrypt.test.js tests)
+- **Backend test suite: 973 tests passing** (was 961 — added 12 refRoute tests)
 - **Frontend test suite: 522 tests passing**
-- **Total test count: 1,483 tests** across frontend and backend (961 backend + 522 frontend)
+- **Total test count: 1,495 tests** across frontend and backend (973 backend + 522 frontend)
 - **Backend controllers/services with tests: 24** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
+- **Backend routes with tests: 15** — all route files now have test coverage (was 14)
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL 16 controllers now have tests
-- **webhookController: 47 tests, 76% line coverage** — covered by task 57 (webhookController unit tests)
+- **webhookController: 47 tests, 76% line coverage** — fixed typo on line 452 (=' → ===)
 
-*Last updated: 2026-04-17T20:44:00Z*
+*Last updated: 2026-04-17T21:25:00Z*
