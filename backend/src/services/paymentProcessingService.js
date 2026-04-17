@@ -3,7 +3,7 @@ const plisioService = require('./plisioService');
 const promoService = require('./promoService');
 const emailService = require('./emailService');
 const { createVpnAccount } = require('./userService');
-const { applyAffiliateCommissionIfEligible } = require('../controllers/paymentController');
+const { applyAffiliateCommissionIfEligible } = require('./affiliateCommissionService');
 
 /**
  * Process a completed Plisio payment asynchronously.

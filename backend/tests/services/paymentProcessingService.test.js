@@ -15,25 +15,25 @@
  *   - promoService     (markPromoCodeUsed)
  *   - emailService     (sendAccountCreatedEmail)
  *   - userService      (createVpnAccount)
- *   - paymentController (applyAffiliateCommissionIfEligible)
+ *   - affiliateCommissionService (applyAffiliateCommissionIfEligible)
  */
 
 // Set env BEFORE requiring the service
-process.env.PLISIO_API_KEY = '***';
+process.env.PLISIO_API_KEY='***';
 
 jest.mock('../../src/config/database');
 jest.mock('../../src/services/plisioService');
 jest.mock('../../src/services/promoService');
 jest.mock('../../src/services/emailService');
 jest.mock('../../src/services/userService');
-jest.mock('../../src/controllers/paymentController');
+jest.mock('../../src/services/affiliateCommissionService');
 
 const db = require('../../src/config/database');
 const plisioService = require('../../src/services/plisioService');
 const promoService = require('../../src/services/promoService');
 const emailService = require('../../src/services/emailService');
 const { createVpnAccount } = require('../../src/services/userService');
-const { applyAffiliateCommissionIfEligible } = require('../../src/controllers/paymentController');
+const { applyAffiliateCommissionIfEligible } = require('../../src/services/affiliateCommissionService');
 const { processPlisioPaymentAsync } = require('../../src/services/paymentProcessingService');
 
 describe('paymentProcessingService', () => {

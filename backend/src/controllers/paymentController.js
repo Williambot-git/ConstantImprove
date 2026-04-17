@@ -4,8 +4,6 @@ const db = require('../config/database');
 
 const { v4: uuidv4 } = require('uuid');
 
-const crypto = require('crypto');
-
 const fs = require('fs');
 
 const path = require('path');
@@ -23,6 +21,13 @@ const plisioService = require('../services/plisioService');
 const zipTaxService = require('../services/ziptaxService');
 
 const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
+
+// Re-export affiliateCommissionService.applyAffiliateCommissionIfEligible so existing
+// importers (webhookController, paymentProcessingService) continue to work without changes.
+// The actual implementation lives in affiliateCommissionService.js.
+const {
+  applyAffiliateCommissionIfEligible,
+} = require('../services/affiliateCommissionService');
 
 
 
@@ -154,139 +159,6 @@ const calculatePeriodEnd = (interval, startDate = new Date()) => {
 
 };
 
-
-
-
-
-// ========== AFFILIATE COMMISSION HELPERS (added 2026-04-13) ==========
-
-const getMinimumPayoutCents = async () => {
-
-  try {
-
-    const r = await db.query("SELECT (value->>'amount')::int as amount FROM payout_config WHERE key = 'minimum_payout_cents' LIMIT 1");
-
-    return r.rows.length > 0 ? parseInt(r.rows[0].amount) : 1000;
-
-  } catch { return 1000; }
-
-};
-
-
-
-const applyAffiliateCommissionIfEligible = async ({ affiliateCode, affiliateLinkId, accountNumber, plan, amountCents }) => {
-
-  if (!affiliateCode) return null;
-
-
-
-  // Look up affiliate by username (affiliates table has username, not code)
-
-  const affiliateResult = await db.query(
-
-    `SELECT id, username, user_id
-
-     FROM affiliates
-
-     WHERE UPPER(username) = UPPER($1) AND status = 'active'
-
-     LIMIT 1`,
-
-    [affiliateCode]
-
-  );
-
-
-
-  if (affiliateResult.rows.length === 0) {
-
-    console.log(`Affiliate not found for code: ${affiliateCode}`);
-
-    return null;
-
-  }
-
-
-
-  const affiliate = affiliateResult.rows[0];
-
-
-
-  // Prevent self-referral (affiliate cannot refer themselves)
-
-  if (affiliate.user_id) {
-
-    // Can't easily check self-referral without user_id on referral, skip for now
-
-  }
-
-
-
-  // Commission: 10% of transaction amount, $0.75 minimum
-
-  const commissionRate = 0.10;
-
-  const operatingCostPerUserCents = Math.round((parseFloat(process.env.OPERATING_COST_PER_USER) || 1.20) * 100);
-
-  const netProfitCents = Math.max(0, amountCents - operatingCostPerUserCents);
-
-  const computedCommission = Math.round(netProfitCents * commissionRate);
-
-  const finalCommissionCents = Math.max(computedCommission, await getMinimumPayoutCents()); // $0.75 min
-
-
-
-  // Anonymized customer hash (no PII — hash of account number)
-
-  const customerHash = accountNumber
-
-    ? require('crypto').createHash('sha256').update(accountNumber).digest('hex').substring(0, 32)
-
-    : `cust_${affiliate.id}_${Date.now()}`;
-
-
-
-  // Record referral
-
-  await db.query(
-
-    `INSERT INTO referrals (affiliate_id, customer_hash, plan, amount_cents, transaction_date, status, referral_link_id, created_at)
-
-     VALUES ($1, $2, $3, $4, NOW(), 'active', $5, NOW())`,
-
-    [affiliate.id, customerHash, plan || 'unknown', amountCents, affiliateLinkId || null]
-
-  );
-
-
-
-  // Credit commission to affiliate's transaction ledger (positive = credit)
-
-  await db.query(
-
-    `INSERT INTO transactions (affiliate_id, type, amount_cents, description, created_at)
-
-     VALUES ($1, 'commission', $2, $3, NOW())`,
-
-    [
-
-      affiliate.id,
-
-      finalCommissionCents,
-
-      `Referral commission for ${plan || 'signup'} signup — $${(amountCents / 100).toFixed(2)} transaction`
-
-    ]
-
-  );
-
-
-
-  console.log(`💰 Commission $${(finalCommissionCents / 100).toFixed(2)} credited to affiliate ${affiliate.username} (${affiliate.id})`);
-
-  return finalCommissionCents;
-
-};
 
 
 

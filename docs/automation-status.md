@@ -74,12 +74,14 @@
 | 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
 | 76 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
-| 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage — all 10 functions: getMetrics/getLinks/generateLink/getReferrals/getTransactions/getPayoutRequests/requestPayout/createCode/deleteCode) | **DONE** (commit ec373d3) |
-| 78 | backend: Remove dead code from paymentController.js — getDefaultDiscountCents (never called), duplicate plisioWebhook (superseded by webhookController), deleteOldAccounts (never wired) — 131 lines removed | **DONE** (commit f32d931) |
+| 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage) | **DONE** (commit ec373d3) |
+| 78 | backend: Remove dead code from paymentController.js (131 lines) | **DONE** (commit f32d931) |
 | 79 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
-| 80 | refRoute unit tests (the only route file without coverage) + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
-| 81 | fix(webhookController): remove dead DEBUG block (=*** typo — assignment instead of comparison, was dead code) | **DONE** (commit 36d3a9a) |
-| 82 | chore(backend): move exportService.test.js to tests/services/ + fix relative import paths | **DONE** (commit 9e0dab7) |
+| 80 | refRoute unit tests + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
+| 81 | fix(webhookController): remove dead DEBUG block (=*** typo — was dead code) | **DONE** (commit 36d3a9a) |
+| 82 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
+| 83 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
+| 84 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
 
 ---
 
@@ -140,20 +142,19 @@
 ## Recent Commits (from this session)
 
 ```
-36d3a9a fix(webhookController): remove dead DEBUG block (=*** typo — was dead code)
-9e0dab7 chore(backend): move exportService.test.js to tests/services/ + fix relative paths
-e5ab909 docs: update automation-status — task 80, refRoute tests, webhook typo fix, 1,495 total tests
+846c12e refactor: extract affiliateCommissionService from paymentController (fixes cross-layer import)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 973 tests passing**
+- **Backend test suite: 1,001 tests passing** (973 + 28 new affiliateCommissionService tests)
 - **Frontend test suite: 522 tests passing**
-- **Total test count: 1,495 tests** across frontend and backend (973 backend + 522 frontend)
-- **Backend controllers/services with tests: 24** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
-- **Backend routes with tests: 15** — all route files now have test coverage (was 14)
+- **Total test count: 1,523 tests** across frontend and backend
+- **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
+- **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
+- **Backend routes with tests: 15** — all route files have test coverage
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
-- **Backend controllers/services without tests: 0** — ALL 16 controllers now have tests
-- **webhookController: 47 tests, 76% line coverage** — fixed typo on line 452 (=' → ===)
+- **Backend controllers/services without tests: 0** — ALL have tests
+- **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-17T21:25:00Z*
+*Last updated: 2026-04-17T21:45:00Z*
