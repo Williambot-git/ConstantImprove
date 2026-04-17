@@ -158,4 +158,4 @@
 - **Backend controllers/services without tests: 0** — ALL have tests
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-17T21:45:00Z*
+*Last updated: 2026-04-18T02:30:00Z*
