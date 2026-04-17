@@ -72,6 +72,7 @@
 | 72 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
 | 73 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
 
 ---
 
@@ -132,17 +133,16 @@
 ## Recent Commits (from this session)
 
 ```
-567d328 fix(authController_csrf): add explicit res.status(200) on active-user login success path
-dc19648 docs: update automation-status — task 69, 1,392 total tests (870 backend + 522 frontend)
-546f514 test(backend): add pageController unit tests (18 cases, 100% line coverage)
+34ce604 test(backend): add errorMiddleware unit tests (9 cases, 100% coverage)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 917 tests passing**
+- **Backend test suite: 926 tests passing** (was 917)
 - **Frontend test suite: 522 tests passing**
-- **Total test count: 1,439 tests** across frontend and backend (522 frontend + 917 backend)
+- **Total test count: 1,448 tests** across frontend and backend (522 frontend + 926 backend)
 - **Backend controllers/services with tests: 23** (admin, affiliateAuth, affiliateController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
+- **Backend middleware with tests: 3** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware) — errorMiddleware added this session
 - **Backend controllers/services without tests: 1** (affiliateDashboardController.js — 406 lines, uses argon2/crypto/db with complex dependencies; consider wiring into existing ahoymanController test suite if feasible)
 - **webhookController: 47 tests, 76% line coverage** — covered by task 57 (webhookController unit tests)
 
