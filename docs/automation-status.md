@@ -48,10 +48,13 @@
 | 49 | paymentController route tests (33 tests, 63.66% coverage) | **DONE** |
 | 50 | adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, CSV exports, settings) | **DONE** (commit 7e3c117) |
 | 51 | customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit) | **DONE** (commit aee0277) |
+| 52 | Frontend lib/sanitize.js unit tests (63 tests, 96.87% line coverage — security-critical XSS prevention library was 0% covered) | **DONE** (commit 8d82e6a) |
 
 ---
 
 ## Blockers
+
+- **Route overlap — ahoymanRoutes duplicates adminRoutes functionality**: Both `/api/auth/ahoyman` (ahoymanRoutes.js) and `/api/admin` (adminRoutes.js) serve the same admin panel. `ahoymanRoutes` uses `ahoymanController` (969-line file) while `adminRoutes` uses `adminController` (937 lines). Functions like `getAffiliates`, `getAffiliate`, `createAffiliate`, `disableAffiliate`, `getKPIs`, `getAdminMetrics` exist in BOTH controllers. The Ahoyman dashboard uses `/auth/ahoyman/metrics` (ahoymanRoutes) while the admin panel JS client calls `/admin/metrics` (adminRoutes) — these are different endpoints serving the same data. The frontend Ahoyman dashboard imports from `api/adminMetrics` which points to `/auth/ahoyman/metrics` per CHECK_EVERYTHING.md Phase 7 regression check. This needs architectural review to determine which routes are canonical.
 
 - ~~**VPN server access functions not implemented**~~ — **FIXED** (commits 671e5ac, 8d71d0a)
   - `getServers` now returns static server list (us-east, us-west, eu-central)
@@ -106,20 +109,21 @@
 ## Recent Commits (from this session)
 
 ```
-7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage)
-aee0277 test(backend): add customerController unit tests (43 tests)
+8d82e6a test(frontend): add sanitize.js unit tests (63 tests, 96.87% line coverage)
+7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, exports, settings)
+aee0277 test(backend): add customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit)
 70bcb74 fix(paymentController): use AuthorizeNetService (class) not authorizeNetService (undefined)
 ```
 
 ## Notes for William
 
-- **adminController tests: 82.5% line coverage** (40 tests — covers login/logout, getCustomers, getCustomer, resetCustomerPassword, rotateCustomerRecoveryKit, sendMessageToCustomer, deactivateCustomer, deleteCustomer, createAffiliate, getAffiliates, getAffiliate, disableAffiliate, adjustAffiliateEarnings, getKPIs, getAdminMetrics, getReferralTracking, exportAffiliatesCSV, exportAffiliateReferralsCSV, logPayout, getSystemSettings, updateSystemSettings)
-- **customerController tests: 43 tests** (covers auth endpoints, subscription management, VPN credential claiming, recovery kit generation)
-- **Frontend test suite: 277 tests passing**
-- **Backend test suite: 413 tests passing** (+82 from adminController + customerController)
-- **Total test count: 690 tests** across frontend and backend
+- **Frontend test suite: 340 tests passing** (was 277, +63 new sanitize tests)
+- **Frontend function coverage: 49.44% → 52.78%** — now PASSES 50% threshold
+- **lib/sanitize.js: 0% → 96.87% line coverage** — 63 unit tests covering all 8 functions
+- **Backend test suite: 413 tests passing**
+- **Total test count: 753 tests** across frontend and backend
 - **Jest wired up**: `npm test` in backend runs Jest with coverage.
 - **Frontend lint clean**: 0 errors, 0 warnings.
 - **Circular dependency fix verified**: `paymentProcessingService.js` is canonical source for `processPlisioPaymentAsync` — all three files pass syntax checks.
 
-*Last updated: 2026-04-17T05:35:00Z*
+*Last updated: 2026-04-17T06:00:00Z*
