@@ -220,12 +220,20 @@ function AccountSettingsSection({ profile, onDeleteClick }) {
             />
           </FormGroup>
           {passwordError && <p style={styles.error}>{passwordError}</p>}
-          {passwordSuccess && <p style={styles.success}>{passwordSuccess}</p>}
           <Button type="submit" disabled={passwordLoading}>
             {passwordLoading ? 'Changing...' : 'Change Password'}
           </Button>
         </form>
       )}
+
+      {/*
+        SUCCESS MESSAGE RENDERED OUTSIDE THE FORM so it persists after the form
+        is hidden. Previously it was rendered inside the form (inside
+        {showPasswordForm && ...}), so when setShowPasswordForm(false) fired on
+        success the message disappeared immediately — a UX bug where the user
+        couldn't read the success confirmation before the form vanished.
+      */}
+      {passwordSuccess && <p style={styles.success}>{passwordSuccess}</p>}
 
       {showNewKit && (
         <div style={styles.kitContainer}>
