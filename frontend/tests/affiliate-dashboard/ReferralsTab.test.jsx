@@ -1,8 +1,14 @@
 /**
  * ReferralsTab — unit tests.
+ * Tests referral listing, loading state, and status display.
+ *
+ * MOVED FROM: frontend/components/affiliate-dashboard/ReferralsTab.test.jsx
+ * REASON: Jest only discovers tests under frontend/tests/ (per jest.config.js roots).
+ *         The original location was in the components/ directory — tests were never run.
  */
 import { render, screen } from '@testing-library/react';
-import ReferralsTab from './ReferralsTab';
+import '@testing-library/jest-dom';
+import ReferralsTab from '../../components/affiliate-dashboard/ReferralsTab';
 
 jest.mock('../../api/client', () => ({
   getAffiliateReferrals: jest.fn(),
@@ -13,11 +19,11 @@ describe('ReferralsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('renders referrals tab heading', () => {
+  it('renders empty state when no referrals', async () => {
     require('../../api/client').getAffiliateReferrals.mockResolvedValue({ data: { data: [], pagination: {} } });
     render(<ReferralsTab />);
-    // The component shows "No referrals yet." when empty
-    expect(screen.getByText('No referrals yet.')).toBeInTheDocument();
+    // await findByText because state update from resolved mock is async
+    expect(await screen.findByText('No referrals yet.')).toBeInTheDocument();
   });
 
   it('shows loading state while fetching', () => {

@@ -1,10 +1,15 @@
 /**
  * PayoutTab — unit tests.
  * Tests the payout request form, validation, success and error states.
+ *
+ * MOVED FROM: frontend/components/affiliate-dashboard/PayoutTab.test.jsx
+ * REASON: Jest only discovers tests under frontend/tests/ (per jest.config.js roots).
+ *         The original location was in the components/ directory — tests were never run.
  */
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import PayoutTab from './PayoutTab';
+import PayoutTab from '../../components/affiliate-dashboard/PayoutTab';
 
 jest.mock('../../api/client', () => ({
   requestAffiliatePayout: jest.fn(),
@@ -19,12 +24,15 @@ describe('PayoutTab', () => {
     const metrics = { availableToCashOut: 25.00, pendingPayout: 0 };
     render(<PayoutTab metrics={metrics} />);
     expect(screen.getByText(/\$25\.00/)).toBeInTheDocument();
-    expect(screen.getByText('Request Payout')).toBeInTheDocument();
+    // Use role+name to avoid ambiguous match between <h3> and <button> both saying "Request Payout"
+    expect(screen.getByRole('heading', { name: /Request Payout/i })).toBeInTheDocument();
   });
 
   it('shows minimum payout note', () => {
     render(<PayoutTab metrics={{ availableToCashOut: 25.00 }} />);
-    expect(screen.getByText(/Minimum: \$10\.00/)).toBeInTheDocument();
+    // Text is split across elements: "Minimum:" in one, "$10.00" in another
+    expect(screen.getByText(/Minimum:/)).toBeInTheDocument();
+    expect(screen.getByText('$10.00')).toBeInTheDocument();
   });
 
   it('calls requestAffiliatePayout with amount on submit', async () => {

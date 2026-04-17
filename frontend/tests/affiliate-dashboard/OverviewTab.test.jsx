@@ -1,10 +1,15 @@
 /**
  * OverviewTab — unit tests.
  * Tests the recovery kit state machine (step 0 = idle, 1 = confirming, 2 = showing codes).
+ *
+ * MOVED FROM: frontend/components/affiliate-dashboard/OverviewTab.test.jsx
+ * REASON: Jest only discovers tests under frontend/tests/ (per jest.config.js roots).
+ *         The original location was in the components/ directory — tests were never run.
  */
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import OverviewTab from './OverviewTab';
+import OverviewTab from '../../components/affiliate-dashboard/OverviewTab';
 
 jest.mock('../../api/client', () => ({
   affiliateRegenerateKit: jest.fn(),

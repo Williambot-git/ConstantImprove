@@ -1,10 +1,15 @@
 /**
  * LinksTab — unit tests.
  * Tests affiliate link creation (custom code + auto-generate), copy, and deletion.
+ *
+ * MOVED FROM: frontend/components/affiliate-dashboard/LinksTab.test.jsx
+ * REASON: Jest only discovers tests under frontend/tests/ (per jest.config.js roots).
+ *         The original location was in the components/ directory — tests were never run.
  */
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
-import LinksTab from './LinksTab';
+import LinksTab from '../../components/affiliate-dashboard/LinksTab';
 
 jest.mock('../../api/client', () => ({
   generateAffiliateLink: jest.fn(),
