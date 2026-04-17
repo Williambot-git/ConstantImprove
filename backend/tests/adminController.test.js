@@ -781,3 +781,60 @@ describe('adminController', () => {
     });
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════════
+// Error handling — catch blocks across admin functions
+// ════════════════════════════════════════════════════════════════════════════════
+describe('Error handling', () => {
+  let consoleSpy;
+
+  beforeEach(() => {
+    consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    jest.clearAllMocks();
+    db.query = jest.fn().mockResolvedValue({ rows: [] });
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  test('getCustomers — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getCustomers(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('getAffiliates — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB unavailable')));
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getAffiliates(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('exportAffiliatesCSV — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await exportAffiliatesCSV(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('getSystemSettings — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ body: {} });
+    const res = mockRes();
+    await getSystemSettings(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('updateSystemSettings — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB constraint violation')));
+    const req = mockReq({ body: { minimumPayout: 100 } });
+    const res = mockRes();
+    await updateSystemSettings(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});

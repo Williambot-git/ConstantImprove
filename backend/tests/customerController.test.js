@@ -685,3 +685,92 @@ describe('createSupportTicket', () => {
     }));
   });
 });
+
+// ════════════════════════════════════════════════════════════════════════════════
+// Error handling — catch blocks across all functions
+// Each test forces a mock to throw inside a specific function's try block,
+// verifying the catch block returns the expected 500 response.
+// Only tests functions that are actually exported from customerController.
+// ════════════════════════════════════════════════════════════════════════════════
+describe('Error handling', () => {
+  let consoleSpy;
+
+  beforeEach(() => {
+    consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    mockDbQuery.mockImplementation(() => Promise.resolve({ rows: [] }));
+    argon2.hash.mockReset();
+    argon2.hash.mockImplementation(() => Promise.resolve('hashed-value'));
+    argon2.verify.mockReset();
+    argon2.verify.mockImplementation(() => Promise.resolve(true));
+    bcrypt.compare.mockReset();
+    bcrypt.compare.mockImplementation(() => Promise.resolve(true));
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+  });
+
+  // ── register — returns 500 on db error ─────────────────────────────────────
+  test('register — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB error')));
+    const res = mockRes();
+    await customerController.register({ body: { email: 'test@example.com' } }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── getProfile — returns 500 on db error ──────────────────────────────────
+  test('getProfile — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB down')));
+    const res = mockRes();
+    await customerController.getProfile({ user: { id: 1 } }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── getSubscription — returns 500 on db error ──────────────────────────────
+  test('getSubscription — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB error')));
+    const res = mockRes();
+    await customerController.getSubscription({ user: { id: 1 } }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── cancelSubscription — returns 500 on db error ───────────────────────────
+  test('cancelSubscription — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB unavailable')));
+    const res = mockRes();
+    await customerController.cancelSubscription({ user: { id: 1 } }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── deleteAccount — returns 500 on db error ────────────────────────────────
+  test('deleteAccount — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB error')));
+    const res = mockRes();
+    await customerController.deleteAccount(
+      { user: { id: 1 }, body: { password: 'password123' } },
+      res
+    );
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── changePassword — returns 500 on db error ───────────────────────────────
+  test('changePassword — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB unavailable')));
+    const res = mockRes();
+    await customerController.changePassword(
+      { user: { id: 1 }, body: { currentPassword: 'oldpass', newPassword: 'newpassword123' } },
+      res
+    );
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  // ── rotateRecoveryKit — returns 500 on db error ───────────────────────────
+  test('rotateRecoveryKit — returns 500 when db.query throws', async () => {
+    mockDbQuery.mockImplementationOnce(() => Promise.reject(new Error('DB error')));
+    const res = mockRes();
+    await customerController.rotateRecoveryKit({ user: { id: 1 } }, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+});
