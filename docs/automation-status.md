@@ -70,6 +70,8 @@
 | 70 | supportController unit tests (11 cases) + real implementation (replace 501 stubs) | **DONE** (commit cfacecc) |
 | 71 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
 | 72 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
+| 73 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 
 ---
 
@@ -137,10 +139,11 @@ dc19648 docs: update automation-status — task 69, 1,392 total tests (870 backe
 
 ## Notes for William
 
-- **Backend test suite: 917 tests passing** (was 888, +29: 18 userController + 11 supportController)
-- **Frontend test suite: 522 tests passing** (unchanged)
+- **Backend test suite: 917 tests passing**
+- **Frontend test suite: 522 tests passing**
 - **Total test count: 1,439 tests** across frontend and backend (522 frontend + 917 backend)
-- **Backend controllers with tests now: 14** (admin, affiliateAuth, affiliateController, ahoyman, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
-- **Backend controllers still without tests: 2** (authController.js and affiliateDashboardController.js — both use User model and jwt utils with complex dependencies)
+- **Backend controllers/services with tests: 23** (admin, affiliateAuth, affiliateController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
+- **Backend controllers/services without tests: 1** (affiliateDashboardController.js — 406 lines, uses argon2/crypto/db with complex dependencies; consider wiring into existing ahoymanController test suite if feasible)
+- **webhookController: 47 tests, 76% line coverage** — covered by task 57 (webhookController unit tests)
 
 *Last updated: 2026-04-17T19:20:00Z*
