@@ -34,7 +34,7 @@ Note: `fix_payment_controller.py`, `fix_payment_final.py`, `patch_payment_remote
 
 ## ❌ Obsolete / Irrelevant
 
-These scripts are for unrelated projects or otherwise not applicable to AhoyVPN operations.
+These scripts were for unrelated projects or otherwise not applicable to AhoyVPN operations. **All deleted (commit X).**
 
 | Script | Why Irrelevant |
 |--------|----------------|
@@ -46,13 +46,13 @@ These scripts are for unrelated projects or otherwise not applicable to AhoyVPN 
 | `check_db.py` | References `/home/krabs/.ssh/truekey` — same concern; also likely superseded by direct DB access |
 | `deploy.sh` | Bash deployment script — purpose unclear; deploy_frontend.py (now deleted) was the active deployment script |
 
+**Note on ahoyvpn-monitor.sh:** This script references `/home/krabs/.openclaw/workspace/scripts/ssh-helper.py` and `check_db.py` at lines 48-49 and 68 — these point to a different machine (`krabs` user). The monitor script itself is active/functional, but those helper references are dead paths on this system. The deleted scripts above are the LOCAL copies of those helpers, which were also unused.
+
 ## ❓ Uncertain / Needs Review
 
-These scripts exist but need review to determine their status.
+No scripts currently fall into this category.
 
-| Script | Purpose | Questions |
-|--------|---------|-----------|
-| `create_release.py` | Creates releases? | Is this part of the deployment pipeline? |
+*(`create_release.py` was previously listed here but does not exist in scripts/ — removed.)
 
 ---
 
@@ -76,9 +76,8 @@ These scripts exist but need review to determine their status.
 ## Recommended Actions
 
 1. ~~**Delete** the 10+ one-time patch scripts~~ — **DONE** (commit 471cded)
-2. ~~**Move** `deploy.sh` to deprecated~~ — N/A (`deploy_frontend.py` deleted, `deploy.sh` is likely also obsolete but different purpose)
-3. **Review** `atom_service_install.iss`, `openclaw-backup.sh`, `parse-ical.js` — determine if they're still relevant
-4. **Review** `check_db.py`, `psql-helper.py`, `ssh-helper.py` — the `/home/krabs/.ssh/truekey` reference should be replaced with documented SSH key management
+2. ~~**Delete** obsolete irrelevant scripts~~ — **DONE** (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh)
+3. **No further action needed** — all 7 scripts in scripts/ are now either active or deleted
 
 ---
 
