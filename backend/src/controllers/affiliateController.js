@@ -362,7 +362,8 @@ const getEarnings = async (req, res) => {
 const getReferralPerformance = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+    const parsedLimit = parseInt(limit, 10);
+    const offset = (parseInt(page, 10) - 1) * parsedLimit;
     
     // Get referrals — only use columns that actually exist in the referrals table
     const referralsResult = await db.query(
@@ -371,7 +372,7 @@ const getReferralPerformance = async (req, res) => {
        WHERE affiliate_id = $1
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
-      [req.affiliateId, limit, offset]
+      [req.affiliateId, parsedLimit, offset]
     );
     
     // Get total count
@@ -387,7 +388,7 @@ const getReferralPerformance = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: parseInt(countResult.rows[0].count),
-        pages: Math.ceil(countResult.rows[0].count / limit)
+        pages: Math.ceil(parseInt(countResult.rows[0].count) / parsedLimit)
       }
     });
   } catch (error) {
