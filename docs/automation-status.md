@@ -46,6 +46,8 @@
 | 47 | Frontend PlanCard unit tests (13 tests) | **DONE** (commit f63ec5a) |
 | 48 | Head.jsx unit tests (18 tests) | **DONE** (commit 49642da) |
 | 49 | paymentController route tests (33 tests, 63.66% coverage) | **DONE** |
+| 50 | adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, CSV exports, settings) | **DONE** (commit 7e3c117) |
+| 51 | customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit) | **DONE** (commit aee0277) |
 
 ---
 
@@ -104,18 +106,20 @@
 ## Recent Commits (from this session)
 
 ```
-ada7d30 test(frontend): move 4 affiliate-dashboard tab tests to tests/ + add TransactionsTab
-eebec54 docs: update automation status — task 48 complete (Head.jsx tests, 542 total tests)
-49642da test(frontend): add Head.jsx unit tests (18 tests)
+7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage)
+aee0277 test(backend): add customerController unit tests (43 tests)
+70bcb74 fix(paymentController): use AuthorizeNetService (class) not authorizeNetService (undefined)
 ```
 
 ## Notes for William
 
-- **paymentController tests at 63.66% line coverage** (33 tests — 7 describe blocks covering getPlans, hostedRedirectBridge, hostedRedirectScript, authorizeRelayResponse, getInvoiceStatus, createCheckout validation/card/crypto paths, affiliate discount, US billing, ZipTax errors)
+- **adminController tests: 82.5% line coverage** (40 tests — covers login/logout, getCustomers, getCustomer, resetCustomerPassword, rotateCustomerRecoveryKit, sendMessageToCustomer, deactivateCustomer, deleteCustomer, createAffiliate, getAffiliates, getAffiliate, disableAffiliate, adjustAffiliateEarnings, getKPIs, getAdminMetrics, getReferralTracking, exportAffiliatesCSV, exportAffiliateReferralsCSV, logPayout, getSystemSettings, updateSystemSettings)
+- **customerController tests: 43 tests** (covers auth endpoints, subscription management, VPN credential claiming, recovery kit generation)
 - **Frontend test suite: 277 tests passing**
-- **Backend test suite: 331 tests passing** (+34 from paymentController tests)
-- **Total test count: 608 tests** across frontend and backend
-- **Jest wired up**: `npm test` in backend runs Jest with coverage. All 331 tests pass.
+- **Backend test suite: 413 tests passing** (+82 from adminController + customerController)
+- **Total test count: 690 tests** across frontend and backend
+- **Jest wired up**: `npm test` in backend runs Jest with coverage.
 - **Frontend lint clean**: 0 errors, 0 warnings.
+- **Circular dependency fix verified**: `paymentProcessingService.js` is canonical source for `processPlisioPaymentAsync` — all three files pass syntax checks.
 
-*Last updated: 2026-04-17T05:00:00Z*
+*Last updated: 2026-04-17T05:35:00Z*

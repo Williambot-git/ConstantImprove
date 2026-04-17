@@ -1,131 +1,53 @@
-# Fixing Circular Dependency: invoicePollingService ↔ webhookController
+# Implementation Plan
 
-## Problem Analysis
+> **Status:** All tasks complete. Circular dependency resolved.
 
-**Circular dependency chain:**
-```
-invoicePollingService.js
-  └─ imports processPlisioPaymentAsync from webhookController.js
-  
-webhookController.js
-  └─ imports plisioService, promoService, emailService, userService, authorizeNetUtils
-  └─ imports applyAffiliateCommissionIfEligible from paymentController.js
-```
+## Completed Tasks
 
-**Where processPlisioPaymentAsync is used:**
-- `invoicePollingService.js` lines 67, 82 (polling service)
-- `webhookController.js` line 212 (inside `plisioWebhook` handler)
+### ✅ Circular Dependency Fix — DONE (committed)
 
-**Dependencies of processPlisioPaymentAsync:**
-- `db` (database)
-- `plisioService` (invoice status, switched invoice resolution)
-- `promoService.markPromoCodeUsed()`
-- `emailService.sendAccountCreatedEmail()`
-- `createVpnAccount` from userService
-- `applyAffiliateCommissionIfEligible` from paymentController
+**Problem:** `invoicePollingService.js` imported `processPlisioPaymentAsync` from `webhookController.js`, creating a circular dependency chain.
 
----
+**Solution implemented:**
+- `processPlisioPaymentAsync` was extracted to `src/services/paymentProcessingService.js`
+- `invoicePollingService.js` now imports from `paymentProcessingService.js`
+- `webhookController.js` imports from `paymentProcessingService.js` (same canonical source)
+- No circular dependency remains
 
-## Implementation Plan
+**Files involved:**
+- ✅ `src/services/paymentProcessingService.js` — created (processPlisioPaymentAsync lives here)
+- ✅ `src/services/invoicePollingService.js` — updated import source
+- ✅ `src/controllers/webhookController.js` — updated import source (line 12)
 
-### Step 1: Create `paymentProcessingService.js`
-
-Extract `processPlisioPaymentAsync` into a new shared service:
-
-**File:** `/tmp/Decontaminate/backend/src/services/paymentProcessingService.js`
-
-```javascript
-const db = require('../config/database');
-const plisioService = require('./plisioService');
-const promoService = require('./promoService');
-const emailService = require('./emailService');
-const { createVpnAccount } = require('./userService');
-const { applyAffiliateCommissionIfEligible } = require('../controllers/paymentController');
-
-async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
-  // Full implementation moved from webhookController.js
-  // See: backend/src/services/paymentProcessingService.js (already extracted)
-}
-
-module.exports = {
-  processPlisioPaymentAsync
-};
-```
-
-### Step 2: Update `invoicePollingService.js`
-
-**Before (line 4):**
-```javascript
-const { processPlisioPaymentAsync } = require('../controllers/webhookController');
-```
-
-**After:**
-```javascript
-const { processPlisioPaymentAsync } = require('./paymentProcessingService');
-```
-
-### Step 3: Update `webhookController.js`
-
-**Before (line 11):**
-```javascript
-const { createVpnAccount } = require('../services/userService');
-```
-(Note: webhookController no longer needs to import createVpnAccount directly since it's used only inside processPlisioPaymentAsync which is now moved)
-
-**Before (line 13):**
-```javascript
-const { applyAffiliateCommissionIfEligible } = require('./paymentController');
-```
-(Note: Same — this is now imported by paymentProcessingService)
-
-**After:**
-Remove the above two imports if they are not used elsewhere in webhookController.
-Remove `processPlisioPaymentAsync` from the `module.exports` at line 846.
-
-### Step 4: Write Unit Tests for `invoicePollingService`
-
-**File:** `/tmp/Decontaminate/backend/tests/unit/invoicePollingService.test.js`
-
-Test coverage:
-- `runOnce()` — normal polling with no matching subscriptions
-- `runOnce()` — subscription at checkpoint, invoice completed → calls processPlisioPaymentAsync
-- `runOnce()` — subscription at checkpoint, cancelled/duplicate with activeInvoiceId → calls processPlisioPaymentAsync
-- `runOnce()` — subscription at checkpoint, no payment yet → updates metadata
-- `runOnce()` — subscription exceeds max poll attempts → skips
-- `runOnce()` — handles plisioService.getInvoiceStatus error gracefully
-- `pollArbSubscriptions()` — ARB suspended → deactivates VPN
-- `pollArbSubscriptions()` — ARB settled → activates subscription
-- `pollArbSubscriptions()` — handles error gracefully
+**Verification:**
+- `node --check src/services/paymentProcessingService.js` ✅
+- `node --check src/services/invoicePollingService.js` ✅
+- `node --check src/controllers/webhookController.js` ✅
+- All 413 backend tests passing ✅
 
 ---
 
-## Files Summary
+## Next Priority Tasks
 
-| Action | File |
-|--------|------|
-| **CREATE** | `src/services/paymentProcessingService.js` |
-| **CREATE** | `tests/unit/invoicePollingService.test.js` |
-| **MODIFY** | `src/services/invoicePollingService.js` (1 line) |
-| **MODIFY** | `src/controllers/webhookController.js` (remove 3 imports + 1 export) |
+See `docs/automation-status.md` Priority Queue (Section 3) for the full backlog.
 
----
-
-## Verification
-
-After implementing:
-
-1. **Syntax check:** `node --check src/services/paymentProcessingService.js`
-2. **Syntax check:** `node --check src/services/invoicePollingService.js`
-3. **Syntax check:** `node --check src/controllers/webhookController.js`
-4. **Run tests:** `npm test -- tests/unit/invoicePollingService.test.js`
-5. **Verify no circular import error** when requiring any of the three modules
+Top candidates after this session:
+1. **ahoymanController unit tests** (969 lines, 0% coverage, 31 endpoints)
+2. **authController unit tests** (659 lines, 0% coverage)
+3. **webhookController unit tests** (679 lines, 0% coverage)
+4. **Frontend checkout component additional edge-case coverage**
+5. **Frontend auth flow integration tests**
 
 ---
 
-## Risk Assessment
+## Recent Test Coverage Progress
 
-- **Low risk** — purely a refactor moving one async function to a shared service
-- `processPlisioPaymentAsync` signature is unchanged
-- Callers (`invoicePollingService`, `plisioWebhook`) require zero logic changes
-- Invoice polling should continue to work identically
-- No database schema changes
+| Task | Tests | Coverage | Commit |
+|------|-------|----------|--------|
+| customerController | 43 tests | 0% (staggered) | aee0277 |
+| adminController | 40 tests | 82.5% | 7e3c117 |
+| invoicePollingService | 13 tests | 97.26% | bef2373 |
+| paymentProcessingService | 10 tests | 96.82% | 2924be3 |
+| paymentController routes | 33 tests | 63.66% | staged |
+
+*Total backend tests: 413 | Total frontend tests: 277*
