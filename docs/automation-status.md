@@ -57,6 +57,10 @@
 | 58 | fix(frontend): api/client.js — getAdmin/postAdmin now check accessToken as fallback (matching request interceptor), fix duplicate getTaxTransactions/getTaxSummary with wrong URLs and missing auth | **DONE** (commit 7c3f054) |
 | 59 | Frontend dashboard tests — VpnCredentialsSection (13 tests, 100% line coverage) + SubscriptionSection (14 tests, full flow coverage) | **DONE** (commit be5dac7) |
 | 60 | AccountSettingsSection UX bugfix — move passwordSuccess message outside {showPasswordForm} block so it persists after form hides | **DONE** (commit 521f2ea) |
+| 61 | affiliateController unit tests (51 tests, 76.2% line coverage) + fix 2 pre-existing test bugs | **DONE** (commit d68928f) |
+| 62 | Fix pagination math bug in getReferralPerformance + mock global crypto properly (not require('crypto')) | **DONE** (commit d68928f) |
+| 63 | Remove 6 orphaned debug_*.test.js files | **DONE** (commit d68928f) |
+| 64 | affiliateAuthController unit tests (36 tests, 99.27% line coverage — all 7 functions: login/logout/validateRecoveryCode/resetPassword/generateRecoveryKit/getProfile/changePassword) | **DONE** (commit dd435d9) |
 
 ---
 
@@ -105,10 +109,10 @@
    - ~~Ahoyman dashboard~~ — **DONE** (b3afed5)
    - ~~Affiliate dashboard~~ — **DONE** (a70c98b)
 5. ~~**Frontend: Decompose customer dashboard.jsx (659 lines)**~~ — similar tab structure to affiliate-dashboard pattern | **DONE** (commit 93e9570)
-6. **Backend: authMiddleware_new.js unit tests** (332 lines, middleware protect/rateLimit/csrf functions)
-7. **Backend: passwordValidation.js unit tests** (229 lines, validatePasswordComplexity, isPasswordReused, isPasswordExpired)
-8. **Backend: affiliateController unit tests** (611 lines, affiliate management, commission tracking)
-9. **Backend: affiliateAuthController unit tests** (338 lines, affiliate authentication)
+6. **Backend: authMiddleware_new.js unit tests** (332 lines, middleware protect/rateLimit/csrf functions) — **DONE** (100% coverage)
+7. **Backend: passwordValidation.js unit tests** (229 lines, validatePasswordComplexity, isPasswordReused, isPasswordExpired) — **DONE** (100% coverage)
+8. ~~**Backend: affiliateController unit tests** (611 lines, affiliate management, commission tracking)~~ — **DONE** (51 tests, 76.2% line coverage)
+9. ~~**Backend: affiliateAuthController unit tests** (338 lines, affiliate authentication)~~ — **DONE** (36 tests, 99.27% line coverage)
 10. **Backend: pageController unit tests** (638 lines, page rendering, SEO)
 11. **Backend: exportController unit tests** (233 lines, CSV export functionality)
 
@@ -117,18 +121,14 @@
 ## Recent Commits (from this session)
 
 ```
-139aa68 test(backend): add passwordValidation unit tests (545 tests, 100% line/branch/func)
-eee00b4 test(backend): add securityMiddleware unit tests (46 tests, 100% line/branch/function coverage)
+dd435d9 test(backend): add affiliateAuthController unit tests (36 cases, 99.27% line coverage)
+d68928f fix(affiliateController): correct pagination math + mock global crypto properly in tests
 ```
 
 ## Notes for William
 
+- **Backend test suite: 834 tests passing** (was 798, +36 new affiliateAuthController tests this session)
 - **Frontend test suite: 509 tests passing** (unchanged)
-- **Backend test suite: 792 tests passing** (was 746, +46 new securityMiddleware tests this session; 545 new passwordValidation+authMiddleware tests also committed this session but counted in the 792)
-- **Total test count: 1,301 tests** across frontend and backend (509 frontend + 792 backend)
-- **Note**: 6 pre-existing failures in `affiliateController.test.js` (getRecoveryKit + regenerateRecoveryKit mock issues, unrelated to these changes — already present before this session)
-- **authMiddleware_new.js**: Added `csrfTokens` Map and `createRateLimiter` factory export (for test access only — production code unchanged)
-- **passwordValidation.js**: 229 lines, 100% line/branch/function coverage — all complexity paths tested
-- **authMiddleware_new.test.js**: 124 tests, 100% line coverage — protect/rate limiting/CSRF token functions
+- **Total test count: 1,343 tests** across frontend and backend (509 frontend + 834 backend)
 
-*Last updated: 2026-04-17T16:55:00Z*
+*Last updated: 2026-04-17T17:50:00Z*
