@@ -143,9 +143,9 @@
 
 ## Notes for William
 
-- **Backend test suite: 964 tests passing** (was 926)
+- **Backend test suite: 961 tests passing** (was 964 — removed 3 debug_bcrypt.test.js tests)
 - **Frontend test suite: 522 tests passing**
-- **Total test count: 1,486 tests** across frontend and backend (964 backend + 522 frontend)
+- **Total test count: 1,483 tests** across frontend and backend (961 backend + 522 frontend)
 - **Backend controllers/services with tests: 24** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL 16 controllers now have tests
