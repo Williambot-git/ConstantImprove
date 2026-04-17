@@ -14,19 +14,19 @@
 const mockGetAccount = jest.fn();
 
 // Mock database
-jest.mock('../src/config/database', () => ({
+jest.mock('../../src/config/database', () => ({
   query: jest.fn()
 }));
 
 // Mock vpnResellersService with our pre-created mock
-jest.mock('../src/services/vpnResellersService', () => {
+jest.mock('../../src/services/vpnResellersService', () => {
   return jest.fn().mockImplementation(() => ({
     getAccount: mockGetAccount
   }));
 });
 
-const db = require('../src/config/database');
-const vpnController = require('../src/controllers/vpnController');
+const db = require('../../src/config/database');
+const vpnController = require('../../src/controllers/vpnController');
 
 describe('vpnController', () => {
   let mockReq;
