@@ -105,29 +105,26 @@
    - ~~Ahoyman dashboard~~ — **DONE** (b3afed5)
    - ~~Affiliate dashboard~~ — **DONE** (a70c98b)
 5. ~~**Frontend: Decompose customer dashboard.jsx (659 lines)**~~ — similar tab structure to affiliate-dashboard pattern | **DONE** (commit 93e9570)
-6. **Backend: customerController unit tests** (20+ endpoints covering auth, subscription, VPN credential claiming, recovery kit — good coverage target)
-7. **Backend: adminController unit tests** (metrics, customer/affiliate management — large file at 914 lines)
-8. **Backend: ahoymanController unit tests** (admin login, dashboard metrics, KPIs — 84.4% line coverage gap)
-9. **Backend: authorizeNetUtils additional error path tests** (remaining uncovered branches)
-10. **Frontend: checkout component additional coverage** (PlanSelector, CryptoSelector, PaymentMethodSelector edge cases)
-11. **Frontend: remaining page-level integration tests** (auth flow, dashboard flow)
+6. **Backend: authMiddleware_new.js unit tests** (332 lines, middleware protect/rateLimit/csrf functions)
+7. **Backend: passwordValidation.js unit tests** (229 lines, validatePasswordComplexity, isPasswordReused, isPasswordExpired)
+8. **Backend: affiliateController unit tests** (611 lines, affiliate management, commission tracking)
+9. **Backend: affiliateAuthController unit tests** (338 lines, affiliate authentication)
+10. **Backend: pageController unit tests** (638 lines, page rendering, SEO)
+11. **Backend: exportController unit tests** (233 lines, CSV export functionality)
 
 ---
 
 ## Recent Commits (from this session)
 
 ```
-0eeb399 fix(auth): correct verifyRecoveryCode mock data — missing recovery_codes on mock #3
-8d82e6a test(frontend): add sanitize.js unit tests (63 tests, 96.87% line coverage)
-7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage)
-aee0277 test(backend): add customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit)
+eee00b4 test(backend): add securityMiddleware unit tests (46 tests, 100% line/branch/function coverage)
 ```
 
 ## Notes for William
 
-- **Frontend test suite: 509 tests passing** (was 485, +27 new tests: 13 VpnCredentialsSection + 14 SubscriptionSection)
-- **Backend test suite: 577 tests passing** (unchanged)
-- **Total test count: 1,086 tests** across frontend and backend (509 frontend + 577 backend)
+- **Frontend test suite: 509 tests passing** (unchanged)
+- **Backend test suite: 623 tests passing** (was 577, +46 new tests)
+- **Total test count: 1,132 tests** across frontend and backend (509 frontend + 623 backend)
 - **AccountSettingsSection UX bug**: Success message was inside `{showPasswordForm && ...}` block, so it vanished when form was hidden. Fixed by moving it outside the conditional. Also removed one untestable "loading state" test (userEvent.click+act resolves mock promise synchronously, making the intermediate "Changing..." state impossible to capture without fake timers).
 
-*Last updated: 2026-04-17T15:00:00Z*
+*Last updated: 2026-04-17T15:20:00Z*
