@@ -913,7 +913,7 @@ const createCheckout = async (req, res) => {
 
 
 
-        const hosted = await authorizeNetService.createHostedPaymentPage({
+        const hosted = await AuthorizeNetService.createHostedPaymentPage({
 
           amount: totalAmountCents / 100,
 
@@ -997,7 +997,7 @@ const createCheckout = async (req, res) => {
 
       // Legacy direct-card flow (fallback only)
 
-      const transaction = await authorizeNetService.createTransaction(
+      const transaction = await AuthorizeNetService.createTransaction(
 
         totalAmountCents / 100, // Convert cents to dollars (subtotal + tax)
 
@@ -1879,7 +1879,7 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-          const arbResult = await authorizeNetService.createArbSubscriptionFromProfile({
+          const arbResult = await AuthorizeNetService.createArbSubscriptionFromProfile({
 
             amount: arbAmount,
 
