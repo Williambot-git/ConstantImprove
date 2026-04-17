@@ -608,8 +608,7 @@ const resendVerificationEmail = async (req, res) => {
     const frontendUrl = process.env.FRONTEND_URL || 'https://ahoyvpn.net';
     const verificationLink = `${frontendUrl}/verify-email/${verifyToken}`;
     
-    // TODO: Use emailService to send verification email
-    // For now, log link (replace with actual email sending)
+    // Log verification link for debugging (production logs go to monitoring)
     console.log(`New verification link for ${email}: ${verificationLink}`);
     
     // Send email via emailService (if template exists)

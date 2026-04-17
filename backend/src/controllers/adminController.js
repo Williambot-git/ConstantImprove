@@ -390,13 +390,21 @@ const createAffiliate = async (req, res) => {
     const tempPassword = crypto.randomBytes(8).toString('hex');
     const passwordHash = await argon2.hash(tempPassword);
     
+    // Generate 10 recovery codes (like ahoymanController does)
+    // recovery_codes_hash column stores a JSON array of argon2 hashes
+    const codes = [];
+    for (let i = 0; i < 10; i++) {
+      codes.push(crypto.randomBytes(4).toString('hex').toUpperCase());
+    }
+    const hashedCodes = await Promise.all(codes.map(c => argon2.hash(c)));
+
     // Create affiliate record
     const affiliateResult = await db.query(
       `INSERT INTO affiliates (
         user_id, username, password_hash, recovery_codes_hash, status, created_at
       ) VALUES ($1, $2, $3, $4, 'active', NOW())
       RETURNING id, username, status, created_at`,
-      [user.id, affiliateCode, passwordHash, 'placeholder']
+      [user.id, affiliateCode, passwordHash, JSON.stringify(hashedCodes)]
     );
     
     // Log audit event
