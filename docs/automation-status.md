@@ -51,6 +51,7 @@
 | 52 | Frontend lib/sanitize.js unit tests (63 tests, 96.87% line coverage — security-critical XSS prevention library was 0% covered) | **DONE** (commit 8d82e6a) |
 | 53 | ahoymanController unit tests (64 tests, 91.6% line coverage — all 25 functions: auth, affiliates, referrals, payouts, settings, tax, affiliate codes) | **DONE** (commit 5898612) |
 | 54 | Document route overlap architecture decision (ahoymanRoutes vs adminRoutes) | **DONE** (commit aafb833) |
+| 55 | fix(authController): verifyRecoveryCode test — missing recovery_codes on mock #3 caused 400 instead of 200 | **DONE** (commit 0eeb399) |
 
 ---
 
@@ -111,10 +112,10 @@
 ## Recent Commits (from this session)
 
 ```
+0eeb399 fix(auth): correct verifyRecoveryCode mock data — missing recovery_codes on mock #3
 8d82e6a test(frontend): add sanitize.js unit tests (63 tests, 96.87% line coverage)
-7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, exports, settings)
+7e3c117 test(backend): add adminController unit tests (40 tests, 82.5% line coverage)
 aee0277 test(backend): add customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit)
-70bcb74 fix(paymentController): use AuthorizeNetService (class) not authorizeNetService (undefined)
 ```
 
 ## Notes for William
@@ -122,10 +123,8 @@ aee0277 test(backend): add customerController unit tests (43 tests, covers auth,
 - **Frontend test suite: 340 tests passing** (was 277, +63 new sanitize tests)
 - **Frontend function coverage: 49.44% → 52.78%** — now PASSES 50% threshold
 - **lib/sanitize.js: 0% → 96.87% line coverage** — 63 unit tests covering all 8 functions
-- **Backend test suite: 413 tests passing**
-- **Total test count: 753 tests** across frontend and backend
-- **Jest wired up**: `npm test` in backend runs Jest with coverage.
-- **Frontend lint clean**: 0 errors, 0 warnings.
-- **Circular dependency fix verified**: `paymentProcessingService.js` is canonical source for `processPlisioPaymentAsync` — all three files pass syntax checks.
+- **Backend test suite: 530 tests passing** (was 529)
+- **Total test count: 870 tests** across frontend and backend
+- **authController: 53/53 tests passing** — verifyRecoveryCode 200 test now fixed
 
-*Last updated: 2026-04-17T06:00:00Z*
+*Last updated: 2026-04-17T11:15:00Z*
