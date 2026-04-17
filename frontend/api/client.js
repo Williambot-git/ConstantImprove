@@ -58,11 +58,15 @@ apiClient.interceptors.response.use(
 
 // Generic GET/POST helpers for admin routes
 const getAdmin = (path) => {
-  const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+  // NOTE: Token priority must match the request interceptor below (line 21):
+  // affiliateToken → adminToken → accessToken → authToken
+  // For admin routes, we check adminToken first, then accessToken (customer token),
+  // then authToken (legacy). affiliateToken is NOT used for admin routes.
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken') || localStorage.getItem('authToken');
   return apiClient.get(path, { headers: { Authorization: `Bearer ${token}` } });
 };
 const postAdmin = (path, data) => {
-  const token = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('accessToken') || localStorage.getItem('authToken');
   return apiClient.post(path, data, { headers: { Authorization: `Bearer ${token}` } });
 };
 
@@ -141,8 +145,17 @@ export const api = {
   searchCustomer: async (query) => getAdmin(`/admin/customers/search?q=${encodeURIComponent(query)}`),
 
   // ===== ADMIN TAX =====
-  getTaxTransactions: () => getAdmin('/admin/tax-transactions'),
-  getTaxSummary: () => getAdmin('/admin/tax-transactions/summary'),
+  // NOTE: These use apiClient.get() directly (not getAdmin) because the
+  // Authorization header is injected by the request interceptor at the top
+  // of this file. getAdmin() would also work but isn't needed here.
+  getTaxTransactions: async (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return apiClient.get(`/auth/ahoyman/tax-transactions${qs ? '?' + qs : ''}`);
+  },
+  getTaxSummary: async (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return apiClient.get(`/auth/ahoyman/tax-transactions/summary${qs ? '?' + qs : ''}`);
+  },
 
   // ===== ADMIN AFFILIATE MANAGEMENT =====
   createAffiliate: async (data) => postAdmin('/auth/ahoyman/affiliates', data),
@@ -174,14 +187,6 @@ export const api = {
     apiClient.put(`/auth/ahoyman/affiliate-codes/${id}/discount`, { discountCents }),
 
   // ===== SALES TAX =====
-  getTaxTransactions: async (params = {}) => {
-    const qs = new URLSearchParams(params).toString();
-    return apiClient.get(`/auth/ahoyman/tax-transactions${qs ? '?' + qs : ''}`);
-  },
-  getTaxSummary: async (params = {}) => {
-    const qs = new URLSearchParams(params).toString();
-    return apiClient.get(`/auth/ahoyman/tax-transactions/summary${qs ? '?' + qs : ''}`);
-  },
   exportTaxCSV: async (params = {}) => {
     const qs = new URLSearchParams(params).toString();
     return apiClient.get(`/auth/ahoyman/tax-transactions/export/csv${qs ? '?' + qs : ''}`, { responseType: 'blob' });
