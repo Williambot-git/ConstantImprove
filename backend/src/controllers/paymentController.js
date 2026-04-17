@@ -174,20 +174,6 @@ const getMinimumPayoutCents = async () => {
 
 
 
-const getDefaultDiscountCents = async () => {
-
-  try {
-
-    const r = await db.query("SELECT default_discount_cents FROM payout_config WHERE key = 'default_discount_cents' LIMIT 1");
-
-    return r.rows.length > 0 ? parseInt(r.rows[0].default_discount_cents) : 0;
-
-  } catch { return 0; }
-
-};
-
-
-
 const applyAffiliateCommissionIfEligible = async ({ affiliateCode, affiliateLinkId, accountNumber, plan, amountCents }) => {
 
   if (!affiliateCode) return null;
@@ -1095,123 +1081,13 @@ const createCheckout = async (req, res) => {
 
 
 
-// Plisio webhook handler
-
-const plisioWebhook = async (req, res) => {
-
-  try {
-
-    const signature = req.headers['x-plisio-signature'];
-
-    const secret = process.env.PLISIO_API_KEY;
-
-
-
-    const computed = crypto
-
-      .createHmac('sha256', secret)
-
-      .update(JSON.stringify(req.body))
-
-      .digest('hex');
-
-
-
-    if (computed !== signature) {
-
-      console.error('Invalid Plisio webhook signature');
-
-      return res.status(401).json({ error: 'Unauthorized' });
-
-    }
-
-
-
-    const { id, status, txid, amount, currency, wallet_address } = req.body;
-
-
-
-    if (status === 'completed') {
-
-      // Find subscription by plisio_invoice_id (stored in subscriptions table, not invoices)
-
-      const subscriptionResult = await db.query(
-
-        'SELECT id, user_id, plan_id FROM subscriptions WHERE plisio_invoice_id = $1',
-
-        [id]
-
-      );
-
-
-
-      if (subscriptionResult.rows.length > 0) {
-
-        const { id: subscriptionId, user_id, plan_id } = subscriptionResult.rows[0];
-
-
-
-        // Update subscription status to active
-
-        await db.query(
-
-          'UPDATE subscriptions SET status = $1, updated_at = NOW() WHERE id = $2',
-
-          ['active', subscriptionId]
-
-        );
-
-
-
-        // Update payment record status
-
-        await db.query(
-
-          'UPDATE payments SET status = $1, updated_at = NOW() WHERE subscription_id = $2',
-
-          ['completed', subscriptionId]
-
-        );
-
-
-
-        // Log transaction (use affiliate_id if available, otherwise null)
-
-        await db.query(
-
-          `INSERT INTO transactions (id, affiliate_id, type, amount_cents, description, created_at)
-
-           VALUES ($1, $2, 'commission', $3, $4, NOW())`,
-
-          [uuidv4(), null, Math.round(amount * 100), `Plisio payment: ${txid}`]
-
-        );
-
-
-
-        console.log(`✅ Payment processed for user ${user_id}, subscription ${subscriptionId}`);
-
-      }
-
-    }
-
-
-
-    res.json({ received: true });
-
-  } catch (error) {
-
-    console.error('Plisio webhook error:', error);
-
-    res.status(500).json({ error: 'Internal server error' });
-
-  }
-
-};
-
-
-
-// Account deletion cron job (runs daily)
+// ─────────────────────────────────────────────────────────────────────────────
+// plisioWebhook (duplicate, unused here) — the canonical handler lives in
+// webhookController.js and is wired to routes in webhookRoutes.js.
+// paymentProcessingService.processPlisioPaymentAsync handles the actual work.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Account deletion cron job (runs daily) — not wired to any scheduler
 
 const deleteOldAccounts = async () => {
 
@@ -2077,7 +1953,8 @@ module.exports = {
 
   authorizeRelayResponse,
 
-  plisioWebhook,
+  // plisioWebhook — removed: duplicate of webhookController.plisioWebhook, never routed
+  // deleteOldAccounts — removed: never wired to any scheduler
 
   getInvoiceStatus,
 
