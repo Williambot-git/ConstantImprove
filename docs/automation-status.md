@@ -74,6 +74,7 @@
 | 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
 | 76 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
+| 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage — all 10 functions: getMetrics/getLinks/generateLink/getReferrals/getTransactions/getPayoutRequests/requestPayout/createCode/deleteCode) | **DONE** (commit ec373d3) |
 
 ---
 
@@ -140,12 +141,12 @@
 
 ## Notes for William
 
-- **Backend test suite: 926 tests passing** (was 917)
+- **Backend test suite: 964 tests passing** (was 926)
 - **Frontend test suite: 522 tests passing**
-- **Total test count: 1,448 tests** across frontend and backend (522 frontend + 926 backend)
-- **Backend controllers/services with tests: 23** (admin, affiliateAuth, affiliateController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
-- **Backend middleware with tests: 3** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware) — errorMiddleware added this session
-- **Backend controllers/services without tests: 1** (affiliateDashboardController.js — 406 lines, uses argon2/crypto/db with complex dependencies; consider wiring into existing ahoymanController test suite if feasible)
+- **Total test count: 1,486 tests** across frontend and backend (964 backend + 522 frontend)
+- **Backend controllers/services with tests: 24** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
+- **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
+- **Backend controllers/services without tests: 0** — ALL 16 controllers now have tests
 - **webhookController: 47 tests, 76% line coverage** — covered by task 57 (webhookController unit tests)
 
-*Last updated: 2026-04-17T19:20:00Z*
+*Last updated: 2026-04-17T20:44:00Z*
