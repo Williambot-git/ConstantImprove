@@ -87,6 +87,7 @@
 | 87 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
 | 88 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
 | 89 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
+| 90 | refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests (3 new tests, cleanupService now has 14 tests, 6 cleanup functions in runAllCleanup) | **DONE** (commit e8b0d7b) |
 
 ---
 
@@ -147,20 +148,22 @@
 ## Recent Commits (from this session)
 
 ```
+e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 846c12e refactor: extract affiliateCommissionService from paymentController (fixes cross-layer import)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,018 tests passing** (35 test suites, 100% passing)
+- **Backend test suite: 1,021 tests passing** (35 test suites, 100% passing) — +3 from cleanupOldAccounts tests
 - **Frontend test suite: 522 tests passing** (37 test suites, 100% passing)
-- **Total test count: 1,540 tests** across frontend and backend
+- **Total test count: 1,543 tests** across frontend and backend
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
 - **Backend routes with tests: 15** — all route files have test coverage
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL have tests
+- **cleanupService now has 6 cleanup functions** (was 5): cleanupDataExports, cleanupOldAuditLogs, cleanupOldConnections, cleanupAbandonedCheckouts, suspendExpiredTrials, cleanupOldAccounts (new)
 - **New: docs/script-inventory.md** — categorizes 31 scripts/ files as active, one-time patch artifacts, or uncertain. Recommended: delete 10+ obsolete patch scripts.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
