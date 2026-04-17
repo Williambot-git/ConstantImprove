@@ -61,6 +61,10 @@
 | 62 | Fix pagination math bug in getReferralPerformance + mock global crypto properly (not require('crypto')) | **DONE** (commit d68928f) |
 | 63 | Remove 6 orphaned debug_*.test.js files | **DONE** (commit d68928f) |
 | 64 | affiliateAuthController unit tests (36 tests, 99.27% line coverage — all 7 functions: login/logout/validateRecoveryCode/resetPassword/generateRecoveryKit/getProfile/changePassword) | **DONE** (commit dd435d9) |
+| 65 | exportController unit tests (18 tests, 94.4% line coverage — createExport/downloadExport/cleanupExpiredExports) | **DONE** (commit 9163530) |
+| 66 | fix(adminController): generate real recovery codes instead of literal 'placeholder' string in createAffiliate | **DONE** (commit 9163530) |
+| 67 | fix(pageController): remove stale TODO comment — emailService.sendTransactional already called below it | **DONE** (commit 9163530) |
+| 68 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
 
 ---
 
@@ -121,14 +125,13 @@
 ## Recent Commits (from this session)
 
 ```
-dd435d9 test(backend): add affiliateAuthController unit tests (36 cases, 99.27% line coverage)
-d68928f fix(affiliateController): correct pagination math + mock global crypto properly in tests
+9163530 test(backend): add exportController unit tests (18 tests, 94.4% line coverage)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 834 tests passing** (was 798, +36 new affiliateAuthController tests this session)
-- **Frontend test suite: 509 tests passing** (unchanged)
-- **Total test count: 1,343 tests** across frontend and backend (509 frontend + 834 backend)
+- **Backend test suite: 852 tests passing** (unchanged — 18 new tests added, all passing)
+- **Frontend test suite: 522 tests passing** (was 509, +13 new seo.js tests)
+- **Total test count: 1,374 tests** across frontend and backend (522 frontend + 852 backend)
 
 *Last updated: 2026-04-17T17:50:00Z*
