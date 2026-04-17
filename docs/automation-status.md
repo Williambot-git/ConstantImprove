@@ -64,8 +64,9 @@
 | 65 | exportController unit tests (18 tests, 94.4% line coverage — createExport/downloadExport/cleanupExpiredExports) | **DONE** (commit 9163530) |
 | 66 | fix(adminController): generate real recovery codes instead of literal 'placeholder' string in createAffiliate | **DONE** (commit 9163530) |
 | 67 | fix(pageController): remove stale TODO comment — emailService.sendTransactional already called below it | **DONE** (commit 9163530) |
-| 68 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
-69 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
+| 67 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
+| 68 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
+| 69 | fix(authController_csrf): login — add explicit res.status(200) on active-user success path | **DONE** (commit 567d328) |
 
 ---
 
@@ -126,13 +127,15 @@
 ## Recent Commits (from this session)
 
 ```
-9163530 test(backend): add exportController unit tests (18 tests, 94.4% line coverage)
+567d328 fix(authController_csrf): add explicit res.status(200) on active-user login success path
+dc19648 docs: update automation-status — task 69, 1,392 total tests (870 backend + 522 frontend)
+546f514 test(backend): add pageController unit tests (18 cases, 100% line coverage)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 870 tests passing** (was 852, +18 new pageController tests)
+- **Backend test suite: 888 tests passing** (was 870, +18 pageController tests)
 - **Frontend test suite: 522 tests passing** (unchanged)
-- **Total test count: 1,392 tests** across frontend and backend (522 frontend + 870 backend)
+- **Total test count: 1,410 tests** across frontend and backend (522 frontend + 888 backend)
 
-*Last updated: 2026-04-17T18:15:00Z*
+*Last updated: 2026-04-17T19:05:00Z*
