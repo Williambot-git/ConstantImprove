@@ -32,21 +32,27 @@ Note: `fix_payment_controller.py`, `fix_payment_final.py`, `patch_payment_remote
 
 ---
 
+## ❌ Obsolete / Irrelevant
+
+These scripts are for unrelated projects or otherwise not applicable to AhoyVPN operations.
+
+| Script | Why Irrelevant |
+|--------|----------------|
+| `atom_service_install.iss` | NSIS installer for Atom VPN Windows client — different project (Atom SDK VPN, not AhoyVPN) |
+| `openclaw-backup.sh` | Backs up ~/.openclaw workspace (different project), not AhoyVPN |
+| `parse-ical.js` | Fetches a personal Google Calendar (wrt9510@gmail.com) — unrelated to AhoyVPN |
+| `ssh-helper.py` | References `/home/krabs/.ssh/truekey` — `krabs` user, different machine/admin setup |
+| `psql-helper.py` | References `/home/krabs/.ssh/truekey` — same concern as ssh-helper.py |
+| `check_db.py` | References `/home/krabs/.ssh/truekey` — same concern; also likely superseded by direct DB access |
+| `deploy.sh` | Bash deployment script — purpose unclear; deploy_frontend.py (now deleted) was the active deployment script |
+
 ## ❓ Uncertain / Needs Review
 
-These scripts exist but it's unclear if they're still used or relevant.
+These scripts exist but need review to determine their status.
 
 | Script | Purpose | Questions |
 |--------|---------|-----------|
-| `atom_service_install.iss` | NSIS installer script for Atom VPN Windows client | Is this used? Is the Windows client still maintained? |
-| `check_db.py` | SQL query helper over SSH | Is this used for regular ops? References `/home/krabs/.ssh/truekey` |
-| `check_patch.py` | Patch checker? | What did it check? Was it one-time? |
 | `create_release.py` | Creates releases? | Is this part of the deployment pipeline? |
-| `deploy.sh` | Bash deployment script | What does it deploy? Replaced by Python scripts? |
-| `openclaw-backup.sh` | OpenClaw backup script | References different project — is this relevant? |
-| `parse-ical.js` | Parse iCal calendar? | What calendar? Used for what? |
-| `psql-helper.py` | PSQL over SSH helper | Same concern as check_db.py — references `/home/krabs/.ssh/truekey` |
-| `ssh-helper.py` | SSH helper utilities | References `key = "/home/krabs/.ssh/truekey"` — krabs user, not ahoy |
 
 ---
 
