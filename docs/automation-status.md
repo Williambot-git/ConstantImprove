@@ -85,7 +85,8 @@
 | 85 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
 | 86 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
 | 87 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
-| 88 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (pending commit) |
+| 88 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
+| 89 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
 
 ---
 
