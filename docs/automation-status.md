@@ -49,12 +49,14 @@
 | 50 | adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, CSV exports, settings) | **DONE** (commit 7e3c117) |
 | 51 | customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit) | **DONE** (commit aee0277) |
 | 52 | Frontend lib/sanitize.js unit tests (63 tests, 96.87% line coverage — security-critical XSS prevention library was 0% covered) | **DONE** (commit 8d82e6a) |
+| 53 | ahoymanController unit tests (64 tests, 91.6% line coverage — all 25 functions: auth, affiliates, referrals, payouts, settings, tax, affiliate codes) | **DONE** (commit 5898612) |
+| 54 | Document route overlap architecture decision (ahoymanRoutes vs adminRoutes) | **DONE** (commit aafb833) |
 
 ---
 
 ## Blockers
 
-- **Route overlap — ahoymanRoutes duplicates adminRoutes functionality**: Both `/api/auth/ahoyman` (ahoymanRoutes.js) and `/api/admin` (adminRoutes.js) serve the same admin panel. `ahoymanRoutes` uses `ahoymanController` (969-line file) while `adminRoutes` uses `adminController` (937 lines). Functions like `getAffiliates`, `getAffiliate`, `createAffiliate`, `disableAffiliate`, `getKPIs`, `getAdminMetrics` exist in BOTH controllers. The Ahoyman dashboard uses `/auth/ahoyman/metrics` (ahoymanRoutes) while the admin panel JS client calls `/admin/metrics` (adminRoutes) — these are different endpoints serving the same data. The frontend Ahoyman dashboard imports from `api/adminMetrics` which points to `/auth/ahoyman/metrics` per CHECK_EVERYTHING.md Phase 7 regression check. This needs architectural review to determine which routes are canonical.
+- **Route overlap — ahoymanRoutes vs adminRoutes**: Documented in `docs/route-overlap-architecture.md`. Both `/api/auth/ahoyman` (ahoymanRoutes) and `/api/admin` (adminRoutes) serve overlapping affiliate/ahoyman functionality with duplicated controller logic. Ahoyman dashboard frontend uses `/auth/ahoyman/metrics` via `api/adminMetrics()` while admin panel uses `/api/admin/metrics` — different endpoints, same data. Decision: no immediate consolidation; the dual-route pattern serves distinct frontend entry points. 25 ahoymanController functions now have full test coverage (64 tests, 91.6% line coverage).
 
 - ~~**VPN server access functions not implemented**~~ — **FIXED** (commits 671e5ac, 8d71d0a)
   - `getServers` now returns static server list (us-east, us-west, eu-central)
