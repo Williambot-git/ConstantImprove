@@ -953,64 +953,6 @@ const createCheckout = async (req, res) => {
 
 
 
-// ─────────────────────────────────────────────────────────────────────────────
-// plisioWebhook (duplicate, unused here) — the canonical handler lives in
-// webhookController.js and is wired to routes in webhookRoutes.js.
-// paymentProcessingService.processPlisioPaymentAsync handles the actual work.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Account deletion cron job (runs daily) — not wired to any scheduler
-
-const deleteOldAccounts = async () => {
-
-  try {
-
-    const cutoffDate = new Date();
-
-    cutoffDate.setDate(cutoffDate.getDate() - 30);
-
-
-
-    const result = await db.query(
-
-      `DELETE FROM users
-
-       WHERE registered_at < $1
-
-       AND (last_purchase_at IS NULL OR last_purchase_at < $1)
-
-       AND is_active = false
-
-       RETURNING id`,
-
-      [cutoffDate]
-
-    );
-
-
-
-    if (result.rows.length > 0) {
-
-      console.log(`Deleted ${result.rows.length} old accounts`);
-
-    }
-
-
-
-    await vpnAccountScheduler.cleanupExpiredAccounts();
-
-    await vpnAccountScheduler.cleanupCanceledSubscriptions();
-
-  } catch (error) {
-
-    console.error('Account deletion error:', error);
-
-  }
-
-};
-
-
-
 // Helper functions
 
 async function createPlisioInvoice(plan, user, cryptoCurrency, callbackUrl, successUrl, cancelUrl) {
@@ -1829,8 +1771,6 @@ module.exports = {
   // deleteOldAccounts — removed: never wired to any scheduler
 
   getInvoiceStatus,
-
-  deleteOldAccounts,
 
   applyAffiliateCommissionIfEligible
 

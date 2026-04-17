@@ -3,6 +3,34 @@ const AuditLog = require('../models/auditLogModel');
 const db = require('../config/database');
 
 /**
+ * Delete user accounts that registered > 30 days ago, never purchased,
+ * and are still inactive. These are ghost accounts from abandoned signups.
+ *
+ * Runs as part of the daily cleanup routine via runAllCleanup().
+ */
+const cleanupOldAccounts = async () => {
+  try {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+
+    const result = await db.query(
+      `DELETE FROM users
+       WHERE registered_at < $1
+         AND (last_purchase_at IS NULL OR last_purchase_at < $1)
+         AND is_active = false
+       RETURNING id`,
+      [cutoffDate]
+    );
+
+    if (result.rows.length > 0) {
+      console.log(`Deleted ${result.rows.length} old ghost accounts`);
+    }
+  } catch (error) {
+    console.error('cleanupOldAccounts error:', error);
+  }
+};
+
+/**
  * Run cleanup of expired data exports.
  */
 const cleanupDataExports = async () => {
@@ -56,6 +84,7 @@ const runAllCleanup = async () => {
     await cleanupOldConnections();
     await cleanupAbandonedCheckouts();
     await suspendExpiredTrials();
+    await cleanupOldAccounts();
     console.log('All cleanup tasks completed.');
   } catch (error) {
     console.error('Cleanup task error:', error);
@@ -68,5 +97,6 @@ module.exports = {
   cleanupOldConnections,
   cleanupAbandonedCheckouts,
   suspendExpiredTrials,
+  cleanupOldAccounts,
   runAllCleanup,
 };

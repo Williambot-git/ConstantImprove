@@ -1,11 +1,11 @@
 /**
  * cleanupService unit tests
  *
- * Tests the 6 cleanup service functions with mocked database and external dependencies.
+ * Tests the 7 cleanup service functions with mocked database and external dependencies.
  * These functions are critical for production maintenance (audit log retention,
- * no-logs policy, subscription lifecycle, abandoned checkout cleanup).
+ * no-logs policy, subscription lifecycle, abandoned checkout cleanup, ghost account removal).
  *
- * Pattern: Uses jest.mock() (synchronoushoisting) like promoService.test.js
+ * Pattern: Uses jest.mock() (synchronous hoisting) like promoService.test.js
  * instead of jest.unstable_mockModule() to avoid async module-loading issues.
  */
 
@@ -152,15 +152,49 @@ describe('cleanupService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────
+  // cleanupOldAccounts
+  // Deletes user accounts that registered > 30 days ago, never purchased,
+  // and are still inactive. These are ghost accounts from abandoned signups.
+  // ─────────────────────────────────────────────────────────────────
+  describe('cleanupOldAccounts', () => {
+    it('should delete ghost accounts older than 30 days with no purchases', async () => {
+      db.query.mockResolvedValueOnce({ rowCount: 3 });
+
+      await cleanupService.cleanupOldAccounts();
+
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('DELETE FROM users'),
+        expect.any(Array)
+      );
+    });
+
+    it('should handle zero deletions gracefully (no throw)', async () => {
+      db.query.mockResolvedValueOnce({ rowCount: 0 });
+
+      await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
+    });
+
+    it('should log but not throw database errors (per-function try/catch)', async () => {
+      // Matches cleanupOldConnections pattern: error is caught and logged, not propagated
+      db.query.mockRejectedValueOnce(new Error('DB connection lost'));
+
+      // Should NOT throw — error is caught internally
+      await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────
   // runAllCleanup
-  // Orchestrates all 5 cleanup functions. Per-function try/catch means
+  // Orchestrates all 6 cleanup functions. Per-function try/catch means
   // a failure in one doesn't block the others from running.
   // ─────────────────────────────────────────────────────────────────
   describe('runAllCleanup', () => {
-    it('should call all 5 cleanup functions sequentially', async () => {
+    it('should call all 6 cleanup functions sequentially', async () => {
       exportController.cleanupExpiredExports.mockResolvedValueOnce(undefined);
       AuditLog.deleteOld.mockResolvedValueOnce(10);
-      db.query.mockResolvedValueOnce({ rowCount: 5 });
+      db.query
+        .mockResolvedValueOnce({ rowCount: 5 })   // cleanupOldConnections
+        .mockResolvedValueOnce({ rowCount: 3 });  // cleanupOldAccounts
       vpnAccountScheduler.cleanupAbandonedCheckouts.mockResolvedValueOnce(undefined);
       vpnAccountScheduler.suspendExpiredTrials.mockResolvedValueOnce(undefined);
 
@@ -168,7 +202,7 @@ describe('cleanupService', () => {
 
       expect(exportController.cleanupExpiredExports).toHaveBeenCalledTimes(1);
       expect(AuditLog.deleteOld).toHaveBeenCalledTimes(1);
-      expect(db.query).toHaveBeenCalledTimes(1); // cleanupOldConnections
+      expect(db.query).toHaveBeenCalledTimes(2); // cleanupOldConnections + cleanupOldAccounts
       expect(vpnAccountScheduler.cleanupAbandonedCheckouts).toHaveBeenCalledTimes(1);
       expect(vpnAccountScheduler.suspendExpiredTrials).toHaveBeenCalledTimes(1);
     });
@@ -177,7 +211,9 @@ describe('cleanupService', () => {
       // cleanupDataExports throws but runAllCleanup catches it internally
       exportController.cleanupExpiredExports.mockRejectedValueOnce(new Error('export error'));
       AuditLog.deleteOld.mockResolvedValueOnce(5);
-      db.query.mockResolvedValueOnce({ rowCount: 3 });
+      db.query
+        .mockResolvedValueOnce({ rowCount: 3 })   // cleanupOldConnections
+        .mockResolvedValueOnce({ rowCount: 0 });  // cleanupOldAccounts
       vpnAccountScheduler.cleanupAbandonedCheckouts.mockResolvedValueOnce(undefined);
       vpnAccountScheduler.suspendExpiredTrials.mockResolvedValueOnce(undefined);
 
