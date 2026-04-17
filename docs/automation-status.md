@@ -83,6 +83,8 @@
 | 83 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
 | 84 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
 | 85 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
+| 86 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
+| 87 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
 
 ---
 
@@ -151,11 +153,13 @@
 - **Backend test suite: 1,018 tests passing** (35 test suites, 100% passing)
 - **Frontend test suite: 522 tests passing** (37 test suites, 100% passing)
 - **Total test count: 1,540 tests** across frontend and backend
+- **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
 - **Backend routes with tests: 15** — all route files have test coverage
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL have tests
+- **New: docs/script-inventory.md** — categorizes 31 scripts/ files as active, one-time patch artifacts, or uncertain. Recommended: delete 10+ obsolete patch scripts.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T02:30:00Z*
+*Last updated: 2026-04-18T02:45:00Z*
