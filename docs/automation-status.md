@@ -78,6 +78,8 @@
 | 78 | backend: Remove dead code from paymentController.js — getDefaultDiscountCents (never called), duplicate plisioWebhook (superseded by webhookController), deleteOldAccounts (never wired) — 131 lines removed | **DONE** (commit f32d931) |
 | 79 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
 | 80 | refRoute unit tests (the only route file without coverage) + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
+| 81 | fix(webhookController): remove dead DEBUG block (=*** typo — assignment instead of comparison, was dead code) | **DONE** (commit 36d3a9a) |
+| 82 | chore(backend): move exportService.test.js to tests/services/ + fix relative import paths | **DONE** (commit 9e0dab7) |
 
 ---
 
@@ -138,14 +140,14 @@
 ## Recent Commits (from this session)
 
 ```
-d2ca19b feat(backend): add refRoute unit tests (12 cases — the only route file previously uncovered)
-4d9f9ba chore(backend): move vpnController.test.js into tests/controllers/ for consistency
-34ce604 test(backend): add errorMiddleware unit tests (9 cases, 100% coverage)
+36d3a9a fix(webhookController): remove dead DEBUG block (=*** typo — was dead code)
+9e0dab7 chore(backend): move exportService.test.js to tests/services/ + fix relative paths
+e5ab909 docs: update automation-status — task 80, refRoute tests, webhook typo fix, 1,495 total tests
 ```
 
 ## Notes for William
 
-- **Backend test suite: 973 tests passing** (was 961 — added 12 refRoute tests)
+- **Backend test suite: 973 tests passing**
 - **Frontend test suite: 522 tests passing**
 - **Total test count: 1,495 tests** across frontend and backend (973 backend + 522 frontend)
 - **Backend controllers/services with tests: 24** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, exportService, pageController, payment, subscription, support, user, vpn, webhook, cleanupService, emailService, invoicePollingService, paymentProcessingService, plisioService, promoService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService + middlewares)
