@@ -45,6 +45,7 @@
 | 46 | Frontend CancelModal + DeleteModal unit tests (12 tests) | **DONE** (commit f63ec5a) |
 | 47 | Frontend PlanCard unit tests (13 tests) | **DONE** (commit f63ec5a) |
 | 48 | Head.jsx unit tests (18 tests) | **DONE** (commit 49642da) |
+| 49 | paymentController route tests (33 tests, 63.66% coverage) | **DONE** |
 
 ---
 
@@ -72,103 +73,49 @@
 
 ---
 
-## Priority Queue
-
-1. **Backend test coverage expansion**: ~~promoService has 10 passing tests. Next candidates:~~
-   - ~~userService~~ — **DONE** (29 tests, 99% line coverage — 1 unreachable default case)
-   - ~~emailService~~ — **DONE** (14 tests, 100% line coverage)
-   - ~~vpnController~~ — **DONE** (14 tests, 100% line coverage)
-   - ~~subscriptionController~~ — **DONE** (30 tests, 84.6% line coverage)
-   - **paymentController routes** (requires supertest — good next target)
-   - **cleanupService** (6 cleanup functions — straightforward unit tests)
-   - ~~**paymentProcessingService**~~ — **DONE** (10 tests, 96.82% line coverage)
-2. ~~**Auth middleware consolidation**~~ — **DONE** (commits 0c383ed, 4b73723)
-3. ~~**Frontend img → next/image**~~ — **DONE** (commit 03c8298)
-## Priority Queue
+---
 
 1. ~~**Backend test coverage expansion**:~~
    - ~~paymentProcessingService~~ — **DONE** (10 tests, 96.82%)
-2. ~~**Frontend test coverage**:~~ — **DONE** (task 44-48)
+   - ~~**paymentController routes**~~ — **DONE** (33 tests, 63.66% line coverage — covers getPlans, hostedRedirectBridge, hostedRedirectScript, authorizeRelayResponse, getInvoiceStatus, createCheckout card+crypto paths, affiliate discount, US billing validation, ZipTax errors)
+2. ~~**Frontend test coverage**:~~ — **DONE** (task 44-49)
    - ~~UI primitives~~ — **DONE** (75 tests: Alert, Button, Card, Form, Modal, Spinner)
    - ~~ProtectedRoute~~ — **DONE** (14 tests)
    - ~~Modals + PlanCard~~ — **DONE** (25 tests)
    - ~~Head.jsx~~ — **DONE** (18 tests)
-3. **Frontend: remaining affiliate-dashboard tab component tests** (LinksTab, OverviewTab, PayoutTab, ReferralsTab, TransactionsTab)
-4. **Backend: paymentController routes unit tests** (requires supertest — highest-value remaining coverage target)
-6. ~~**Checkout page decomposition**~~ — **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8)
+   - ~~affiliate-dashboard tab components~~ — **DONE** (TransactionsTab + moved 4 test files, 27 new tests)
+3. ~~**Checkout page decomposition**~~ — **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8)
    - checkout.jsx: 1139 lines (down from 1161 — net -22 lines after wiring components)
    - 3 new components in `frontend/components/checkout/` with unit tests
    - 5 integration tests in `frontend/tests/checkout-flow.test.jsx`
-7. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and affiliate-dashboard.jsx (471 lines)~~ — **BOTH DONE**
+4. ~~**Frontend structural refactoring**: Decompose ahoyman-dashboard.jsx (804 lines) and affiliate-dashboard.jsx (471 lines)~~ — **BOTH DONE**
    - ~~Ahoyman dashboard~~ — **DONE** (b3afed5)
    - ~~Affiliate dashboard~~ — **DONE** (a70c98b)
-8. ~~**Frontend: Decompose customer dashboard.jsx (659 lines)**~~ — similar tab structure to affiliate-dashboard pattern | **DONE** (commit 93e9570)
-9. **Backend: Implement VPN server list and config download endpoints** (all 6 return 501 — needed for customer self-service)
+5. ~~**Frontend: Decompose customer dashboard.jsx (659 lines)**~~ — similar tab structure to affiliate-dashboard pattern | **DONE** (commit 93e9570)
+6. **Backend: customerController unit tests** (20+ endpoints covering auth, subscription, VPN credential claiming, recovery kit — good coverage target)
+7. **Backend: adminController unit tests** (metrics, customer/affiliate management — large file at 914 lines)
+8. **Backend: ahoymanController unit tests** (admin login, dashboard metrics, KPIs — 84.4% line coverage gap)
+9. **Backend: authorizeNetUtils additional error path tests** (remaining uncovered branches)
+10. **Frontend: checkout component additional coverage** (PlanSelector, CryptoSelector, PaymentMethodSelector edge cases)
+11. **Frontend: remaining page-level integration tests** (auth flow, dashboard flow)
 
 ---
 
-## Notes for William
-
-- **Frontend test suite: 245 tests passing** (was 227): +18 new tests for Head.jsx
-- **Backend test suite: 297 tests passing** (unchanged)
-- **Total test count: 542 tests** across frontend and backend
-- **Jest mocking discovery**: Components using `module.exports = ComponentName` (CommonJS) must be required WITHOUT `.default` in test files. Using `.default` causes "Element type is invalid: expected a string...got: undefined"
-- **Router spy limitation in jsdom**: `useRouter().push` calls can't be directly spied on in jsdom. Instead, verify redirect behavior indirectly: if wrong role → check that "Access Denied" screen renders and protected content doesn't. If correct role → check that protected content renders.
-- **requiredRole=null quirk in ProtectedRoute**: Due to `if (requiredRole && auth.role !== requiredRole)`, when `requiredRole=null` (falsy), the role check short-circuits and ANY logged-in user is allowed. This is actually useful behavior but worth documenting.
-- **All 529 tests passing**: Frontend 232 (26 suites) + Backend 297 (15 suites)
-- **Key call-sequence discovery**: `createVpnAccount()` in `processPlisioPaymentAsync` is an external service call, NOT a DB query. The actual DB call sequence is: SELECT sub → UPDATE status → SELECT email → INSERT payment (4 calls). VPN creation happens between UPDATE status and SELECT email. This caught 3 failing tests that had wrong mock chain lengths.
-- **invoicePollingService at 97.26% line coverage** (13 tests covering all scenarios: no subscriptions, invoice completed, cancelled_duplicate with activeInvoiceId, pending invoice, max poll attempts, checkpoint age skip, getInvoiceStatus error, ARB suspended/canceled/active/settled/null)
-- **ziptaxService at 100% line coverage** (14 tests covering all scenarios + error handling fix for API vs network errors)
-- **vpnResellersService at 100% line coverage** (16 tests covering all 7 methods: checkUsername, createAccount, enableAccount, disableAccount, changePassword, setExpiry, getAccount)
-- **plisioService at 96.7% line coverage** (9 tests: 3 for createInvoice, 3 for getInvoiceStatus, 3 for verifyCallback)
-- **vpnAccountScheduler at 92.1% line coverage** (10 tests covering all 4 cleanup functions)
-- **Key mocking discovery for Jest 30**: `jest.mock('axios')` without a factory returns a module where `axios.get` is a bare function with no `.mockResolvedValue()`. Fix: create `__mocks__/axios.js` manual mock with `module.exports = { get: jest.fn() }`. Then `jest.mock('axios')` uses it automatically and `require('axios').get.mockResolvedValue(...)` works correctly.
-- **Another axios mocking issue**: `jest.mock('axios', () => jest.fn())` makes `axios` itself a bare jest mock fn, so `axios.get(url)` throws "axios.get is not a function". Always mock axios as `{ get: jest.fn() }`.
-- **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
-- **Another test fix**: `userEvent.clear()` + `userEvent.type()` can miss `onChange` for `type="number"` inputs in jsdom. Use `fireEvent.change(input, { target: { value: '50.00' } })` instead for number inputs.
-- **Frontend Jest + RTL infrastructure complete**: jest.config.js, babel.config.js, setup.js, mocks for next/navigation, next/image, next/link
-- **Layout component tested**: auth-state navigation (logged-out/customer/affiliate/admin), footer links, floating support button, logo href, copyright
-- **Key gotcha discovered during setup**: `@testing-library/jest-dom` matchers (toBeInTheDocument, toHaveAttribute) are NOT global — must be explicitly imported per test file. This caused initial test failures.
-- **Another gotcha**: `jest.mock()` factory functions cannot reference out-of-scope variables including `React` from the outer scope. Must `require('react')` inside the factory.
-- **Another gotcha**: Next.js `<Link>` renders as `<a><a>` (nested anchors). `screen.getAllByText('X')` returns the inner `<a>` (the styled element), while `document.querySelector('a[href="/"]')` finds the outer `<a>`. Use `getAllByRole('link')` + `.find()` to get the right element.
-- **AuthContext mock discovery**: `frontend/__mocks__/pages/_app.js` provides a global mock for the AuthContext. Local `jest.mock('../pages/_app')` overrides this with a broken mock that doesn't properly attach `.Provider`. Always use the global mock + per-test `<AuthContext.Provider value={...}>` wrapper pattern.
-- **Backend test suite: 59 tests** (unchanged from previous session): 29 userService + 9 emailService + 10 promoService + 11 cleanupService tests. All passing.
-- **cleanupService at 100% line coverage** (11 tests covering all 6 exported functions + runAllCleanup)
-- **vpnAccountScheduler bug fixed**: Was calling `deactivateAccount({ account_id })` which doesn't exist — replaced with `disableAccount(accountId)` (matches vpnResellersService.js API)
-- **userService at 99% line coverage** (30 tests — 1 unreachable default case in plan interval switch)
-- **emailService at 100% line coverage** (14 tests covering all email functions including sendSubscriptionExpiringEmail, sendSubscriptionCancelledEmail, sendAccountCreatedEmail)
-- **Jest wired up**: `npm test` in backend runs Jest with coverage. All 48 tests pass.
-- **Frontend lint clean**: 0 errors, 0 warnings (was 3 `<img>` warnings). Remaining advisory is a harmless `type: module` module-format suggestion in package.json (low priority, non-blocking).
-- **vpnController at 100% line coverage** (14 tests covering getServers, getWireGuardConfig, getOpenVPNConfig, connect, disconnect, getConnections)
-- **subscriptionController at 84.6% line coverage** (30 tests covering all 8 endpoints: getPlans, getSubscription, createSubscription, pauseSubscription, resumeSubscription, cancelSubscription, switchPlan, getInvoices)
-- **exportService bug fixed**: `sanitizeForUserExport` was defined but NOT exported in `module.exports` — silently unavailable to callers. Fixed by adding it to exports. Found during test-writing (commit 8b2bd3f)
-- **All promoService tests passing**: 10/10 tests pass for promo code validation, retrieval, and usage tracking.
-- **Jest v30.2.0** infrastructure is in place with `backend/tests/setup.js` and `backend/tests/teardown.js`.
-- **Backend placeholder-config.js** documents all API keys and where they are used.
-- **Frontend placeholder-config.js** documents all frontend API URLs and payment processor redirects.
-- **Orphaned diagnostic scripts removed**: 21 `check_*.js` files removed (never imported in src/, were one-off DB query scripts)
-
----
 ## Recent Commits (from this session)
 
 ```
+ada7d30 test(frontend): move 4 affiliate-dashboard tab tests to tests/ + add TransactionsTab
+eebec54 docs: update automation status — task 48 complete (Head.jsx tests, 542 total tests)
 49642da test(frontend): add Head.jsx unit tests (18 tests)
-069fd9b docs: update automation status — tasks 44-47 complete (frontend component tests)
-f63ec5a test(frontend): add unit tests for ProtectedRoute, UI primitives, and dashboard components (114 new tests, 232 total frontend tests)
-3968e92 test: add coverage for authorizeNetUtils (99%) and purewlService (98.8%)
-81d1a8e docs: update automation status — task 43 complete (paymentProcessingService tests)
-2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
 ```
 
-## All Commits This Session (chronological)
+## Notes for William
 
-```
-49642da test(frontend): add Head.jsx unit tests (18 tests)
-069fd9b docs: update automation status — tasks 44-47 complete (frontend component tests)
-f63ec5a test(frontend): add unit tests for ProtectedRoute, UI primitives, and dashboard components (114 new tests, 232 total frontend tests)
-3968e92 test: add coverage for authorizeNetUtils (99%) and purewlService (98.8%)
-81d1a8e docs: update automation status — task 43 complete (paymentProcessingService tests)
-2924be3 test(backend): add paymentProcessingService unit tests (10 tests, 96.82% line coverage)
-```
+- **paymentController tests at 63.66% line coverage** (33 tests — 7 describe blocks covering getPlans, hostedRedirectBridge, hostedRedirectScript, authorizeRelayResponse, getInvoiceStatus, createCheckout validation/card/crypto paths, affiliate discount, US billing, ZipTax errors)
+- **Frontend test suite: 277 tests passing**
+- **Backend test suite: 331 tests passing** (+34 from paymentController tests)
+- **Total test count: 608 tests** across frontend and backend
+- **Jest wired up**: `npm test` in backend runs Jest with coverage. All 331 tests pass.
+- **Frontend lint clean**: 0 errors, 0 warnings.
 
-*Last updated: 2026-04-17T04:15:00Z*
+*Last updated: 2026-04-17T05:00:00Z*
