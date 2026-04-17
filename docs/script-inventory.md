@@ -12,8 +12,8 @@ These scripts are part of normal operations and are referenced in documentation 
 | Script | Purpose | When to Run |
 |--------|---------|-------------|
 | `ahoyvpn-monitor.sh` | System health monitor — checks PM2, nginx, disk, RAM, DB connectivity | Via cron (as documented in ops docs) |
-| `backup-to-github.js` | Backs up auth-related DB tables to GitHub | Via cron (`0 */3 * * *`) |
-| `backup_users_to_github.js` | Legacy backup script (superseded by backup-to-github.js?) | Manual / cron |
+| `backup-to-github.js` | Backs up workspace to a GitHub backup remote | Via cron |
+| `backup_users_to_github.js` | Backs up auth-related DB tables to KeepUsAlive repo | Via cron (`0 */3 * * *`) |
 | `backend_health_check.sh` | Checks backend is responding on port 3000 | Manual / health monitoring |
 | `restore_auth_backup.js` | Selective table restore from KeepUsAlive backup repo | Emergency recovery only |
 | `security_daily.sh` | Daily security checks | Via cron |
@@ -54,23 +54,25 @@ These scripts exist but it's unclear if they're still used or relevant.
 
 ### Key Observations
 
-1. **`check_db.py` and `ssh-helper.py`** reference a `/home/krabs/.ssh/truekey` — this is a different user (`krabs`) than the normal `ahoy` user. These scripts were likely from a different machine or a shared admin setup. They should be reviewed for security before use.
+1. **`backup-to-github.js` vs `backup_users_to_github.js`** — These are DIFFERENT tools serving different purposes:
+   - `backup-to-github.js`: Backs up the entire workspace (git commits) to a backup remote
+   - `backup_users_to_github.js`: Backs up PostgreSQL auth tables to the `KeepUsAlive` repo via `pg_dump`
+   - Both are active; they complement each other
 
-2. **Patch scripts (`fix_*.py`, `patch_*.py`)** — All 10 patch scripts were one-time use. The actual fixes are in the committed codebase. These scripts should either be deleted or moved to `docs/archive/patch-scripts/` if William wants to preserve them as historical reference.
+2. **`check_db.py` and `ssh-helper.py`** reference a `/home/krabs/.ssh/truekey` — this is a different user (`krabs`) than the normal `ahoy` user. These scripts were likely from a different machine or a shared admin setup. They should be reviewed for security before use.
 
-3. **`deploy.sh` vs `deploy_frontend.py`** — There are three deployment scripts. If `deploy_frontend.py` (and `deploy_frontend2.py`) are the current ones, `deploy.sh` is likely obsolete.
+3. **Patch scripts (`fix_*.py`, `patch_*.py`)** — All deleted (commit 471cded). The actual fixes were applied to the committed codebase. `restore_auth_backup.js` is the only remaining safety net for data recovery.
 
-4. **restore_auth_backup.js** — This script is actually well-written with safety features (dry-run default, pre-restore snapshots, table-level selectivity). It belongs in ✅ Active.
+4. **`restore_auth_backup.js`** — Well-written with safety features (dry-run default, pre-restore snapshots, table-level selectivity). Confirmed active.
 
 ---
 
 ## Recommended Actions
 
-1. ~~**Delete** the 10+ one-time patch scripts (`fix_*.py`, `patch_*.py`, `process_logo.py`, `debug_pattern.py`, `generate_env.py`)** — DONE
-2. ~~**Move** `deploy.sh` to deprecated if `deploy_frontend.py` is current** — N/A, deploy_frontend.py deleted
+1. ~~**Delete** the 10+ one-time patch scripts~~ — **DONE** (commit 471cded)
+2. ~~**Move** `deploy.sh` to deprecated~~ — N/A (`deploy_frontend.py` deleted, `deploy.sh` is likely also obsolete but different purpose)
 3. **Review** `atom_service_install.iss`, `openclaw-backup.sh`, `parse-ical.js` — determine if they're still relevant
 4. **Review** `check_db.py`, `psql-helper.py`, `ssh-helper.py` — the `/home/krabs/.ssh/truekey` reference should be replaced with documented SSH key management
-5. **Consider** whether `backup_users_to_github.js` is superseded by `backup-to-github.js`
 
 ---
 
