@@ -449,17 +449,6 @@ const authorizeNetWebhook = async (req, res) => {
       signatureValid: true
     });
 
-    if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
-      console.log('Authorize webhook payload', {
-        eventType: req.body?.eventType || req.body?.event_type || null,
-        responseCode,
-        transactionId,
-        invoiceNumber,
-        amountRaw,
-        keys: Object.keys(payload || {})
-      });
-    }
-
     if (!invoiceNumber) {
       console.error('Authorize.net webhook missing invoice number');
       return res.json({ received: true, signatureValid: true });
