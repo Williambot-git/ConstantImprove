@@ -343,5 +343,9 @@ module.exports = {
   storeCsrfToken,
   verifyCsrfToken,
   setCsrfTokenCookie,
-  resetTokenProtect
+  resetTokenProtect,
+  // Exported for test access — csrfTokens Map is intentionally not exported in production
+  csrfTokens,
+  // Exported for test access — createRateLimiter is a factory, the limiter itself is not middleware
+  createRateLimiter
 };
