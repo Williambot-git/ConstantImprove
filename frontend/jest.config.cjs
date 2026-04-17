@@ -39,9 +39,9 @@ module.exports = {
   // This lets us set up mocks and global test environment variables
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
 
-  // Transpile JSX with babel-jest (configured in babel.config.js)
+  // Transpile JSX with babel-jest (configured in babel.config.cjs)
   transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
+    '^.+\\.(js|jsx)$': ['babel-jest', { configFile: './babel.config.cjs' }],
   },
 
   // next/dist and next/src are CommonJS modules that use ES features
