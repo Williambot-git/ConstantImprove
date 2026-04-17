@@ -75,6 +75,8 @@
 | 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
 | 76 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
 | 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage — all 10 functions: getMetrics/getLinks/generateLink/getReferrals/getTransactions/getPayoutRequests/requestPayout/createCode/deleteCode) | **DONE** (commit ec373d3) |
+| 78 | backend: Remove dead code from paymentController.js — getDefaultDiscountCents (never called), duplicate plisioWebhook (superseded by webhookController), deleteOldAccounts (never wired) — 131 lines removed | **DONE** (commit f32d931) |
+| 79 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
 
 ---
 
