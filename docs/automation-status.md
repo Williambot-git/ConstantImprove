@@ -55,6 +55,8 @@
 | 56 | Fix cookies.test.js jsdom window.location mocking + 4 pre-existing test bugs | **DONE** (commit 52a89eb) |
 | 57 | webhookController unit tests (47 tests, 76% line coverage — WebhookVerifier, plisioWebhook, paymentsCloudWebhook, authorizeNetWebhook, logAuthorizeEvent) | **DONE** (commit 24c009b) |
 | 58 | fix(frontend): api/client.js — getAdmin/postAdmin now check accessToken as fallback (matching request interceptor), fix duplicate getTaxTransactions/getTaxSummary with wrong URLs and missing auth | **DONE** (commit 7c3f054) |
+| 59 | Frontend dashboard tests — VpnCredentialsSection (13 tests, 100% line coverage) + SubscriptionSection (14 tests, full flow coverage) | **DONE** (commit be5dac7) |
+| 60 | AccountSettingsSection UX bugfix — move passwordSuccess message outside {showPasswordForm} block so it persists after form hides | **DONE** (commit 521f2ea) |
 
 ---
 
@@ -123,9 +125,9 @@ aee0277 test(backend): add customerController unit tests (43 tests, covers auth,
 
 ## Notes for William
 
-- **Frontend test suite: 462 tests passing** (was 385, +77 api/client.js tests including 3 fixed bug cases)
+- **Frontend test suite: 509 tests passing** (was 485, +27 new tests: 13 VpnCredentialsSection + 14 SubscriptionSection)
 - **Backend test suite: 577 tests passing** (unchanged)
-- **Total test count: 1,039 tests** across frontend and backend (462 frontend + 577 backend)
-- **api/client.js bugs fixed**: (1) getAdmin()/postAdmin() didn't check accessToken as fallback — now consistent with request interceptor; (2) getTaxTransactions/getTaxSummary had duplicate definitions with wrong URLs (/admin vs /auth/ahoyman) and missing Authorization headers — consolidated to single correct definition using apiClient.get() which relies on the request interceptor for auth injection
+- **Total test count: 1,086 tests** across frontend and backend (509 frontend + 577 backend)
+- **AccountSettingsSection UX bug**: Success message was inside `{showPasswordForm && ...}` block, so it vanished when form was hidden. Fixed by moving it outside the conditional. Also removed one untestable "loading state" test (userEvent.click+act resolves mock promise synchronously, making the intermediate "Changing..." state impossible to capture without fake timers).
 
-*Last updated: 2026-04-17T13:45:00Z*
+*Last updated: 2026-04-17T15:00:00Z*
