@@ -82,6 +82,7 @@
 | 82 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
 | 83 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
 | 84 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
+| 85 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
 
 ---
 
@@ -147,9 +148,9 @@
 
 ## Notes for William
 
-- **Backend test suite: 1,001 tests passing** (973 + 28 new affiliateCommissionService tests)
-- **Frontend test suite: 522 tests passing**
-- **Total test count: 1,523 tests** across frontend and backend
+- **Backend test suite: 1,018 tests passing** (35 test suites, 100% passing)
+- **Frontend test suite: 522 tests passing** (37 test suites, 100% passing)
+- **Total test count: 1,540 tests** across frontend and backend
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
 - **Backend routes with tests: 15** — all route files have test coverage
