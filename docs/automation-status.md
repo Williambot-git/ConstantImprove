@@ -54,6 +54,7 @@
 | 55 | fix(authController): verifyRecoveryCode test — missing recovery_codes on mock #3 caused 400 instead of 200 | **DONE** (commit 0eeb399) |
 | 56 | Fix cookies.test.js jsdom window.location mocking + 4 pre-existing test bugs | **DONE** (commit 52a89eb) |
 | 57 | webhookController unit tests (47 tests, 76% line coverage — WebhookVerifier, plisioWebhook, paymentsCloudWebhook, authorizeNetWebhook, logAuthorizeEvent) | **DONE** (commit 24c009b) |
+| 58 | fix(frontend): api/client.js — getAdmin/postAdmin now check accessToken as fallback (matching request interceptor), fix duplicate getTaxTransactions/getTaxSummary with wrong URLs and missing auth | **DONE** (commit 7c3f054) |
 
 ---
 
@@ -122,12 +123,9 @@ aee0277 test(backend): add customerController unit tests (43 tests, covers auth,
 
 ## Notes for William
 
-- **Frontend test suite: 385 tests passing** (was 340, +45 new cookie tests)
-- **Frontend function coverage: 52.78%** (unchanged — new tests target existing untested functions)
-- **Frontend function coverage: 49.44% → 52.78%** — now PASSES 50% threshold
-- **lib/sanitize.js: 0% → 96.87% line coverage** — 63 unit tests covering all 8 functions
-- **Backend test suite: 577 tests passing** (was 530, +47 new webhookController tests)
-- **Total test count: 962 tests** across frontend and backend (385 frontend + 577 backend)
-- **lib/cookies.js: 45 unit tests, 96%+ line coverage** — 7 previously failing tests now fixed: jsdom window.location mocking (non-configurable descriptor), URL-encoding round-trip in buildCookieString, Number vs String for localStorage expiry, query-vs-path precedence in extractAffiliateIdFromUrl, empty-string guard for /affiliate/ paths.
+- **Frontend test suite: 462 tests passing** (was 385, +77 api/client.js tests including 3 fixed bug cases)
+- **Backend test suite: 577 tests passing** (unchanged)
+- **Total test count: 1,039 tests** across frontend and backend (462 frontend + 577 backend)
+- **api/client.js bugs fixed**: (1) getAdmin()/postAdmin() didn't check accessToken as fallback — now consistent with request interceptor; (2) getTaxTransactions/getTaxSummary had duplicate definitions with wrong URLs (/admin vs /auth/ahoyman) and missing Authorization headers — consolidated to single correct definition using apiClient.get() which relies on the request interceptor for auth injection
 
-*Last updated: 2026-04-17T12:00:00Z*
+*Last updated: 2026-04-17T13:45:00Z*
