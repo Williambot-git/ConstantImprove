@@ -673,6 +673,8 @@ const authorizeNetWebhook = async (req, res) => {
 };
 
 module.exports = {
+  WebhookVerifier, // exported for unit testing — do not use in production code
+  logAuthorizeEvent, // exported for unit testing
   plisioWebhook,
   paymentsCloudWebhook,
   authorizeNetWebhook
