@@ -93,6 +93,7 @@
 | 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
 | 88 | test(frontend): add Button hover effect tests — 7 new cases covering mouseEnter/mouseLeave for all 3 variants (primary/secondary/danger), plus disabled hover guard. Button component now fully covered (20 tests total) | **DONE** (commit 5c6b416) |
 | 89 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
+| 90 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
 
 ---
 
@@ -153,17 +154,17 @@
 ## Recent Commits (from this session)
 
 ```
+1d850db fix(tests): correct Button hover + Layout tests to match actual component behavior
 46b893a test(paymentProcessingService): add 2 tests for error-handling branches
 fec30b0 refactor(paymentsCloud): extract processPaymentsCloudPaymentAsync to paymentProcessingService
 056f69b fix(paymentProcessingService.test.js): resolve cross-test mock pollution
-a90ce25 test(frontend): add unit tests for ahoyman.jsx (12 tests) and admin.jsx (15 tests)
 ```
 
 ## Notes for William
 
 - **Backend test suite: 1,031 tests passing** (35 test suites, 100% passing) — +2 from paymentProcessingService error-handling branches
-- **Frontend test suite: 577 tests passing** (40 test suites, 100% passing) — +6 from downloads.jsx tests
-- **Total test count: 1,608 tests** across frontend and backend
+- **Frontend test suite: 576 tests passing** (40 test suites, 100% passing) — all 11 previously-failing Button hover + Layout tests now fixed; Button tests reduced from 13→12 (commit 1d850db)
+- **Total test count: 1,607 tests** across frontend and backend (1,031 backend + 576 frontend)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
@@ -175,4 +176,4 @@ a90ce25 test(frontend): add unit tests for ahoyman.jsx (12 tests) and admin.jsx 
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T03:00:00Z*
+*Last updated: 2026-04-18T04:09:00Z*
