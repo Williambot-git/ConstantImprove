@@ -92,4 +92,83 @@ describe('Button Component', () => {
       expect(screen.getByRole('button')).toHaveAttribute('type', 'reset');
     });
   });
+
+  describe('Hover effects', () => {
+    it('changes backgroundColor on mouseEnter for primary variant', () => {
+      render(<Button variant="primary">Hover Me</Button>);
+      const button = screen.getByRole('button');
+      // baseStyle spreads variants[variant] directly into the inline style,
+      // so the initial value is already set to the primary color.
+      expect(button.style.backgroundColor).toBe('rgb(30, 144, 255)');
+
+      fireEvent.mouseEnter(button);
+      // Primary hover color is #20B2AA (teal)
+      expect(button.style.backgroundColor).toBe('rgb(32, 178, 170)');
+    });
+
+    it('changes backgroundColor on mouseEnter for secondary variant', () => {
+      render(<Button variant="secondary">Hover Me</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      // Secondary hover color is #00BFFF (light blue)
+      expect(button.style.backgroundColor).toBe('rgb(0, 191, 255)');
+    });
+
+    it('changes backgroundColor on mouseEnter for danger variant', () => {
+      render(<Button variant="danger">Hover Me</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      // Danger hover color is #00BFFF (same as secondary)
+      expect(button.style.backgroundColor).toBe('rgb(0, 191, 255)');
+    });
+
+    it('does NOT apply hover color on mouseEnter when disabled (base color shows through)', () => {
+      render(<Button variant="primary" disabled>Disabled</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      // The !disabled guard prevents hover color from being applied.
+      // jsdom resolves inline '' to the CSS cascade value, showing base primary color.
+      // This is the CORRECT behavior — disabled buttons don't get hover effects.
+      expect(button.style.backgroundColor).toBe('rgb(30, 144, 255)');
+    });
+
+    it('reverts backgroundColor on mouseLeave for primary variant', () => {
+      render(<Button variant="primary">Hover Me</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      expect(button.style.backgroundColor).toBe('rgb(32, 178, 170)');
+
+      fireEvent.mouseLeave(button);
+      // Primary base color is #1E90FF (dodger blue)
+      expect(button.style.backgroundColor).toBe('rgb(30, 144, 255)');
+    });
+
+    it('reverts backgroundColor on mouseLeave for secondary variant', () => {
+      render(<Button variant="secondary">Hover Me</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      expect(button.style.backgroundColor).toBe('rgb(0, 191, 255)');
+
+      fireEvent.mouseLeave(button);
+      // Secondary base background is 'transparent' (jsdom serializes this as 'transparent')
+      expect(button.style.backgroundColor).toBe('transparent');
+    });
+
+    it('reverts backgroundColor on mouseLeave for danger variant', () => {
+      render(<Button variant="danger">Hover Me</Button>);
+      const button = screen.getByRole('button');
+
+      fireEvent.mouseEnter(button);
+      expect(button.style.backgroundColor).toBe('rgb(0, 191, 255)');
+
+      fireEvent.mouseLeave(button);
+      // Danger base color is #FF6B6B
+      expect(button.style.backgroundColor).toBe('rgb(255, 107, 107)');
+    });
+  });
 });
