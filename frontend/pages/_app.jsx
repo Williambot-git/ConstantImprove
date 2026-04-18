@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Image from 'next/image';
 import '../styles/globals.css';
 import Layout from '../components/Layout';
 import { checkAndSetAffiliateFromUrl } from '../lib/cookies';
@@ -35,6 +36,7 @@ export default function App({ Component, pageProps }) {
   if (isLoading) return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#0F0F0F' }}>
       <div style={{ textAlign: 'center' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" style={{ height: '2.5em', verticalAlign: 'middle' }} />
         <p style={{ color: '#8A8A8A', marginTop: '1rem', fontSize: '0.9rem' }}>Loading...</p>
       </div>

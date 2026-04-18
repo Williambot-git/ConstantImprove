@@ -136,7 +136,7 @@ export default function Home() {
         </div>
         <p style={styles.pricingNote}>
           Card payments available for Monthly and Quarterly plans.{' '}
-          <a href="/faq" style={{ color: '#3B82F6' }}>Learn more</a> about cryptocurrency options.
+          <Link href="/faq" style={{ color: '#3B82F6' }}>Learn more</Link> about cryptocurrency options.
         </p>
       </section>
 
