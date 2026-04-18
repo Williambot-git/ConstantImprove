@@ -90,6 +90,7 @@
 | 84 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
 | 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
 | 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
+| 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
 
 ---
 
@@ -150,16 +151,17 @@
 ## Recent Commits (from this session)
 
 ```
-fec30b0 fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands
-7a076db chore: delete 7 obsolete scripts from scripts/ (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh)
-e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
+46b893a test(paymentProcessingService): add 2 tests for error-handling branches
+fec30b0 refactor(paymentsCloud): extract processPaymentsCloudPaymentAsync to paymentProcessingService
+056f69b fix(paymentProcessingService.test.js): resolve cross-test mock pollution
+a90ce25 test(frontend): add unit tests for ahoyman.jsx (12 tests) and admin.jsx (15 tests)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,021 tests passing** (35 test suites, 100% passing)
-- **Frontend test suite: 537 tests passing** (40 test suites, 100% passing) — +15 from checkout component tests
-- **Total test count: 1,558 tests** across frontend and backend
+- **Backend test suite: 1,031 tests passing** (35 test suites, 100% passing) — +2 from paymentProcessingService error-handling branches
+- **Frontend test suite: 564 tests passing** (39 test suites, 100% passing)
+- **Total test count: 1,595 tests** across frontend and backend
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
@@ -171,4 +173,4 @@ e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T00:15:00Z*
+*Last updated: 2026-04-18T03:00:00Z*
