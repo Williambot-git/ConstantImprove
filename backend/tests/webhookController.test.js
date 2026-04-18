@@ -784,6 +784,227 @@ describe('authorizeNetWebhook handler', () => {
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
+// Branch coverage: async catch handlers in webhook handlers
+// ══════════════════════════════════════════════════════════════════════════════
+describe('plisioWebhook async error handler (line 213)', () => {
+  let paymentProcessingService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    // Require AFTER clearAllMocks so the mock is fresh (following existing pattern)
+    paymentProcessingService = require('../src/services/paymentProcessingService');
+    paymentProcessingService.processPlisioPaymentAsync.mockRejectedValueOnce(
+      new Error('Plisio network failure')
+    );
+  });
+
+  test('processPlisioPaymentAsync rejection is caught and does not crash the handler', async () => {
+    const params = {
+      invoice_id: 'INV456',
+      order_number: 'ORD123',
+      status: 'completed',
+      tx_id: 'TX789',
+      amount: '9.99',
+      currency: 'BTC'
+    };
+    // Use proper signature computation (same as existing plisioWebhook tests)
+    const sig = computePlisioSignature(process.env.PLISIO_API_KEY, params);
+    const req = buildReq('POST', params, { 'x-plisio-signature': sig });
+
+    // isReplayAttack + recordWebhook checks pass (return empty rows)
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // isReplayAttack → not found
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // recordWebhook → success
+
+    const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+    await plisioWebhook(req, res);
+
+    // Handler must still return 200 OK even when async processing fails
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ received: true, status: 'completed' }));
+    // processPlisioPaymentAsync was called and then rejected (caught by .catch)
+    expect(paymentProcessingService.processPlisioPaymentAsync).toHaveBeenCalledWith('INV456', 'TX789', '9.99', 'BTC');
+  });
+});
+
+describe('paymentsCloudWebhook async error handler (line 263)', () => {
+  let paymentProcessingService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    // Require AFTER clearAllMocks so the mock is fresh (following existing pattern)
+    paymentProcessingService = require('../src/services/paymentProcessingService');
+    paymentProcessingService.processPaymentsCloudPaymentAsync.mockRejectedValueOnce(
+      new Error('PaymentsCloud processing error')
+    );
+  });
+
+  test('processPaymentsCloudPaymentAsync rejection is caught and does not crash the handler', async () => {
+    // Use same valid payload structure as existing paymentsCloudWebhook tests
+    const body = {
+      event: 'payment.succeeded',
+      data: { id: 'pc_async', amount: '29.99', currency: 'USD', metadata: { account_number: '12345678', plan_key: 'month' } }
+    };
+    const sig = computePaymentsCloudSignature(process.env.PAYCLOUD_SECRET, body);
+    const req = buildReq('POST', body, { 'x-paymentscloud-signature': sig });
+
+    // isReplayAttack + recordWebhook pass
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // isReplayAttack
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // recordWebhook
+
+    const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+    await paymentsCloudWebhook(req, res);
+
+    // Handler must still return 200 OK even when async processing fails
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ received: true, status: 'payment.succeeded' }));
+    expect(paymentProcessingService.processPaymentsCloudPaymentAsync).toHaveBeenCalled();
+  });
+});
+
+describe('authorizeNetWebhook txDetails null branch (lines 311-322)', () => {
+  let authorizeNetUtils;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    // Use 'valid_hex' so buildAuthorizeReq computes the correct HMAC signature
+    process.env.AUTHORIZE_SIGNATURE_KEY = 'a'.repeat(64);
+    authorizeNetUtils = require('../src/services/authorizeNetUtils');
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockReset();
+    authorizeNetUtils.AuthorizeNetService.mockImplementation(() => ({
+      createArbSubscriptionFromProfile: jest.fn().mockResolvedValue({ subscriptionId: 'arb_test' })
+    }));
+  });
+
+  afterEach(() => {
+    delete process.env.AUTHORIZE_SIGNATURE_KEY;
+  });
+
+  test('returns early when getAuthorizeTransactionDetails returns null (line 312)', async () => {
+    const body = {
+      eventType: 'authcapture.created',
+      payload: { id: 'txn_test', invoiceNumber: '', responseCode: '' }
+    };
+    // 'valid_hex' makes buildAuthorizeReq compute the correct HMAC using AUTHORIZE_SIGNATURE_KEY
+    const req = buildAuthorizeReq(body, 'valid_hex');
+
+    // tx lookup returns null → line 312 if-block is skipped
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockResolvedValueOnce(null);
+
+    // Subscription not found → early return at line 429
+    mockDbQuery
+      .mockResolvedValueOnce({ rows: [] }) // tx lookup (returns null)
+      .mockResolvedValueOnce({ rows: [] }); // subscription not found
+
+    const res = { json: jest.fn() };
+    await authorizeNetWebhook(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({ received: true, signatureValid: true });
+  });
+
+  test('logs transaction lookup when txDetails is found (line 317)', async () => {
+    const body = {
+      eventType: 'authcapture.created',
+      payload: { id: 'txn_logged', invoiceNumber: '', responseCode: '' }
+    };
+    const req = buildAuthorizeReq(body, 'valid_hex');
+
+    // txDetails found → line 312 if-block populates vars and logs at line 317
+    const txDetails = {
+      invoiceNumber: 'INV_LOG',
+      responseCode: '1',
+      amountRaw: '49.99',
+      transactionStatus: 'settled'
+    };
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockResolvedValueOnce(txDetails);
+
+    // Subscription found (active)
+    mockDbQuery.mockResolvedValueOnce({
+      rows: [{
+        id: 'sub_log',
+        user_id: 'u_log',
+        status: 'active',
+        metadata: {}
+      }]
+    });
+
+    const res = { json: jest.fn() };
+    await authorizeNetWebhook(req, res);
+
+    // logAuthorizeEvent called at line 317 with 'webhook-transaction-lookup'
+    expect(fs.appendFileSync).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringContaining('"label":"webhook-transaction-lookup"')
+    );
+  });
+});
+
+describe('authorizeNetWebhook ARB creation error handler (lines 551-553)', () => {
+  let authorizeNetUtils;
+  let userService;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    // Use 'valid_hex' for correct signature computation
+    process.env.AUTHORIZE_SIGNATURE_KEY = 'a'.repeat(64);
+    authorizeNetUtils = require('../src/services/authorizeNetUtils');
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockReset();
+    authorizeNetUtils.AuthorizeNetService.mockImplementation(() => ({
+      createArbSubscriptionFromProfile: jest.fn().mockRejectedValue(
+        new Error('ARB API unavailable')
+      )
+    }));
+    userService = require('../src/services/userService');
+  });
+
+  afterEach(() => {
+    delete process.env.AUTHORIZE_SIGNATURE_KEY;
+  });
+
+  test('ARB creation failure is caught and does not crash handler (line 551)', async () => {
+    const body = {
+      eventType: 'authcapture.created',
+      payload: { id: 'txn_arb_fail', invoiceNumber: 'inv_arb_fail', responseCode: '1', authAmount: '49.99' }
+    };
+    const req = buildAuthorizeReq(body, 'valid_hex');
+
+    const mockSub = {
+      id: 'sub_arb_fail',
+      user_id: 'u_arb_fail',
+      status: 'trialing',
+      account_number: '11111111',
+      arb_subscription_id: null,
+      metadata: { plan_interval: 'month', plan_amount_cents: '4999' }
+    };
+
+    // Override the specific queries this test needs
+    mockDbQuery
+      .mockResolvedValueOnce({ rows: [] }) // tx lookup (first call) → null
+      .mockResolvedValueOnce({ rows: [mockSub] }) // subscription query
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN → ok
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions → ok
+      .mockResolvedValueOnce({ rows: [] }) // INSERT payments → ok
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE users is_active → ok
+      .mockResolvedValueOnce({ rows: [] }) // COMMIT → ok
+      .mockResolvedValueOnce({ rows: [] }) // INSERT tax_transactions (no postal) → ok
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN (ARB block) → ok
+      .mockResolvedValueOnce({ rows: [{ amount_cents: 4999 }] }) // plan amount lookup → found
+      // createArbSubscriptionFromProfile throws → caught at line 551
+      // No UPDATE subscriptions call since ARB threw
+      .mockResolvedValueOnce({ rows: [{ email: 'arb_fail@example.com' }] }); // user email lookup
+
+    // AuthorizeNetService mock throws for ARB creation
+    const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+    await authorizeNetWebhook(req, res);
+
+    // Despite ARB throwing, handler must complete and return 200 (not 500)
+    expect(res.json).toHaveBeenCalledWith({ received: true, signatureValid: true });
+    expect(res.status).not.toHaveBeenCalledWith(500);
+  });
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
 // logAuthorizeEvent utility
 // Sync function that appends JSON to logs/authorize-webhook.log
 // ══════════════════════════════════════════════════════════════════════════════
