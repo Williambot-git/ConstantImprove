@@ -137,8 +137,8 @@ export default function Register() {
         <Card style={styles.loginCard}>
           <p style={styles.loginText}>
             Already have an account?{' '}
-            <Link href="/login">
-              <a style={styles.loginLink}>Sign in</a>
+            <Link href="/login" style={styles.loginLink}>
+              Sign in
             </Link>
           </p>
         </Card>

@@ -145,10 +145,8 @@ export default function Recover() {
               {error && <p style={styles.error}>{error}</p>}
 
               <div style={styles.buttonGroup}>
-                <Link href="/login">
-                  <a style={styles.linkButton}>
-                    <Button variant="secondary">Back to Login</Button>
-                  </a>
+                <Link href="/login" style={styles.linkButton}>
+                  <Button variant="secondary">Back to Login</Button>
                 </Link>
                 <Button type="submit" disabled={loading} size="lg">
                   {loading ? 'Verifying...' : 'Verify Kit'}
@@ -247,12 +245,10 @@ export default function Recover() {
             </p>
 
             <div style={styles.buttonGroup}>
-              <Link href="/login">
-                <a style={styles.linkButton}>
-                  <Button size="lg" style={{ width: '100%' }}>
-                    Go to Login
-                  </Button>
-                </a>
+              <Link href="/login" style={styles.linkButton}>
+                <Button size="lg" style={{ width: '100%' }}>
+                  Go to Login
+                </Button>
               </Link>
             </div>
           </Card>

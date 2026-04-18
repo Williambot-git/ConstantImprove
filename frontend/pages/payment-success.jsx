@@ -17,13 +17,13 @@ export default function PaymentSuccess() {
             Next steps:
           </p>
           <ol style={styles.list}>
-            <li>Visit the <Link href="/downloads"><a style={styles.link}>Downloads</a></Link> page.</li>
+            <li>Visit the <Link href="/downloads" style={styles.link}>Downloads</Link> page.</li>
             <li>Download the AHOY VPN client for your device.</li>
             <li>Sign in using the same account number and password you use on this site.</li>
           </ol>
           <p style={{ ...styles.text, marginTop: '1rem' }}>
             You can always check your subscription status on the{' '}
-            <Link href="/dashboard"><a style={styles.link}>Dashboard</a></Link>.
+            <Link href="/dashboard" style={styles.link}>Dashboard</Link>.
           </p>
         </Card>
       </div>

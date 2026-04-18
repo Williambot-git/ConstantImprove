@@ -105,12 +105,10 @@ export default function Login() {
           <p style={styles.recoveryText}>
             If you have your recovery kit, you can recover your account and set a new password.
           </p>
-          <Link href="/recover">
-            <a style={styles.recoveryLink}>
-              <Button variant="secondary" style={{ width: '100%' }}>
-                Use Recovery Kit
-              </Button>
-            </a>
+          <Link href="/recover" style={styles.recoveryLink}>
+            <Button variant="secondary" style={{ width: '100%' }}>
+              Use Recovery Kit
+            </Button>
           </Link>
         </Card>
 
@@ -119,12 +117,10 @@ export default function Login() {
           <p style={styles.infoText}>
             Create your AHOY VPN account today. No email required - just set a secure password and you're ready to go.
           </p>
-          <Link href="/register">
-            <a style={styles.registerLink}>
-              <Button variant="secondary" style={{ width: '100%' }}>
-                Create Account
-              </Button>
-            </a>
+          <Link href="/register" style={styles.registerLink}>
+            <Button variant="secondary" style={{ width: '100%' }}>
+              Create Account
+            </Button>
           </Link>
         </Card>
       </div>
