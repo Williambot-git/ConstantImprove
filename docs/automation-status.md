@@ -183,4 +183,4 @@
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T04:09:00Z*
+*Last updated: 2026-04-18T04:47:00Z*
