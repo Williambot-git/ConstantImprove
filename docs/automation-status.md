@@ -91,6 +91,7 @@
 | 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
 | 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
 | 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
+| 88 | test(frontend): add Button hover effect tests — 7 new cases covering mouseEnter/mouseLeave for all 3 variants (primary/secondary/danger), plus disabled hover guard. Button component now fully covered (20 tests total) | **DONE** (commit 5c6b416) |
 
 ---
 
