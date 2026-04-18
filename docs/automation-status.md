@@ -92,6 +92,7 @@
 | 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
 | 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
 | 88 | test(frontend): add Button hover effect tests — 7 new cases covering mouseEnter/mouseLeave for all 3 variants (primary/secondary/danger), plus disabled hover guard. Button component now fully covered (20 tests total) | **DONE** (commit 5c6b416) |
+| 89 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
 
 ---
 
@@ -161,8 +162,8 @@ a90ce25 test(frontend): add unit tests for ahoyman.jsx (12 tests) and admin.jsx 
 ## Notes for William
 
 - **Backend test suite: 1,031 tests passing** (35 test suites, 100% passing) — +2 from paymentProcessingService error-handling branches
-- **Frontend test suite: 571 tests passing** (39 test suites, 100% passing) — +7 from Button hover tests
-- **Total test count: 1,602 tests** across frontend and backend
+- **Frontend test suite: 577 tests passing** (40 test suites, 100% passing) — +6 from downloads.jsx tests
+- **Total test count: 1,608 tests** across frontend and backend
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
