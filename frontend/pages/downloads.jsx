@@ -19,6 +19,14 @@ const DOWNLOADS = [
     details: ['Apple silicon & Intel', 'macOS compatible', 'Easy installation'],
   },
   {
+    platform: '🐧 Linux',
+    description: 'VPN client for Linux — install via terminal on most distributions.',
+    tagline: 'Command-line VPN client for Linux.',
+    buttonText: 'Download .run',
+    href: 'https://vpnclient.app/current/vpnclient/vpnclient.run',
+    details: ['Most Linux distributions', 'Terminal installer', 'System-level tunnel'],
+  },
+  {
     platform: '🤖 Android',
     description: 'VPN client for Android phones and tablets via Google Play Store.',
     tagline: 'Install from Google Play Store.',
@@ -87,9 +95,11 @@ export default function DownloadsPage() {
       </section>
 
       <Card padding="1.25rem" style={styles.routerCard}>
-        <h3 style={{ marginTop: 0 }}>Want a router config?</h3>
+        <h3 style={{ marginTop: 0 }}>Need a router config?</h3>
         <p style={{ marginBottom: 0 }}>
-          Reach out to <a href="mailto:ahoyvpn@ahoyvpn.net" style={{ color: '#1E90FF' }} aria-label="Email AhoyVPN support">ahoyvpn@ahoyvpn.net</a>
+          Send an email to{' '}
+          <a href="mailto:ahoyvpn@ahoyvpn.net" style={{ color: '#1E90FF' }}>AhoyVPN@AhoyVPN.net</a>{' '}
+          with your preferred server and Client Login userid and we will get back to you within 24 hours.
         </p>
       </Card>
     </div>
