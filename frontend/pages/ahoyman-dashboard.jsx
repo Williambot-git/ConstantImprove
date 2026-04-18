@@ -8,6 +8,7 @@ import PayoutsTab from '../components/ahoyman-dashboard/PayoutsTab';
 import CodesTab from '../components/ahoyman-dashboard/CodesTab';
 import SalesTaxTab from '../components/ahoyman-dashboard/SalesTaxTab';
 import SettingsTab from '../components/ahoyman-dashboard/SettingsTab';
+import NexusTab from '../components/ahoyman-dashboard/NexusTab';
 
 export default function AhoyManDashboard() {
   const router = useRouter();
@@ -59,7 +60,7 @@ export default function AhoyManDashboard() {
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        {['overview','affiliates','codes','payouts','sales-tax','settings'].map(t => (
+        {['overview','affiliates','codes','payouts','sales-tax','nexus','settings'].map(t => (
           <button key={t} onClick={() => setTab(t)} style={{
             padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer',
             backgroundColor: tab === t ? '#8B5CF6' : '#2A2A2A',
@@ -85,6 +86,7 @@ export default function AhoyManDashboard() {
       {tab === 'payouts' && <PayoutsTab onAction={loadData} />}
       {tab === 'codes' && <CodesTab />}
       {tab === 'sales-tax' && <SalesTaxTab />}
+      {tab === 'nexus' && <NexusTab />}
       {tab === 'settings' && <SettingsTab />}
     </div>
   );

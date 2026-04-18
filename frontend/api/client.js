@@ -156,6 +156,12 @@ export const api = {
     const qs = new URLSearchParams(params).toString();
     return apiClient.get(`/auth/ahoyman/tax-transactions/summary${qs ? '?' + qs : ''}`);
   },
+  // Nexus overview — per-state revenue and transaction count for economic nexus tracking
+  // Economic nexus thresholds: $100k revenue OR 200 transactions per state (federal standard)
+  getNexusOverview: async (params = {}) => {
+    const qs = new URLSearchParams(params).toString();
+    return apiClient.get(`/auth/ahoyman/nexus-overview${qs ? '?' + qs : ''}`);
+  },
 
   // ===== ADMIN AFFILIATE MANAGEMENT =====
   createAffiliate: async (data) => postAdmin('/auth/ahoyman/affiliates', data),

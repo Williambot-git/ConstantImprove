@@ -753,6 +753,73 @@ const getTaxSummary = async (req, res) => {
   }
 };
 
+/**
+ * getNexusOverview — per-state revenue and transaction count for economic nexus tracking.
+ * Economic nexus thresholds (federal standard): $100k revenue OR 200 transactions per state.
+ * Data comes from tax_transactions which is populated by payment webhooks.
+ * NOTE: tax_amount_cents will be 0 now that ZipTax is disabled — base_charge_cents is revenue.
+ *
+ * @param {object} req - Express request. Optional query params: start_date, end_date (ISO date strings)
+ * @param {object} res - Express response
+ */
+const getNexusOverview = async (req, res) => {
+  try {
+    const { start_date, end_date } = req.query;
+
+    // Build query dynamically based on optional date filters
+    // COALESCE(UPPER(state), 'UNKNOWN') handles any null state values
+    let query = `
+      SELECT
+        COALESCE(UPPER(state), 'UNKNOWN') AS state,
+        COUNT(*) AS transaction_count,
+        SUM(total_amount_cents) AS total_revenue_cents
+      FROM tax_transactions
+      WHERE 1=1
+    `;
+    const params = [];
+    let paramCount = 0;
+
+    if (start_date) {
+      paramCount++;
+      query += ` AND transaction_date::date >= $${paramCount}`;
+      params.push(start_date);
+    }
+    if (end_date) {
+      paramCount++;
+      query += ` AND transaction_date::date <= $${paramCount}`;
+      params.push(end_date);
+    }
+
+    query += ` GROUP BY COALESCE(UPPER(state), 'UNKNOWN') ORDER BY total_revenue_cents DESC`;
+
+    const { rows } = await db.query(query, params);
+
+    // Build per-state results with formatted dollar amount
+    const states = rows.map(r => ({
+      state: r.state,
+      transaction_count: Number(r.transaction_count),
+      total_revenue_cents: Number(r.total_revenue_cents || 0),
+      total_revenue_dollars: (Number(r.total_revenue_cents || 0) / 100).toFixed(2)
+    }));
+
+    // Compute grand totals across all states
+    const grandTotalRevenueCents = states.reduce((sum, s) => sum + s.total_revenue_cents, 0);
+    const grandTotalTransactions = states.reduce((sum, s) => sum + s.transaction_count, 0);
+
+    res.json({
+      states,
+      totals: {
+        grand_total_revenue_cents: grandTotalRevenueCents,
+        grand_total_transactions: grandTotalTransactions,
+        grand_total_revenue_dollars: (grandTotalRevenueCents / 100).toFixed(2)
+      }
+    });
+  } catch (error) {
+    console.error('getNexusOverview error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 const exportTaxTransactionsCSV = async (req, res) => {
   try {
     const { start_date, end_date, state } = req.query;
@@ -965,6 +1032,7 @@ module.exports = {
   getTaxTransactions,
   getTaxSummary,
   exportTaxTransactionsCSV,
+  getNexusOverview,
   deleteAffiliate,
   archiveAffiliate,
 };

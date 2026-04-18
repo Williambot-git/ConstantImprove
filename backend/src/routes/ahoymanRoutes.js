@@ -58,6 +58,7 @@ router.put('/settings', protectAdmin, ahoymanController.updateSettings);
 router.get('/tax-transactions', protectAdmin, ahoymanController.getTaxTransactions);
 router.get('/tax-transactions/summary', protectAdmin, ahoymanController.getTaxSummary);
 router.get('/tax-transactions/export/csv', protectAdmin, ahoymanController.exportTaxTransactionsCSV);
+router.get('/nexus-overview', protectAdmin, ahoymanController.getNexusOverview);
 
 
 // Affiliate code management

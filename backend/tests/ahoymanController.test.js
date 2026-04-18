@@ -97,6 +97,7 @@ const {
   getTaxTransactions,
   getTaxSummary,
   exportTaxTransactionsCSV,
+  getNexusOverview,
   createAffiliateCode,
   getAffiliateCodes,
   updateAffiliateCouponDiscount,
@@ -849,6 +850,55 @@ describe('ahoymanController', () => {
       db.query.mockRejectedValueOnce(new Error('db error'));
       const res = mockRes();
       await getTaxSummary(mockReq({ query: {} }), res);
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('getNexusOverview', () => {
+    it('returns per-state revenue and transaction counts', async () => {
+      db.query.mockResolvedValueOnce({
+        rows: [
+          { state: 'PA', transaction_count: '14', total_revenue_cents: '167900' },
+          { state: 'CA', transaction_count: '7', total_revenue_cents: '83950' },
+        ]
+      });
+      const res = mockRes();
+      await getNexusOverview(mockReq({ query: {} }), res);
+      const call = res.json.mock.calls[0][0];
+      expect(call.states).toHaveLength(2);
+      expect(call.states[0].state).toBe('PA');
+      expect(call.states[0].transaction_count).toBe(14);
+      expect(call.states[0].total_revenue_cents).toBe(167900);
+      expect(call.states[0].total_revenue_dollars).toBe('1679.00');
+      expect(call.totals.grand_total_revenue_cents).toBe(251850);
+      expect(call.totals.grand_total_transactions).toBe(21);
+      expect(call.totals.grand_total_revenue_dollars).toBe('2518.50');
+    });
+
+    it('returns empty arrays when no transactions', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+      const res = mockRes();
+      await getNexusOverview(mockReq({ query: {} }), res);
+      const call = res.json.mock.calls[0][0];
+      expect(call.states).toEqual([]);
+      expect(call.totals.grand_total_revenue_cents).toBe(0);
+      expect(call.totals.grand_total_transactions).toBe(0);
+    });
+
+    it('applies start_date and end_date filters', async () => {
+      db.query.mockResolvedValueOnce({ rows: [] });
+      const res = mockRes();
+      await getNexusOverview(mockReq({ query: { start_date: '2026-01-01', end_date: '2026-03-31' } }), res);
+      expect(db.query).toHaveBeenCalledWith(
+        expect.stringContaining('transaction_date::date >= $1'),
+        ['2026-01-01', '2026-03-31']
+      );
+    });
+
+    it('returns 500 on db error', async () => {
+      db.query.mockRejectedValueOnce(new Error('db error'));
+      const res = mockRes();
+      await getNexusOverview(mockReq({ query: {} }), res);
       expect(res.status).toHaveBeenCalledWith(500);
     });
   });

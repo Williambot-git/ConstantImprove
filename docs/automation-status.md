@@ -108,6 +108,8 @@
 | 111 | chore(frontend): delete orphaned `pages/management/dashboard.jsx` (499-line duplicate of `admin.jsx` with different import paths — confirmed no importers) | **DONE** (commit f7de9be) |
 | 112 | test(frontend): expand SalesTaxTab coverage (+11 tests) — pagination prev/next/disabled, date filters, export CSV, filter resets page | **DONE** (commit 503ea65) |
 | 113 | test(frontend): index.jsx landing page tests (21 tests — hero, features, pricing, how-it-works, CTA banner) | **DONE** (commit aeef9f9) |
+| 114 | fix(frontend): affiliates-tab.test.jsx — all import paths used ../../ prefix from tests/ subdir (went to repo root instead of frontend root); also fix 4 failing tests using wrong waitFor/mock patterns | **DONE** (commit 6038395) |
+| 115 | test(frontend): add api/client unit tests (488 lines, 63 tests) + LinksTab unit tests (449 lines, 39 tests) + AffiliatesTab unit tests (604 lines, 41 tests) — all 3 were untracked/new | **DONE** (commit 6038395) |
 
 ---
 
@@ -168,6 +170,7 @@
 ## Recent Commits (from this session)
 
 ```
+6038395 test(frontend): add AffiliatesTab, LinksTab, api/client unit tests
 aeef9f9 test(frontend): add index.jsx landing page tests (21 tests)
 18f12f2 fix(authorizeNetUtils): fix typo — DEBUG_AUTHORIZE_NET=*** → === (comparison, not assignment)
 ```
@@ -175,8 +178,8 @@ aeef9f9 test(frontend): add index.jsx landing page tests (21 tests)
 ## Notes for William
 
 - **Backend test suite: 1,059 tests passing** (35 test suites, 100% passing)
-- **Frontend test suite: 622 tests passing** (42 test suites, 100% passing)
-- **Total test count: 1,681 tests** across frontend and backend (1,059 backend + 622 frontend)
+- **Frontend test suite: 753 tests passing** (46 test suites, 100% passing)
+- **Total test count: 1,812 tests** across frontend and backend (1,059 backend + 753 frontend)
 - **SalesTaxTab coverage: 84.48% line / 85.71% branch** (was 55.17% / 71.42%)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
