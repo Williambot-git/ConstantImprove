@@ -105,6 +105,7 @@
 | 108 | fix(frontend): remaining lint cleanup — `<a>`→`<Link>` in index.jsx (pricing note FAQ link), eslint-disable for `<img>` in _app.jsx loading spinner (next/image unsuitable) — frontend lint now 0 errors, 0 warnings | **DONE** (commit 95ad0d0) |
 | 109 | test(subscriptionController): add 13 error-handling branch tests — all 8 catch blocks now covered (userService throws ×6, db query throws ×6, createSubscription throws) | **DONE** (commit 83b2bcf) |
 | 110 | test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%) | **DONE** (commit f7cfb84) |
+| 111 | chore(frontend): delete orphaned `pages/management/dashboard.jsx` (499-line duplicate of `admin.jsx` with different import paths — confirmed no importers) | **DONE** (commit f7de9be) |
 
 ---
 
