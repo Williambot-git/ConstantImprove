@@ -161,8 +161,8 @@ a90ce25 test(frontend): add unit tests for ahoyman.jsx (12 tests) and admin.jsx 
 ## Notes for William
 
 - **Backend test suite: 1,031 tests passing** (35 test suites, 100% passing) — +2 from paymentProcessingService error-handling branches
-- **Frontend test suite: 564 tests passing** (39 test suites, 100% passing)
-- **Total test count: 1,595 tests** across frontend and backend
+- **Frontend test suite: 571 tests passing** (39 test suites, 100% passing) — +7 from Button hover tests
+- **Total test count: 1,602 tests** across frontend and backend
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
