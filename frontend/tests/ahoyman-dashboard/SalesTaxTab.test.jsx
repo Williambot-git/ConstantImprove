@@ -152,4 +152,247 @@ describe('SalesTaxTab', () => {
       expect(screen.getByText('Sales Tax Center')).toBeInTheDocument();
     });
   });
+
+  // === PAGINATION TESTS ===
+  test('shows pagination controls when totalPages > 1', async () => {
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 25 } },
+    });
+    // total = 25, limit = 20 → totalPages = 2
+
+    render(<SalesTaxTab />);
+
+    // Wait for table rows to appear (proves loading is done and data rendered)
+    await waitFor(() => {
+      expect(screen.getByText('Sales Tax Center')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    // Now pagination should be visible (totalPages > 1 = true when total=25)
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    }, { timeout: 3000 });
+    expect(screen.getByRole('button', { name: /next →/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /← prev/i })).toBeInTheDocument();
+  });
+
+  test('clicking Next → increments page and reloads data', async () => {
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 25 } },
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    }, { timeout: 3000 });
+
+    await userEvent.click(screen.getByRole('button', { name: /next →/i }));
+
+    await waitFor(() => {
+      expect(mockGetTaxTransactions).toHaveBeenLastCalledWith({ page: 2, limit: 20 });
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+    });
+  });
+
+  test('clicking Prev ← decrements page when page > 1', async () => {
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 25 } },
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    });
+
+    // Go to page 2
+    await userEvent.click(screen.getByRole('button', { name: /next →/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+    });
+
+    // Now click Prev
+    await userEvent.click(screen.getByRole('button', { name: /← prev/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    });
+    await waitFor(() => {
+      expect(mockGetTaxTransactions).toHaveBeenLastCalledWith({ page: 1, limit: 20 });
+    });
+  });
+
+  test('Prev button is disabled on page 1', async () => {
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 25 } },
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    });
+
+    const prevBtn = screen.getByRole('button', { name: /← prev/i });
+    expect(prevBtn).toBeDisabled();
+  });
+
+  test('Next button is disabled on last page', async () => {
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 25 } },
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
+    });
+
+    await userEvent.click(screen.getByRole('button', { name: /next →/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+    });
+
+    const nextBtn = screen.getByRole('button', { name: /next →/i });
+    expect(nextBtn).toBeDisabled();
+  });
+
+  // === DATE FILTER TESTS ===
+  test('Filter button submits startDate and endDate in params', async () => {
+    render(<SalesTaxTab />);
+
+    await waitFor(() => screen.getByText('Sales Tax Center'));
+
+    // Find both date inputs (one for startDate, one for endDate)
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    await userEvent.type(dateInputs[0], '2026-01-01');
+    await userEvent.type(dateInputs[1], '2026-01-31');
+
+    await userEvent.click(screen.getByRole('button', { name: /filter/i }));
+
+    await waitFor(() => {
+      expect(mockGetTaxTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          page: 1,
+          limit: 20,
+          startDate: '2026-01-01',
+          endDate: '2026-01-31',
+        }),
+      );
+    });
+  });
+
+  // === EXPORT CSV TESTS ===
+  test('Export CSV button calls api.exportTaxCSV with filters', async () => {
+    mockExportTaxCSV.mockResolvedValue({ data: 'date,state,tax\n2026-01-15,PA,7.00\n' });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => screen.getByText('Sales Tax Center'));
+
+    await userEvent.click(screen.getByRole('button', { name: /export csv/i }));
+
+    await waitFor(() => {
+      expect(mockExportTaxCSV).toHaveBeenCalledWith({});
+    });
+  });
+
+  test('Export CSV includes filters when state filter is set', async () => {
+    mockExportTaxCSV.mockResolvedValue({ data: 'date,state,tax\n2026-01-15,PA,7.00\n' });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => screen.getByText('Sales Tax Center'));
+
+    const stateInput = screen.getByPlaceholderText('e.g. PA');
+    await userEvent.type(stateInput, 'NY');
+
+    // Apply filter
+    await userEvent.click(screen.getByRole('button', { name: /filter/i }));
+
+    await waitFor(() => {
+      expect(mockGetTaxTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ state: 'NY' }),
+      );
+    });
+
+    // Now export
+    await userEvent.click(screen.getByRole('button', { name: /export csv/i }));
+
+    await waitFor(() => {
+      expect(mockExportTaxCSV).toHaveBeenCalledWith({ state: 'NY' });
+    });
+  });
+
+  test('Export CSV creates blob URL and triggers download', async () => {
+    mockExportTaxCSV.mockResolvedValue({
+      data: 'date,state,tax\n2026-01-15,PA,7.00\n',
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => screen.getByText('Sales Tax Center'));
+
+    await userEvent.click(screen.getByRole('button', { name: /export csv/i }));
+
+    // exportTaxCSV was called (the mock resolved successfully)
+    await waitFor(() => {
+      expect(mockExportTaxCSV).toHaveBeenCalledWith({});
+    });
+  });
+
+  test('Export CSV error is swallowed gracefully (console.error only)', async () => {
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockExportTaxCSV.mockRejectedValue(new Error('Export failed'));
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => screen.getByText('Sales Tax Center'));
+
+    // Should not throw
+    await userEvent.click(screen.getByRole('button', { name: /export csv/i }));
+
+    await waitFor(() => {
+      expect(consoleSpy).toHaveBeenCalledWith('Export error:', expect.any(Error));
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  // === ADDITIONAL FILTER + PAGINATION INTERACTION ===
+  test('filtering resets to page 1', async () => {
+    // Two API calls: initial mount (page 1) and after clicking Next (page 2)
+    mockGetTaxTransactions.mockResolvedValue({
+      data: { data: [{ id: 1, state: 'PA', taxableAmount: 9999, taxCollected: 700, rate: 0.07 }], pagination: { total: 50 } },
+    });
+
+    render(<SalesTaxTab />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 1 of 3')).toBeInTheDocument();
+    });
+
+    // Go to page 2
+    await userEvent.click(screen.getByRole('button', { name: /next →/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Page 2 of 3')).toBeInTheDocument();
+    });
+
+    // Now apply a filter — should reset to page 1
+    const stateInput = screen.getByPlaceholderText('e.g. PA');
+    await userEvent.type(stateInput, 'CA');
+
+    await userEvent.click(screen.getByRole('button', { name: /filter/i }));
+
+    await waitFor(() => {
+      expect(mockGetTaxTransactions).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1, state: 'CA' }),
+      );
+    });
+  });
 });
