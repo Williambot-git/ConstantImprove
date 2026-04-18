@@ -91,7 +91,7 @@
 | 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
 | 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
 | 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
-| 97 | test(frontend): add Button hover effect tests — 7 new cases covering mouseEnter/mouseLeave for all 3 variants (primary/secondary/danger), plus disabled hover guard. Button component now fully covered (20 tests total) | **DONE** (commit 5c6b416) |
+|| 108 | test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) | **DONE** (commit 24def56) |
 | 98 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
 | 99 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
 | 100 | Frontend cleanup — fix `<a>` → accessible external links (dns-guide, affiliate-agreement, faq, downloads, Layout) | **DONE** (commit 945bc04) |
@@ -163,16 +163,15 @@
 ## Recent Commits (from this session)
 
 ```
-8706408 test(paymentProcessingService): add 4 branch-coverage tests (planInterval fallback, postalCode/no-tax/zero-tax branches, invoice chain no-match early return) — now 23 tests, 100% line coverage, branch 77.27%
-3b6dc3c test(frontend): add authorize-redirect.jsx unit tests (14 tests)
-1d850db fix(tests): correct Button hover and Layout tests to match actual component behavior
+24def56 test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) — now 53 tests, 86.2% line / 63.2% branch coverage
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,035 tests passing** (35 test suites, 100% passing) — +4 from paymentProcessingService branch-coverage tests
+- **Backend test suite: 1,040 tests passing** (35 test suites, 100% passing) — +5 webhookController branch-coverage tests
 - **Frontend test suite: 590 tests passing** (41 test suites, 100% passing)
-- **Total test count: 1,625 tests** across frontend and backend (1,035 backend + 590 frontend)
+- **Total test count: 1,630 tests** across frontend and backend (1,040 backend + 590 frontend)
+- **webhookController coverage: 86.2% line / 63.2% branch** (was 83.6% / 59.7%)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
