@@ -94,6 +94,12 @@
 | 88 | test(frontend): add Button hover effect tests — 7 new cases covering mouseEnter/mouseLeave for all 3 variants (primary/secondary/danger), plus disabled hover guard. Button component now fully covered (20 tests total) | **DONE** (commit 5c6b416) |
 | 89 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
 | 90 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
+| 91 | Frontend cleanup — fix `<a>` → accessible external links (dns-guide, affiliate-agreement, faq, downloads, Layout) | **DONE** (commit 945bc04) |
+| 92 | Delete orphaned `frontend/js/checkout.js` legacy file | **DONE** (no such file existed) |
+| 93 | Consolidate duplicate payment-success page (delete `pages/payment/success.jsx`) | **DONE** (no such file existed — already removed) |
+| 94 | `admin.jsx` unit tests | **DONE** (admin.test.jsx exists) |
+| 95 | `ahoyman.jsx` unit tests | **DONE** (ahoyman.test.jsx exists) |
+| 96 | `authorize-redirect.jsx` unit tests (14 tests — loading, token validation, form POST, array query handling) | **DONE** (commit 3b6dc3c) |
 
 ---
 
@@ -154,17 +160,16 @@
 ## Recent Commits (from this session)
 
 ```
+3b6dc3c test(frontend): add authorize-redirect.jsx unit tests (14 tests)
 1d850db fix(tests): correct Button hover + Layout tests to match actual component behavior
-46b893a test(paymentProcessingService): add 2 tests for error-handling branches
-fec30b0 refactor(paymentsCloud): extract processPaymentsCloudPaymentAsync to paymentProcessingService
-056f69b fix(paymentProcessingService.test.js): resolve cross-test mock pollution
+b40498b docs: update automation-status — task 89, downloads.jsx tests
 ```
 
 ## Notes for William
 
 - **Backend test suite: 1,031 tests passing** (35 test suites, 100% passing) — +2 from paymentProcessingService error-handling branches
-- **Frontend test suite: 576 tests passing** (40 test suites, 100% passing) — all 11 previously-failing Button hover + Layout tests now fixed; Button tests reduced from 13→12 (commit 1d850db)
-- **Total test count: 1,607 tests** across frontend and backend (1,031 backend + 576 frontend)
+- **Frontend test suite: 590 tests passing** (41 test suites, 100% passing) — +14 from authorize-redirect tests
+- **Total test count: 1,621 tests** across frontend and backend (1,031 backend + 590 frontend)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
