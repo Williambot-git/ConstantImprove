@@ -434,6 +434,56 @@ describe('paymentProcessingService', () => {
 
     expect(createVpnAccount).toHaveBeenCalled();
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 11: Invoice chain resolution — Plisio API throws, function returns
+  //          early without throwing. Covers line 73: the catch block inside
+  //          the invoice-switch resolution try-catch.
+  // ─────────────────────────────────────────────────────────────────────────
+  it('invoice not found directly and Plisio API throws — returns early, no crash', async () => {
+    // First (and only) SELECT returns empty — function enters invoice chain
+    // resolution. Plisio API call throws → caught → function logs and returns.
+    _origDbQuery.mockImplementationOnce(() => Promise.resolve({ rows: [] }));
+    _origGetInvoiceStatus.mockRejectedValue(new Error('Plisio API network timeout'));
+
+    await processPlisioPaymentAsync('inv_missing', 'tx_orphan', '9.99', 'USD');
+
+    // Function returned cleanly — outer catch did not fire (no console.error
+    // about "Async Plisio payment processing error").
+    // No VPN account, no email, no payment record created.
+    expect(createVpnAccount).not.toHaveBeenCalled();
+    expect(emailService.sendAccountCreatedEmail).not.toHaveBeenCalled();
+    expect(applyAffiliateCommissionIfEligible).not.toHaveBeenCalled();
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 12: Outer catch block — VPN account creation throws, error is
+  //          caught and logged, no exception propagates. Covers line 184.
+  // ─────────────────────────────────────────────────────────────────────────
+  it('VPN account creation throws — outer catch handles it, no exception propagates', async () => {
+    const sub = mockSubscription({ promo_code_id: null, referral_code: null });
+    let callIndex = 0;
+    _origDbQuery.mockImplementation(() => {
+      const sequence = [
+        { rows: [sub] },                         // 1: SELECT subscription
+        { rows: [] },                             // 2: UPDATE subscription status
+        { rows: [{ email: 'user@example.com' }] }, // 3: SELECT user email
+        // 4: INSERT payment — not reached because VPN creation throws first
+      ];
+      return Promise.resolve(sequence[callIndex++] || { rows: [] });
+    });
+
+    // VPN creation fails — triggers the outer catch block (line 184)
+    createVpnAccount.mockRejectedValue(new Error('VPN Resellers API unavailable'));
+
+    await expect(
+      processPlisioPaymentAsync('inv_vpn_fail', 'tx_001', '49.99', 'USD')
+    ).resolves.not.toThrow();
+
+    // Verify outer catch was reached by checking no payment was recorded
+    const paymentCall = _origDbQuery.mock.calls.find(c => c[0].includes('INSERT INTO payments'));
+    expect(paymentCall).toBeUndefined();
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
