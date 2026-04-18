@@ -103,6 +103,7 @@
 | 106 | test(paymentProcessingService): add 4 branch-coverage tests (planInterval fallback, postalCode/no-tax/zero-tax branches, invoice chain no-match early return) | **DONE** (commit 8706408) |
 | 107 | fix(frontend): remove nested `<a>` inside `<Link>` in auth pages — login.jsx (2), register.jsx (1), recover.jsx (2), payment-success.jsx (2) — net -8 lines, fixes invalid HTML accessibility issue | **DONE** (commit aa7c9bd) |
 | 108 | fix(frontend): remaining lint cleanup — `<a>`→`<Link>` in index.jsx (pricing note FAQ link), eslint-disable for `<img>` in _app.jsx loading spinner (next/image unsuitable) — frontend lint now 0 errors, 0 warnings | **DONE** (commit 95ad0d0) |
+| 109 | test(subscriptionController): add 13 error-handling branch tests — all 8 catch blocks now covered (userService throws ×6, db query throws ×6, createSubscription throws) | **DONE** (commit 83b2bcf) |
 
 ---
 
