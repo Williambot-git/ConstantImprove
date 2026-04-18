@@ -1,348 +1,356 @@
 import Link from 'next/link';
-import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+
+const FEATURES = [
+  {
+    title: 'Zero Logs',
+    description: 'We never store your browsing activity, connection timestamps, or IP addresses.',
+  },
+  {
+    title: 'Numeric Authentication',
+    description: 'Accounts tied to numeric IDs — no email required, no personal data collected.',
+  },
+  {
+    title: '10 Simultaneous Connections',
+    description: 'Secure every device you own under a single subscription.',
+  },
+  {
+    title: 'Recovery Kits',
+    description: 'Self-custody account recovery. Your account, your keys — no password reset emails.',
+  },
+];
+
+const PLANS = [
+  {
+    id: 'monthly',
+    name: 'Monthly',
+    price: '$5.99',
+    period: '/month',
+    badge: null,
+  },
+  {
+    id: 'quarterly',
+    name: 'Quarterly',
+    price: '$16.99',
+    period: '/quarter',
+    badge: 'Best value',
+  },
+  {
+    id: 'semi-annual',
+    name: 'Semi-Annual',
+    price: '$31.99',
+    period: '/6 months',
+    badge: 'Crypto only',
+  },
+  {
+    id: 'annual',
+    name: 'Annual',
+    price: '$59.99',
+    period: '/year',
+    badge: 'Crypto only',
+  },
+];
+
+const STEPS = [
+  { step: '01', title: 'Register', description: 'Create an account with a numeric username and password. No email required.' },
+  { step: '02', title: 'Subscribe', description: 'Choose a plan and pay securely via card or cryptocurrency.' },
+  { step: '03', title: 'Connect', description: 'Download the client and connect to any of our global server locations.' },
+];
 
 export default function Home() {
   return (
-    <div>
-      {/* Hero Section */}
+    <div style={styles.page}>
+      {/* Hero */}
       <section style={styles.hero}>
-        <h1 style={styles.heroTitle}>AHOY VPN</h1>
-        <p style={styles.heroSubtitle}>
-          Privacy-first VPN service. Zero logs. No tracking. No compromises.
-        </p>
-        <p style={styles.heroDescription}>
-          Secure your internet connection with military-grade encryption.
-          Browse privately. Mask your location. Protect your data.
-        </p>
-        <div style={styles.heroCTA}>
-          <Link href="/login">
-            <a style={styles.heroCTAButton}>Login</a>
-          </Link>
-          <Link href="/register">
-            <a style={styles.heroCTAButtonSecondary}>Register</a>
-          </Link>
+        <div style={styles.heroInner}>
+          <p style={styles.heroEyebrow}>Privacy-first VPN</p>
+          <h1 style={styles.heroTitle}>
+            Your internet.<br />
+            Your rules.
+          </h1>
+          <p style={styles.heroSubtitle}>
+            Military-grade encryption. Zero logs. No tracking.<br />
+            Starting at $5.99/month.
+          </p>
+          <div style={styles.heroCtas}>
+            <Link href="/register" passHref>
+              <Button as="a" size="lg" style={{ textDecoration: 'none' }}>
+                Get Started
+              </Button>
+            </Link>
+            <Link href="/faq" passHref>
+              <Button variant="ghost" size="lg" as="a" style={{ textDecoration: 'none' }}>
+                How it works
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Why AHOY VPN Section */}
+      {/* Features */}
       <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Why Choose AHOY VPN?</h2>
-        <div style={styles.reasonsGrid}>
-          <ReasonCard icon="🔒" title="Privacy First" description="Zero-knowledge architecture. We can't see your data." />
-          <ReasonCard icon="🚀" title="Lightning Fast" description="Optimized servers for maximum speed." />
-          <ReasonCard icon="🌍" title="Global Network" description="Connect to 50+ server locations worldwide." />
-          <ReasonCard icon="📱" title="All Devices" description="Works on desktop, mobile, and tablets." />
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Simple, Transparent Pricing</h2>
-        <p style={styles.sectionSubtitle}>
-          Choose the plan that fits your needs. All plans include full access to our global network and premium features.
-        </p>
-        <div style={styles.pricingGrid}>
-          <div style={styles.pricingCard}>
-            <h3 style={styles.pricingTitle}>Monthly</h3>
-            <div style={styles.pricingPrice}>$5.99<span style={styles.pricingPeriod}>/month</span></div>
-            <div style={styles.pricingDescription}>Billed monthly</div>
-          </div>
-          <div style={styles.pricingCard}>
-            <h3 style={styles.pricingTitle}>Quarterly</h3>
-            <div style={styles.pricingPrice}>$16.99</div>
-            <div style={styles.pricingDescription}>($5.66/month) · Billed every 3 months</div>
-          </div>
-          <div style={styles.pricingCard}>
-            <h3 style={styles.pricingTitle}>Semi‑Annual</h3>
-            <div style={styles.pricingPrice}>$31.99</div>
-            <div style={styles.pricingDescription}>($5.33/month) · Billed every 6 months · Crypto only</div>
-          </div>
-          <div style={styles.pricingCard}>
-            <h3 style={styles.pricingTitle}>Annual</h3>
-            <div style={styles.pricingPrice}>$59.99</div>
-            <div style={styles.pricingDescription}>($5.00/month) · Billed yearly · Crypto only</div>
-          </div>
-        </div>
-        <div style={styles.paymentInfo}>
-          <h4>Accepted Payment Methods</h4>
-          <p>Credit/Debit Cards (Visa, Mastercard, American Express) for Monthly & Quarterly plans. Cryptocurrency (via Plisio) for all plans.</p>
-          <p style={styles.paymentNote}>
-            <strong>Note:</strong> Checkout is available after account creation. Browse plans here, then register to purchase.
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Built for privacy</h2>
+          <p style={styles.sectionSubtitle}>
+            No surveillance. No data collection. No compromises.
           </p>
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Premium Features</h2>
         <div style={styles.featuresGrid}>
-          <FeatureItem title="No Logs" description="We don't log your activity. Ever." />
-          <FeatureItem title="No Tracking" description="Your online privacy is our priority." />
-          <FeatureItem title="Numeric Authentication" description="Privacy-focused account system. No email required." />
-          <FeatureItem title="Recovery Kits" description="Secure account recovery without storing personal data." />
-          <FeatureItem title="10 Simultaneous Connections" description="Use on up to 10 devices at once." />
+          {FEATURES.map((f) => (
+            <div key={f.title} style={styles.featureCard}>
+              <h3 style={styles.featureTitle}>{f.title}</h3>
+              <p style={styles.featureDesc}>{f.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* How It Works Section */}
+      {/* Pricing */}
       <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>How It Works</h2>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Simple pricing</h2>
+          <p style={styles.sectionSubtitle}>
+            All plans include full access to our global network and premium features.
+          </p>
+        </div>
+        <div style={styles.pricingGrid}>
+          {PLANS.map((plan) => (
+            <div key={plan.id} style={styles.pricingCard}>
+              {plan.badge && (
+                <span style={{
+                  ...styles.pricingBadge,
+                  backgroundColor: plan.badge === 'Best value' ? '#3B82F6' : 'transparent',
+                  borderColor: plan.badge === 'Best value' ? '#3B82F6' : '#2E2E2E',
+                  color: plan.badge === 'Best value' ? '#fff' : '#8A8A8A',
+                }}>
+                  {plan.badge}
+                </span>
+              )}
+              <h3 style={styles.pricingName}>{plan.name}</h3>
+              <div style={styles.pricingPrice}>
+                {plan.price}
+                <span style={styles.pricingPeriod}>{plan.period}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={styles.pricingNote}>
+          Card payments available for Monthly and Quarterly plans.{' '}
+          <a href="/faq" style={{ color: '#3B82F6' }}>Learn more</a> about cryptocurrency options.
+        </p>
+      </section>
+
+      {/* How It Works */}
+      <section style={styles.section}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Up and running in minutes</h2>
+        </div>
         <div style={styles.stepsGrid}>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>1</div>
-            <h3>Register</h3>
-            <p>Create your account with numeric credentials. No email required.</p>
-          </div>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>2</div>
-            <h3>Login</h3>
-            <p>Access your dashboard with your numeric username and password.</p>
-          </div>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>3</div>
-            <h3>Purchase</h3>
-            <p>Choose a plan and complete payment in your dashboard.</p>
-          </div>
-          <div style={styles.step}>
-            <div style={styles.stepNumber}>4</div>
-            <h3>Connect</h3>
-            <p>Download the VPN client and connect to secure servers.</p>
-          </div>
+          {STEPS.map((s, i) => (
+            <div key={s.step} style={styles.step}>
+              <span style={styles.stepNumber}>{s.step}</span>
+              <h3 style={styles.stepTitle}>{s.title}</h3>
+              <p style={styles.stepDesc}>{s.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Disclaimer */}
-      <section style={styles.disclaimer}>
-        <Card>
-          <h3 style={{ marginBottom: '1rem' }}>Important Information</h3>
-          <p style={{ marginBottom: '0.5rem' }}>
-            By using AHOY VPN, you agree to our Terms of Service and Privacy Policy.
-          </p>
-          <p style={{ marginBottom: 0 }}>
-            All payments are processed securely through our payment partners.
-          </p>
-        </Card>
+      {/* CTA Banner */}
+      <section style={styles.ctaBanner}>
+        <h2 style={styles.ctaBannerTitle}>Ready to take back your privacy?</h2>
+        <p style={styles.ctaBannerSubtitle}>Start with a plan that fits your needs.</p>
+        <Link href="/register" passHref>
+          <Button as="a" size="lg" style={{ textDecoration: 'none', marginTop: '1.5rem' }}>
+            Get Started
+          </Button>
+        </Link>
       </section>
-
-      {/* Footer */}
-      <footer style={styles.footer}>
-        <p>&copy; 2026 AHOY VPN. All rights reserved.</p>
-        <div style={styles.footerLinks}>
-          <Link href="/tos">Terms of Service</Link>
-          <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/faq">FAQ</Link>
-        </div>
-      </footer>
     </div>
   );
 }
 
-// Components
-function ReasonCard({ icon, title, description }) {
-  return (
-    <Card style={styles.reasonCard}>
-      <div style={styles.reasonIcon}>{icon}</div>
-      <h3 style={styles.reasonTitle}>{title}</h3>
-      <p style={styles.reasonDescription}>{description}</p>
-    </Card>
-  );
-}
-
-function FeatureItem({ title, description }) {
-  return (
-    <div style={styles.featureItem}>
-      <h4 style={styles.featureTitle}>{title}</h4>
-      <p style={styles.featureDescription}>{description}</p>
-    </div>
-  );
-}
-
-// Styles
 const styles = {
+  page: { maxWidth: '100%' },
+
   hero: {
+    padding: '5rem 1.5rem 4rem',
     textAlign: 'center',
-    padding: '4rem 2rem',
-    background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-    color: 'white',
+    borderBottom: '1px solid #1E1E1E',
+  },
+  heroInner: { maxWidth: '640px', margin: '0 auto' },
+  heroEyebrow: {
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    letterSpacing: '0.12em',
+    textTransform: 'uppercase',
+    color: '#3B82F6',
+    marginBottom: '1.25rem',
   },
   heroTitle: {
-    fontSize: '3rem',
-    marginBottom: '1rem',
-    fontWeight: 'bold',
+    fontSize: 'clamp(2.25rem, 5vw, 3.5rem)',
+    fontWeight: 700,
+    lineHeight: 1.1,
+    color: '#F5F5F0',
+    marginBottom: '1.25rem',
+    letterSpacing: '-0.02em',
   },
   heroSubtitle: {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-    opacity: 0.9,
-  },
-  heroDescription: {
     fontSize: '1.1rem',
+    color: '#8A8A8A',
+    lineHeight: 1.7,
     marginBottom: '2rem',
-    opacity: 0.8,
-    maxWidth: '600px',
-    margin: '0 auto 2rem',
   },
-  heroCTA: {
+  heroCtas: {
     display: 'flex',
-    gap: '1rem',
+    gap: '0.875rem',
     justifyContent: 'center',
+    flexWrap: 'wrap',
   },
-  heroCTAButton: {
-    display: 'inline-block',
-    padding: '1rem 2rem',
-    background: '#1E90FF',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '8px',
-    fontWeight: 'bold',
-    transition: 'background 0.3s',
-  },
-  heroCTAButtonSecondary: {
-    display: 'inline-block',
-    padding: '1rem 2rem',
-    background: 'transparent',
-    color: 'white',
-    textDecoration: 'none',
-    borderRadius: '8px',
-    fontWeight: 'bold',
-    border: '2px solid white',
-    transition: 'background 0.3s',
-  },
+
   section: {
-    padding: '3rem 2rem',
-    maxWidth: '1200px',
+    padding: '4rem 1.5rem',
+    maxWidth: '1100px',
     margin: '0 auto',
   },
+  sectionHeader: { textAlign: 'center', marginBottom: '3rem' },
   sectionTitle: {
-    textAlign: 'center',
-    fontSize: '2rem',
-    marginBottom: '1rem',
+    fontSize: '1.75rem',
+    fontWeight: 700,
+    color: '#F5F5F0',
+    marginBottom: '0.75rem',
+    letterSpacing: '-0.01em',
   },
   sectionSubtitle: {
-    textAlign: 'center',
-    marginBottom: '2rem',
-    opacity: 0.8,
+    fontSize: '1rem',
+    color: '#8A8A8A',
+    maxWidth: '480px',
+    margin: '0 auto',
+    lineHeight: 1.7,
   },
-  reasonsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '1.5rem',
-  },
-  reasonCard: {
-    textAlign: 'center',
-    padding: '2rem',
-  },
-  reasonIcon: {
-    fontSize: '3rem',
-    marginBottom: '1rem',
-  },
-  reasonTitle: {
-    fontSize: '1.25rem',
-    marginBottom: '0.5rem',
-  },
-  reasonDescription: {
-    opacity: 0.8,
-  },
+
   featuresGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '1.5rem',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gap: '1px',
+    border: '1px solid #2E2E2E',
+    borderRadius: '10px',
+    overflow: 'hidden',
   },
-  featureItem: {
-    textAlign: 'center',
+  featureCard: {
+    padding: '2rem 1.75rem',
+    backgroundColor: '#1A1A1A',
+    borderRight: '1px solid #2E2E2E',
+    borderBottom: '1px solid #2E2E2E',
   },
   featureTitle: {
-    fontSize: '1.1rem',
-    marginBottom: '0.5rem',
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    color: '#F5F5F0',
+    marginBottom: '0.625rem',
   },
-  featureDescription: {
-    fontSize: '0.9rem',
-    opacity: 0.8,
+  featureDesc: {
+    fontSize: '0.875rem',
+    color: '#8A8A8A',
+    lineHeight: 1.65,
   },
+
   pricingGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '2rem',
-    marginTop: '2rem',
+    gap: '1rem',
+    marginBottom: '1.5rem',
   },
   pricingCard: {
-    background: '#252525',
-    border: '1px solid #333333',
-    borderRadius: '12px',
-    padding: '2rem',
+    position: 'relative',
+    backgroundColor: '#1A1A1A',
+    border: '1px solid #2E2E2E',
+    borderRadius: '10px',
+    padding: '1.75rem',
     textAlign: 'center',
-    transition: 'transform 0.2s, border-color 0.2s',
+    transition: 'border-color 0.2s ease',
   },
-  pricingTitle: {
-    fontSize: '1.5rem',
-    marginBottom: '1rem',
-    color: '#F0F4F8',
+  pricingBadge: {
+    position: 'absolute',
+    top: '-1px',
+    right: '1rem',
+    fontSize: '0.7rem',
+    fontWeight: 600,
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
+    padding: '0.25rem 0.625rem',
+    borderRadius: '0 0 6px 6px',
+    border: '1px solid',
+  },
+  pricingName: {
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: '#8A8A8A',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    marginBottom: '0.875rem',
   },
   pricingPrice: {
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    color: '#1E90FF',
-    marginBottom: '0.5rem',
+    fontSize: '2rem',
+    fontWeight: 700,
+    color: '#F5F5F0',
+    letterSpacing: '-0.02em',
   },
   pricingPeriod: {
-    fontSize: '1rem',
-    color: '#B0C4DE',
-    fontWeight: 'normal',
-  },
-  pricingDescription: {
-    color: '#B0C4DE',
     fontSize: '0.9rem',
+    fontWeight: 400,
+    color: '#8A8A8A',
   },
-  paymentInfo: {
-    marginTop: '3rem',
-    padding: '2rem',
-    background: 'rgba(30, 144, 255, 0.05)',
-    border: '1px solid rgba(30, 144, 255, 0.2)',
-    borderRadius: '12px',
+  pricingNote: {
+    fontSize: '0.875rem',
+    color: '#5A5A5A',
     textAlign: 'center',
+    lineHeight: 1.6,
   },
-  paymentNote: {
-    marginTop: '1rem',
-    fontSize: '0.9rem',
-    color: '#B0C4DE',
-  },
+
   stepsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '2rem',
-    marginTop: '2rem',
   },
   step: {
-    textAlign: 'center',
+    padding: '1.5rem 2rem',
   },
   stepNumber: {
-    width: '50px',
-    height: '50px',
-    borderRadius: '50%',
-    background: '#4CAF50',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    margin: '0 auto 1rem',
+    display: 'block',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    letterSpacing: '0.1em',
+    color: '#3B82F6',
+    marginBottom: '0.875rem',
   },
-  disclaimer: {
-    padding: '2rem',
-    background: '#f5f5f5',
+  stepTitle: {
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: '#F5F5F0',
+    marginBottom: '0.5rem',
   },
-  footer: {
+  stepDesc: {
+    fontSize: '0.875rem',
+    color: '#8A8A8A',
+    lineHeight: 1.65,
+  },
+
+  ctaBanner: {
+    backgroundColor: '#111111',
+    borderTop: '1px solid #2E2E2E',
+    borderBottom: '1px solid #2E2E2E',
+    padding: '4rem 1.5rem',
     textAlign: 'center',
-    padding: '2rem',
-    background: '#1a1a2e',
-    color: 'white',
+    marginTop: '2rem',
   },
-  footerLinks: {
-    marginTop: '1rem',
-    display: 'flex',
-    gap: '1rem',
-    justifyContent: 'center',
+  ctaBannerTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: '#F5F5F0',
+    marginBottom: '0.5rem',
+  },
+  ctaBannerSubtitle: {
+    fontSize: '1rem',
+    color: '#8A8A8A',
   },
 };

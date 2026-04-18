@@ -10,7 +10,7 @@ export default function Document() {
         <meta name="description" content="AHOY VPN - Privacy-first VPN service with zero logs and no tracking. Fast, secure, and affordable." />
         <meta name="keywords" content="VPN, privacy, secure, no logs, anonymous, encryption" />
         <meta name="author" content="AHOY VPN" />
-        <meta name="theme-color" content="#121212" />
+        <meta name="theme-color" content="#0F0F0F" />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />

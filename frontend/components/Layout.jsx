@@ -5,17 +5,12 @@ import { AuthContext } from '../pages/_app';
 
 export default function Layout({ children }) {
   const auth = useContext(AuthContext);
-
   return (
     <div style={styles.container}>
       <Header auth={auth} />
-      <main style={styles.main}>
-        {children}
-      </main>
+      <main style={styles.main}>{children}</main>
       <Footer />
-      <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.floatingSupportButton} aria-label="Contact AhoyVPN support">
-        Contact Support
-      </a>
+      <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.floatingSupportButton} aria-label="Contact support">Contact Support</a>
     </div>
   );
 }
@@ -25,85 +20,43 @@ function Header({ auth }) {
     <>
       <header style={styles.header} className="ahoy-header">
         <div style={styles.headerContent} className="ahoy-headerContent">
-          <div style={styles.logo} className="ahoy-logoWrap">
-            <Link href="/">
-              <a style={styles.logoLink} className="ahoy-logoLink">
-                <Image src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" width={120} height={40} style={{ height: '2.5em', width: 'auto', verticalAlign: 'middle', marginRight: '0.5rem' }} /> AHOY VPN
+          <div style={styles.logo}>
+            <Link href="/" passHref>
+              <a style={styles.logoLink}>
+                <Image src="/AhoyMonthly_transparent.png?v=3" alt="AHOY VPN Logo" width={110} height={36}
+                  style={{ height: '2.25rem', width: 'auto', verticalAlign: 'middle', marginRight: '0.5rem' }} />
+                <span style={styles.logoText}>AHOY VPN</span>
               </a>
             </Link>
           </div>
-
-          <nav style={styles.nav} className="ahoy-nav">
-            <Link href="/"><a style={styles.navLink}>Home</a></Link>
-            <Link href="/faq"><a style={styles.navLink}>FAQ</a></Link>
-            <Link href="/downloads"><a style={styles.navLink}>Downloads</a></Link>
-            <Link href="/privacy"><a style={styles.navLink}>Privacy</a></Link>
-            <Link href="/tos"><a style={styles.navLink}>Terms</a></Link>
-
+          <nav style={styles.nav} className="ahoy-nav" aria-label="Main navigation">
+            <Link href="/" passHref><a style={styles.navLink}>Home</a></Link>
+            <Link href="/faq" passHref><a style={styles.navLink}>FAQ</a></Link>
+            <Link href="/downloads" passHref><a style={styles.navLink}>Downloads</a></Link>
+            <Link href="/privacy" passHref><a style={styles.navLink}>Privacy</a></Link>
+            <Link href="/tos" passHref><a style={styles.navLink}>Terms</a></Link>
             {auth?.isLoggedIn ? (
               <>
-                {auth.role === 'customer' && (
-                  <Link href="/dashboard"><a style={styles.navLink}>Dashboard</a></Link>
-                )}
-                {auth.role === 'affiliate' && (
-                  <Link href="/affiliate"><a style={styles.navLink}>Affiliate</a></Link>
-                )}
-                {auth.role === 'admin' && (
-                  <Link href="/admin"><a style={styles.navLink}>Admin</a></Link>
-                )}
-                <button style={styles.logoutBtn} onClick={auth.logout}>
-                  Logout
-                </button>
+                {auth.role === 'customer' && <Link href="/dashboard" passHref><a style={styles.navLink}>Dashboard</a></Link>}
+                {auth.role === 'affiliate' && <Link href="/affiliate" passHref><a style={styles.navLink}>Affiliate</a></Link>}
+                {auth.role === 'admin' && <Link href="/admin" passHref><a style={styles.navLink}>Admin</a></Link>}
+                <button style={styles.logoutBtn} onClick={auth.logout} type="button">Sign out</button>
               </>
             ) : (
               <>
-                <Link href="/login"><a style={styles.navLink}>Login</a></Link>
-                <Link href="/register"><a style={styles.ctaBtn}>Get Started</a></Link>
+                <Link href="/login" passHref><a style={styles.navLink}>Sign in</a></Link>
+                <Link href="/register" passHref><a style={styles.ctaBtn}>Get Started</a></Link>
               </>
             )}
           </nav>
         </div>
       </header>
-
       <style jsx>{`
         @media (max-width: 768px) {
-          .ahoy-headerContent {
-            padding: 0.65rem 0.85rem !important;
-            gap: 0.55rem !important;
-            flex-direction: column !important;
-            align-items: stretch !important;
-          }
-
-          .ahoy-logoWrap {
-            display: flex;
-            justify-content: flex-start;
-          }
-
-          .ahoy-logoLink {
-            font-size: 1.1rem !important;
-          }
-
-          .ahoy-nav {
-            justify-content: flex-start !important;
-            flex-wrap: nowrap !important;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            gap: 0.5rem !important;
-            padding-bottom: 0.1rem;
-          }
-
-          .ahoy-nav::-webkit-scrollbar {
-            display: none;
-          }
-
-          .ahoy-nav a,
-          .ahoy-nav button {
-            flex: 0 0 auto;
-            white-space: nowrap;
-            font-size: 0.82rem !important;
-            padding: 0.35rem 0.55rem !important;
-          }
+          .ahoy-headerContent { padding: 0.75rem 1rem !important; flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
+          .ahoy-nav { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0.5rem !important; }
+          .ahoy-nav::-webkit-scrollbar { display: none; }
+          .ahoy-nav a, .ahoy-nav button { white-space: nowrap; font-size: 0.85rem !important; }
         }
       `}</style>
     </>
@@ -115,177 +68,47 @@ function Footer() {
     <footer style={styles.footer}>
       <div style={styles.footerContent}>
         <div style={styles.footerSection}>
-          <h4 style={styles.footerHeading}>AHOY VPN</h4>
-          <p style={styles.footerText}>Privacy-first VPN service. No tracking, no logs.</p>
+          <p style={styles.footerBrand}>AHOY VPN</p>
+          <p style={styles.footerTagline}>Privacy-first. Zero logs. No compromises.</p>
         </div>
-
         <div style={styles.footerSection}>
-          <h4 style={styles.footerHeading}>Legal</h4>
-          <Link href="/tos"><a style={styles.footerLink}>Terms of Service</a></Link>
-          <Link href="/privacy"><a style={styles.footerLink}>Privacy Policy</a></Link>
-          <Link href="/faq"><a style={styles.footerLink}>FAQ</a></Link>
+          <p style={styles.footerHeading}>Legal</p>
+          <Link href="/tos" passHref><a style={styles.footerLink}>Terms of Service</a></Link>
+          <Link href="/privacy" passHref><a style={styles.footerLink}>Privacy Policy</a></Link>
+          <Link href="/faq" passHref><a style={styles.footerLink}>FAQ</a></Link>
         </div>
-
         <div style={styles.footerSection}>
-          <h4 style={styles.footerHeading}>Support</h4>
-          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink} aria-label="Contact AhoyVPN support">
-            Contact Support
-          </a>
+          <p style={styles.footerHeading}>Support</p>
+          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink}>ahoyvpn@ahoyvpn.net</a>
         </div>
       </div>
-
       <div style={styles.footerBottom}>
-        <p style={styles.footerText}>
-          © 2026 AHOY VPN. All rights reserved.
-        </p>
+        <p style={styles.footerCopy}>© 2026 AHOY VPN. All rights reserved.</p>
       </div>
     </footer>
   );
 }
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    minHeight: '100vh',
-    backgroundColor: '#0a0a0a',
-    color: '#F0F4F8',
-  },
-
-  header: {
-    backgroundColor: '#111111',
-    borderBottom: '1px solid #444',
-    position: 'sticky',
-    top: 0,
-    zIndex: 100,
-  },
-
-  headerContent: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: '1rem 2rem',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '2rem',
-  },
-
-  logo: {
-    flex: '0 0 auto',
-  },
-
-  logoLink: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: '#1E90FF',
-    textDecoration: 'none',
-    transition: 'color 0.3s ease',
-  },
-
-  nav: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.5rem',
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-
-  navLink: {
-    color: '#B0C4DE',
-    textDecoration: 'none',
-    transition: 'color 0.3s ease',
-    fontSize: '0.95rem',
-    fontWeight: 500,
-  },
-
-  ctaBtn: {
-    backgroundColor: '#1E90FF',
-    color: '#FFFFFF',
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: 'none',
-    cursor: 'pointer',
-    fontWeight: 600,
-    transition: 'background-color 0.3s ease',
-  },
-
-  logoutBtn: {
-    backgroundColor: 'transparent',
-    color: '#B0C4DE',
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    border: '1px solid #3A3A3A',
-    cursor: 'pointer',
-    transition: 'all 0.3s ease',
-  },
-
-  main: {
-    flex: 1,
-    maxWidth: '1200px',
-    margin: '0 auto',
-    width: '100%',
-    padding: '2rem',
-  },
-
-  footer: {
-    backgroundColor: '#111111',
-    borderTop: '1px solid #444',
-    marginTop: '4rem',
-    padding: '2rem',
-  },
-
-  footerContent: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-    gap: '2rem',
-    marginBottom: '2rem',
-  },
-
-  footerSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-  },
-
-  footerHeading: {
-    color: '#1E90FF',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    marginBottom: '0.5rem',
-  },
-
-  footerLink: {
-    color: '#B0C4DE',
-    textDecoration: 'none',
-    fontSize: '0.9rem',
-    transition: 'color 0.3s ease',
-  },
-
-  footerText: {
-    color: '#A0AEC0',
-    fontSize: '0.9rem',
-  },
-
-  footerBottom: {
-    textAlign: 'center',
-    borderTop: '1px solid #3A3A3A',
-    paddingTop: '1.5rem',
-  },
-  floatingSupportButton: {
-    position: 'fixed',
-    right: '16px',
-    bottom: '16px',
-    zIndex: 110,
-    backgroundColor: '#1E90FF',
-    color: '#fff',
-    textDecoration: 'none',
-    padding: '0.65rem 0.9rem',
-    borderRadius: '999px',
-    boxShadow: '0 10px 24px rgba(0, 0, 0, 0.25)',
-    fontSize: '0.85rem',
-    fontWeight: 600,
-  },
+  container: { display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#0F0F0F', color: '#F5F5F0' },
+  header: { backgroundColor: '#111111', borderBottom: '1px solid #2E2E2E', position: 'sticky', top: 0, zIndex: 100 },
+  headerContent: { maxWidth: '1100px', margin: '0 auto', padding: '0.875rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '2rem' },
+  logo: { flex: '0 0 auto' },
+  logoLink: { display: 'flex', alignItems: 'center', textDecoration: 'none', color: '#F5F5F0' },
+  logoText: { fontSize: '1rem', fontWeight: 700, letterSpacing: '0.04em', color: '#F5F5F0' },
+  nav: { display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap', justifyContent: 'flex-end', flex: 1 },
+  navLink: { color: '#8A8A8A', textDecoration: 'none', fontSize: '0.875rem', fontWeight: 500, transition: 'color 0.2s ease', cursor: 'pointer' },
+  ctaBtn: { backgroundColor: '#3B82F6', color: '#FFFFFF', padding: '0.45rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none', transition: 'background-color 0.2s ease', display: 'inline-block' },
+  logoutBtn: { backgroundColor: 'transparent', color: '#8A8A8A', padding: '0.45rem 0.875rem', borderRadius: '6px', border: '1px solid #2E2E2E', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, transition: 'all 0.2s ease' },
+  main: { flex: 1, maxWidth: '1100px', margin: '0 auto', width: '100%', padding: '2.5rem 1.5rem' },
+  footer: { backgroundColor: '#111111', borderTop: '1px solid #2E2E2E', padding: '2.5rem 1.5rem 1.5rem', marginTop: '4rem' },
+  footerContent: { maxWidth: '1100px', margin: '0 auto 2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '2.5rem' },
+  footerSection: { display: 'flex', flexDirection: 'column', gap: '0.625rem' },
+  footerBrand: { fontWeight: 700, fontSize: '0.95rem', color: '#F5F5F0', letterSpacing: '0.04em' },
+  footerTagline: { color: '#5A5A5A', fontSize: '0.8rem' },
+  footerHeading: { color: '#5A5A5A', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.25rem' },
+  footerLink: { color: '#8A8A8A', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' },
+  footerBottom: { borderTop: '1px solid #1E1E1E', paddingTop: '1.5rem', maxWidth: '1100px', margin: '0 auto' },
+  footerCopy: { color: '#5A5A5A', fontSize: '0.8rem', textAlign: 'center' },
+  floatingSupportButton: { position: 'fixed', right: '20px', bottom: '20px', zIndex: 110, backgroundColor: '#3B82F6', color: '#fff', textDecoration: 'none', padding: '0.625rem 1rem', borderRadius: '999px', boxShadow: '0 4px 16px rgba(59,130,246,0.35)', fontSize: '0.8rem', fontWeight: 600, transition: 'background-color 0.2s ease' },
 };
