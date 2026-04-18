@@ -104,6 +104,7 @@
 | 107 | fix(frontend): remove nested `<a>` inside `<Link>` in auth pages — login.jsx (2), register.jsx (1), recover.jsx (2), payment-success.jsx (2) — net -8 lines, fixes invalid HTML accessibility issue | **DONE** (commit aa7c9bd) |
 | 108 | fix(frontend): remaining lint cleanup — `<a>`→`<Link>` in index.jsx (pricing note FAQ link), eslint-disable for `<img>` in _app.jsx loading spinner (next/image unsuitable) — frontend lint now 0 errors, 0 warnings | **DONE** (commit 95ad0d0) |
 | 109 | test(subscriptionController): add 13 error-handling branch tests — all 8 catch blocks now covered (userService throws ×6, db query throws ×6, createSubscription throws) | **DONE** (commit 83b2bcf) |
+| 110 | test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%) | **DONE** (commit f7cfb84) |
 
 ---
 
@@ -164,14 +165,14 @@
 ## Recent Commits (from this session)
 
 ```
-24def56 test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) — now 53 tests, 86.2% line / 63.2% branch coverage
+f7cfb84 test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,040 tests passing** (35 test suites, 100% passing) — +5 webhookController branch-coverage tests
+- **Backend test suite: 1,059 tests passing** (35 test suites, 100% passing) — +6 vpnResellersService branch-coverage tests
 - **Frontend test suite: 590 tests passing** (41 test suites, 100% passing)
-- **Total test count: 1,630 tests** across frontend and backend (1,040 backend + 590 frontend)
+- **Total test count: 1,649 tests** across frontend and backend (1,059 backend + 590 frontend)
 - **webhookController coverage: 86.2% line / 63.2% branch** (was 83.6% / 59.7%)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
