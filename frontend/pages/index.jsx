@@ -166,6 +166,33 @@ export default function Home() {
           </Button>
         </Link>
       </section>
+
+      {/* Footer */}
+      <footer style={styles.footer}>
+        <div style={styles.footerSocial}>
+          <a href="https://www.instagram.com/ahoy_vpn/" target="_blank" rel="noreferrer" style={styles.socialLink} aria-label="Follow AhoyVPN on Instagram">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
+              alt="Instagram"
+              width="20"
+              height="20"
+              style={{ display: 'block' }}
+            />
+            Instagram
+          </a>
+          <a href="https://www.facebook.com/AhoyVPN" target="_blank" rel="noreferrer" style={styles.socialLink} aria-label="Follow AhoyVPN on Facebook">
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
+              alt="Facebook"
+              width="20"
+              height="20"
+              style={{ display: 'block' }}
+            />
+            Facebook
+          </a>
+        </div>
+        <p style={styles.footerCopy}>&copy; {new Date().getFullYear()} AhoyVPN. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
@@ -352,5 +379,35 @@ const styles = {
   ctaBannerSubtitle: {
     fontSize: '1rem',
     color: '#8A8A8A',
+  },
+
+  footer: {
+    borderTop: '1px solid #1E1E1E',
+    padding: '2rem 1.5rem',
+    textAlign: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
+  },
+  footerSocial: {
+    display: 'flex',
+    gap: '2rem',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  socialLink: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    color: '#8A8A8A',
+    textDecoration: 'none',
+    fontSize: '0.9rem',
+    transition: 'color 0.2s ease',
+  },
+  footerCopy: {
+    color: '#5A5A5A',
+    fontSize: '0.8rem',
+    margin: 0,
   },
 };
