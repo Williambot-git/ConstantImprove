@@ -147,7 +147,7 @@ export default function AffiliateAgreement() {
             <li>Talk to other affiliates</li>
           </ul>
           <p>
-            My direct email: <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink}>ahoyvpn@ahoyvpn.net</a><br />
+            My direct email: <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink} aria-label="Email AhoyVPN support">ahoyvpn@ahoyvpn.net</a><br />
             Use it anytime you need something.
           </p>
         </section>
@@ -191,7 +191,7 @@ export default function AffiliateAgreement() {
           <ul style={styles.readyList}>
             <li>Your affiliate dashboard (links, banners, live stats)</li>
             <li>An invite to the Telegram channel</li>
-            <li>My direct email: <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink}>ahoyvpn@ahoyvpn.net</a></li>
+            <li>My direct email: <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink} aria-label="Email AhoyVPN support">ahoyvpn@ahoyvpn.net</a></li>
           </ul>
           <p style={{ marginTop: '1.5rem', fontStyle: 'italic' }}>
             Let’s grow together.

@@ -89,7 +89,7 @@ export default function DownloadsPage() {
       <Card padding="1.25rem" style={styles.routerCard}>
         <h3 style={{ marginTop: 0 }}>Want a router config?</h3>
         <p style={{ marginBottom: 0 }}>
-          Reach out to <a href="mailto:ahoyvpn@ahoyvpn.net" style={{ color: '#1E90FF' }}>ahoyvpn@ahoyvpn.net</a>
+          Reach out to <a href="mailto:ahoyvpn@ahoyvpn.net" style={{ color: '#1E90FF' }} aria-label="Email AhoyVPN support">ahoyvpn@ahoyvpn.net</a>
         </p>
       </Card>
     </div>

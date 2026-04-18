@@ -97,7 +97,7 @@ export const ROUTES = {
 export const AFFILIATE_LINK_PATH = '/affiliate';
 
 /**
- * Legacy HTML page routes (used by js/checkout.js)
+ * Legacy HTML page routes
  * These pages exist as index.html, checkout.html, dashboard.html, login.html
  * WARNING: Legacy - new pages use Next.js routing (e.g., /checkout not /checkout.html)
  */
@@ -114,7 +114,7 @@ export const LEGACY_HTML_ROUTES = {
 
 /**
  * Default plan prices in USD
- * Used in: js/checkout.js (fallback when API unreachable), pages/checkout.jsx (display prices)
+ * Used in: pages/checkout.jsx (display prices) as a fallback when API is unreachable
  * WARNING: These should ALWAYS come from the backend /api/subscription/plans endpoint.
  *          Hardcoded values are ONLY fallbacks for offline/error scenarios.
  *          Never use these for actual payment calculations - use API values.
@@ -150,8 +150,9 @@ export const PLAN_PRICES = {
 
 /**
  * Tax rate used for display calculations (8% estimated)
- * Used in: js/checkout.js (tax calculation line 141)
- * WARNING: Actual tax should come from ZipTax API via backend based on location
+ * NOTE: This constant is not currently imported anywhere in the frontend codebase.
+ *       Actual tax comes from ZipTax API via backend based on location.
+ * WARNING: Do not use for actual payment calculations - use API values.
  */
 export const DEFAULT_TAX_RATE = 0.08;
 
@@ -161,7 +162,7 @@ export const DEFAULT_TAX_RATE = 0.08;
 
 /**
  * Payment method providers
- * Used in: pages/checkout.jsx (PAYMENT_METHODS array), js/checkout.js (payment tab logic)
+ * Used in: pages/checkout.jsx (PAYMENT_METHODS array)
  */
 export const PAYMENT_PROVIDERS = {
   CRYPTO: 'Plisio',
@@ -197,7 +198,7 @@ export const AFFILIATE_PARAM = 'ref';
 
 /**
  * CSRF cookie name
- * Used in: js/checkout.js (getCsrfToken)
+ * NOTE: This constant is not currently imported anywhere in the frontend codebase.
  */
 export const CSRF_COOKIE_NAME = 'csrfToken';
 

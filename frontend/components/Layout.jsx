@@ -13,7 +13,7 @@ export default function Layout({ children }) {
         {children}
       </main>
       <Footer />
-      <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.floatingSupportButton}>
+      <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.floatingSupportButton} aria-label="Contact AhoyVPN support">
         Contact Support
       </a>
     </div>
@@ -128,7 +128,7 @@ function Footer() {
 
         <div style={styles.footerSection}>
           <h4 style={styles.footerHeading}>Support</h4>
-          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink}>
+          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink} aria-label="Contact AhoyVPN support">
             Contact Support
           </a>
         </div>

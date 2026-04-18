@@ -288,14 +288,14 @@ export default function DNSGuide() {
         <ul style={styles.list}>
           <li>
             <strong>Cloudflare's help page:</strong>{' '}
-            <a href="https://www.cloudflare.com/ssl/encrypted-sni/" style={styles.link}>
+            <a href="https://www.cloudflare.com/ssl/encrypted-sni/" target="_blank" rel="noreferrer" style={styles.link}>
               https://www.cloudflare.com/ssl/encrypted-sni/
             </a>{' '}
             (look for "DNS over HTTPS" status)
           </li>
           <li>
             <strong>DNSLeakTest.com:</strong>{' '}
-            <a href="https://www.dnsleaktest.com" style={styles.link}>
+            <a href="https://www.dnsleaktest.com" target="_blank" rel="noreferrer" style={styles.link}>
               https://www.dnsleaktest.com
             </a>{' '}
             (shows which DNS servers your device is actually using)
@@ -310,7 +310,7 @@ export default function DNSGuide() {
         <h2 style={styles.sectionTitle}>Need Help?</h2>
         <p style={styles.paragraph}>
           If you have questions about DNS encryption or need assistance with AHOY VPN, email us at{' '}
-          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.link}>
+          <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.link} aria-label="Email AhoyVPN support">
             ahoyvpn@ahoyvpn.net
           </a>.
         </p>

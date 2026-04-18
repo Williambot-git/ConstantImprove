@@ -111,7 +111,7 @@ export default function FAQ() {
       <h1 style={styles.title}>Frequently Asked Questions</h1>
       <p style={styles.subtitle}>
         Can't find what you're looking for? Email us at{' '}
-        <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink}>
+        <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.emailLink} aria-label="Email AhoyVPN support">
           ahoyvpn@ahoyvpn.net
         </a>
       </p>
