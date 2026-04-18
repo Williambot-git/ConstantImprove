@@ -101,6 +101,7 @@
 | 104 | `ahoyman.jsx` unit tests | **DONE** (ahoyman.test.jsx exists) |
 | 105 | `authorize-redirect.jsx` unit tests (14 tests — loading, token validation, form POST, array query handling) | **DONE** (commit 3b6dc3c) |
 | 106 | test(paymentProcessingService): add 4 branch-coverage tests (planInterval fallback, postalCode/no-tax/zero-tax branches, invoice chain no-match early return) | **DONE** (commit 8706408) |
+| 107 | fix(frontend): remove nested `<a>` inside `<Link>` in auth pages — login.jsx (2), register.jsx (1), recover.jsx (2), payment-success.jsx (2) — net -8 lines, fixes invalid HTML accessibility issue | **DONE** (commit aa7c9bd) |
 
 ---
 
