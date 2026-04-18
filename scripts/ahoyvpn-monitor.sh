@@ -45,28 +45,47 @@ alert() {
   fi
 }
 
-SSH_HELPER="/home/krabs/.openclaw/workspace/scripts/ssh-helper.py"
-PSQL_HELPER="/home/krabs/.openclaw/workspace/scripts/psql-helper.py"
+# ── SSH Connection ───────────────────────────────────────────────────────────
+# Direct SSH to the AhoyVPN server. Uses keys from ~/.ssh/ or ssh-agent.
+# If SSH fails, all remote checks (PM2, nginx, DB) will report "SSH_FAILED"
+# and the alert will fire.
+SERVER_SSH_USER="${SERVER_SSH_USER:-ahoy}"
 
 ssh_ahoy() {
-  local result n
-  result=$(printf '%s\n' "$1" | "$SSH_HELPER" 2>/dev/null)
+  local result
+  result=$(ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o LogLevel=ERROR \
+    "${SERVER_SSH_USER}@${SERVER}" "$1" 2>/dev/null)
   local rc=$?
-  if [[ $rc -ne 0 ]]; then echo "SSH_FAILED"; return; fi
-  n=$(echo "$result" | wc -l)
-  if [[ "${n:-0}" -le 1 ]]; then
-    echo "$result"
-  elif [[ "${n:-0}" -eq 2 ]]; then
-    echo "$result" | tail -n 1 | tr -d '\r'
+  if [[ $rc -ne 0 || -z "$result" ]]; then
+    echo "SSH_FAILED"
   else
-    echo "$result" | tail -n +2 | tr -d '\r'
+    echo "$result"
   fi
 }
 
+# ── PostgreSQL Direct Query ──────────────────────────────────────────────────
+# Direct psql connection to the local PostgreSQL instance.
+# Uses DATABASE_URL-style connection string from environment or falls back
+# to the known default credentials for the AhoyVPN database.
+# NOTE: psql must be installed on the machine running this monitor.
+DB_PSQL_HOST="${DB_PSQL_HOST:-localhost}"
+DB_PSQL_USER="${DB_PSQL_USER:-ahoyvpn}"
+DB_PSQL_DBNAME="${DB_PSQL_DBNAME:-ahoyvpn}"
+# PGPASSWORD should be set via environment or .env file for production use.
+# For the monitor running ON the server host, peer auth or trust may apply.
+
 psql_query() {
   local out
-  out=$(printf '%s\n' "$1" | python3 /home/krabs/.openclaw/workspace/scripts/check_db.py 2>/dev/null)
-  if [[ -z "$out" ]]; then echo "EMPTY"; else echo "$out"; fi
+  out=$(PGPASSWORD="${PGPASSWORD:-}" psql \
+    -h "${DB_PSQL_HOST}" \
+    -U "${DB_PSQL_USER}" \
+    -d "${DB_PSQL_DBNAME}" \
+    -Atw -c "$1" 2>/dev/null)
+  if [[ -z "$out" ]]; then
+    echo "EMPTY"
+  else
+    echo "$out"
+  fi
 }
 
 cu() { curl -sL -w "\n%{http_code}" "$@" 2>/dev/null; }

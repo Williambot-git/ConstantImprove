@@ -25,70 +25,70 @@
 | 19 | Checkout page decomposition — extract PlanSelector, CryptoSelector, PaymentMethodSelector | **DONE** (commits bb646c2, f08c69d, 77499e4, 9c3acc5, 92ef4d8) |
 | 20 | Checkout flow integration test | **DONE** (commit 92ef4d8) |
 | 21 | Ahoyman dashboard decomposition (5 tabs + tests + integration) | **DONE** (commit b3afed5) |
-| 22 | ~~dashboard.jsx decomposition~~ | **DONE** — affiliate-dashboard.jsx (a70c98b) |
-| 23 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
-| 24 | vpnResellersService unit tests (16 tests, 100% line coverage) | **DONE** (commit c7a243b) |
-| 25 | ziptaxService unit tests (13 tests, 100% line coverage) | **DONE** (commit 938660d) |
-| 26 | plisioService unit tests (9 tests, 96.7% line coverage) | **DONE** (commit 04c9271) |
-| 27 | vpnAccountScheduler unit tests (10 tests, 92.1% line coverage) | **DONE** (commit 04c9271) |
-| 35 | vpnController unit tests (14 tests, 100% coverage) | **DONE** |
-| 36 | subscriptionController unit tests (30 tests, 84.6% coverage) | **DONE** |
-| 37 | emailService coverage improvement (100% line coverage — added missing email function tests) | **DONE** (commit fb63ef4) |
-| 38 | userService coverage improvement (100% line coverage — one unreachable default case in plan interval switch) | **DONE** |
-| 39 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
-| 40 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
-| 41 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
-| 42 | Consolidate duplicate AuthorizeNetService class — single canonical class in authorizeNetUtils.js, removed 765-line inline duplicate from paymentController.js | **DONE** (commit 6465fdd) |
-| 43 | paymentProcessingService unit tests (10 tests, 96.82% line coverage — covers invoice resolution, VPN activation, email, commission, tax, error handling) | **DONE** (commit 2924be3) |
-| 44 | Frontend ProtectedRoute unit tests (14 tests — auth redirect, loading, role matching, null role) | **DONE** (commit f63ec5a) |
-| 45 | Frontend UI primitive tests — Alert, Button, Card, Form, Modal, Spinner (75 tests) | **DONE** (commit f63ec5a) |
-| 46 | Frontend CancelModal + DeleteModal unit tests (12 tests) | **DONE** (commit f63ec5a) |
-| 47 | Frontend PlanCard unit tests (13 tests) | **DONE** (commit f63ec5a) |
-| 48 | Head.jsx unit tests (18 tests) | **DONE** (commit 49642da) |
-| 49 | paymentController route tests (33 tests, 63.66% coverage) | **DONE** |
-| 50 | adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, CSV exports, settings) | **DONE** (commit 7e3c117) |
-| 51 | customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit) | **DONE** (commit aee0277) |
-| 52 | Frontend lib/sanitize.js unit tests (63 tests, 96.87% line coverage — security-critical XSS prevention library was 0% covered) | **DONE** (commit 8d82e6a) |
-| 53 | ahoymanController unit tests (64 tests, 91.6% line coverage — all 25 functions: auth, affiliates, referrals, payouts, settings, tax, affiliate codes) | **DONE** (commit 5898612) |
-| 54 | Document route overlap architecture decision (ahoymanRoutes vs adminRoutes) | **DONE** (commit aafb833) |
-| 55 | fix(authController): verifyRecoveryCode test — missing recovery_codes on mock #3 caused 400 instead of 200 | **DONE** (commit 0eeb399) |
-| 56 | Fix cookies.test.js jsdom window.location mocking + 4 pre-existing test bugs | **DONE** (commit 52a89eb) |
-| 57 | webhookController unit tests (47 tests, 76% line coverage — WebhookVerifier, plisioWebhook, paymentsCloudWebhook, authorizeNetWebhook, logAuthorizeEvent) | **DONE** (commit 24c009b) |
-| 58 | fix(frontend): api/client.js — getAdmin/postAdmin now check accessToken as fallback (matching request interceptor), fix duplicate getTaxTransactions/getTaxSummary with wrong URLs and missing auth | **DONE** (commit 7c3f054) |
-| 59 | Frontend dashboard tests — VpnCredentialsSection (13 tests, 100% line coverage) + SubscriptionSection (14 tests, full flow coverage) | **DONE** (commit be5dac7) |
-| 60 | AccountSettingsSection UX bugfix — move passwordSuccess message outside {showPasswordForm} block so it persists after form hides | **DONE** (commit 521f2ea) |
-| 61 | affiliateController unit tests (51 tests, 76.2% line coverage) + fix 2 pre-existing test bugs | **DONE** (commit d68928f) |
-| 62 | Fix pagination math bug in getReferralPerformance + mock global crypto properly (not require('crypto')) | **DONE** (commit d68928f) |
-| 63 | Remove 6 orphaned debug_*.test.js files | **DONE** (commit d68928f) |
-| 64 | affiliateAuthController unit tests (36 tests, 99.27% line coverage — all 7 functions: login/logout/validateRecoveryCode/resetPassword/generateRecoveryKit/getProfile/changePassword) | **DONE** (commit dd435d9) |
-| 65 | exportController unit tests (18 tests, 94.4% line coverage — createExport/downloadExport/cleanupExpiredExports) | **DONE** (commit 9163530) |
-| 66 | fix(adminController): generate real recovery codes instead of literal 'placeholder' string in createAffiliate | **DONE** (commit 9163530) |
-| 67 | fix(pageController): remove stale TODO comment — emailService.sendTransactional already called below it | **DONE** (commit 9163530) |
-| 67 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
-| 68 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
-| 69 | fix(authController_csrf): login — add explicit res.status(200) on active-user success path | **DONE** (commit 567d328) |
-| 70 | supportController unit tests (11 cases) + real implementation (replace 501 stubs) | **DONE** (commit cfacecc) |
-| 71 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
-| 72 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
-| 73 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
-| 74 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
-| 75 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
-| 76 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
-| 77 | affiliateDashboardController unit tests (38 cases, 100% line coverage) | **DONE** (commit ec373d3) |
-| 78 | backend: Remove dead code from paymentController.js (131 lines) | **DONE** (commit f32d931) |
-| 79 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
-| 80 | refRoute unit tests + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
-| 81 | fix(webhookController): remove dead DEBUG block (=*** typo — was dead code) | **DONE** (commit 36d3a9a) |
-| 82 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
-| 83 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
-| 84 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
-| 85 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
-| 86 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
-| 87 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
-| 88 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
-| 89 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
-| 90 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
-| 91 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
+| 22 | Complete dashboard decomposition (AccountSettingsSection, VpnCredentialsSection, CancelModal, DeleteModal, tests) | **DONE** (commit 93e9570) |
+| 23 | vpnResellersService unit tests (16 tests, 100% line coverage) | **DONE** (commit c7a243b) |
+| 24 | ziptaxService unit tests (13 tests, 100% line coverage) | **DONE** (commit 938660d) |
+| 25 | plisioService unit tests (9 tests, 96.7% line coverage) | **DONE** (commit 04c9271) |
+| 26 | vpnAccountScheduler unit tests (10 tests, 92.1% line coverage) | **DONE** (commit 04c9271) |
+| 27 | vpnController unit tests (14 tests, 100% coverage) | **DONE** |
+| 28 | subscriptionController unit tests (30 tests, 84.6% coverage) | **DONE** |
+| 29 | emailService coverage improvement (100% line coverage — added missing email function tests) | **DONE** (commit fb63ef4) |
+| 30 | userService coverage improvement (100% line coverage — one unreachable default case in plan interval switch) | **DONE** |
+| 31 | exportService unit tests (17 tests, 100% line coverage) | **DONE** (commit 8b2bd3f) |
+| 32 | promoService coverage improvement (19 tests, 97.95% — fixed discount, plan restrictions, error handling, create/list) | **DONE** (commit 800369f) |
+| 33 | invoicePollingService unit tests (13 tests — fix test bug: missing subscription row in ARB "does nothing" test + remove debug console.logs) | **DONE** (commit bef2373) |
+| 34 | Consolidate duplicate AuthorizeNetService class — single canonical class in authorizeNetUtils.js, removed 765-line inline duplicate from paymentController.js | **DONE** (commit 6465fdd) |
+| 35 | paymentProcessingService unit tests (10 tests, 96.82% line coverage — covers invoice resolution, VPN activation, email, commission, tax, error handling) | **DONE** (commit 2924be3) |
+| 36 | Frontend ProtectedRoute unit tests (14 tests — auth redirect, loading, role matching, null role) | **DONE** (commit f63ec5a) |
+| 37 | Frontend UI primitive tests — Alert, Button, Card, Form, Modal, Spinner (75 tests) | **DONE** (commit f63ec5a) |
+| 38 | Frontend CancelModal + DeleteModal unit tests (12 tests) | **DONE** (commit f63ec5a) |
+| 39 | Frontend PlanCard unit tests (13 tests) | **DONE** (commit f63ec5a) |
+| 40 | Head.jsx unit tests (18 tests) | **DONE** (commit 49642da) |
+| 41 | paymentController route tests (33 tests, 63.66% coverage) | **DONE** |
+| 42 | adminController unit tests (40 tests, 82.5% line coverage — auth, customers, affiliates, metrics, CSV exports, settings) | **DONE** (commit 7e3c117) |
+| 43 | customerController unit tests (43 tests, covers auth, subscription, VPN credential, recovery kit) | **DONE** (commit aee0277) |
+| 44 | Frontend lib/sanitize.js unit tests (63 tests, 96.87% line coverage — security-critical XSS prevention library was 0% covered) | **DONE** (commit 8d82e6a) |
+| 45 | ahoymanController unit tests (64 tests, 91.6% line coverage — all 25 functions: auth, affiliates, referrals, payouts, settings, tax, affiliate codes) | **DONE** (commit 5898612) |
+| 46 | Document route overlap architecture decision (ahoymanRoutes vs adminRoutes) | **DONE** (commit aafb833) |
+| 47 | fix(authController): verifyRecoveryCode test — missing recovery_codes on mock #3 caused 400 instead of 200 | **DONE** (commit 0eeb399) |
+| 48 | Fix cookies.test.js jsdom window.location mocking + 4 pre-existing test bugs | **DONE** (commit 52a89eb) |
+| 49 | webhookController unit tests (47 tests, 76% line coverage — WebhookVerifier, plisioWebhook, paymentsCloudWebhook, authorizeNetWebhook, logAuthorizeEvent) | **DONE** (commit 24c009b) |
+| 50 | fix(frontend): api/client.js — getAdmin/postAdmin now check accessToken as fallback (matching request interceptor), fix duplicate getTaxTransactions/getTaxSummary with wrong URLs and missing auth | **DONE** (commit 7c3f054) |
+| 51 | Frontend dashboard tests — VpnCredentialsSection (13 tests, 100% line coverage) + SubscriptionSection (14 tests, full flow coverage) | **DONE** (commit be5dac7) |
+| 52 | AccountSettingsSection UX bugfix — move passwordSuccess message outside {showPasswordForm} block so it persists after form hides | **DONE** (commit 521f2ea) |
+| 53 | affiliateController unit tests (51 tests, 76.2% line coverage) + fix 2 pre-existing test bugs | **DONE** (commit d68928f) |
+| 54 | Fix pagination math bug in getReferralPerformance + mock global crypto properly (not require('crypto')) | **DONE** (commit d68928f) |
+| 55 | Remove 6 orphaned debug_*.test.js files | **DONE** (commit d68928f) |
+| 56 | affiliateAuthController unit tests (36 tests, 99.27% line coverage — all 7 functions: login/logout/validateRecoveryCode/resetPassword/generateRecoveryKit/getProfile/changePassword) | **DONE** (commit dd435d9) |
+| 57 | exportController unit tests (18 tests, 94.4% line coverage — createExport/downloadExport/cleanupExpiredExports) | **DONE** (commit 9163530) |
+| 58 | fix(adminController): generate real recovery codes instead of literal 'placeholder' string in createAffiliate | **DONE** (commit 9163530) |
+| 59 | fix(pageController): remove stale TODO comment — emailService.sendTransactional already called below it | **DONE** (commit 9163530) |
+| 60 | test(frontend): lib/seo.js unit tests (13 tests — defaultMeta, pageMeta for all 10 pages, getPageMeta fallback) | **DONE** (commit 9163530) |
+| 61 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
+| 62 | fix(authController_csrf): login — add explicit res.status(200) on active-user success path | **DONE** (commit 567d328) |
+| 63 | supportController unit tests (11 cases) + real implementation (replace 501 stubs) | **DONE** (commit cfacecc) |
+| 64 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
+| 65 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
+| 66 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 67 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 68 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
+| 69 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
+| 70 | affiliateDashboardController unit tests (38 cases, 100% line coverage) | **DONE** (commit ec373d3) |
+| 71 | backend: Remove dead code from paymentController.js (131 lines) | **DONE** (commit f32d931) |
+| 72 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
+| 73 | refRoute unit tests + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
+| 74 | fix(webhookController): remove dead DEBUG block (=*** typo — was dead code) | **DONE** (commit 36d3a9a) |
+| 75 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
+| 76 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
+| 77 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
+| 78 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
+| 79 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
+| 80 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
+| 81 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
+| 82 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
+| 83 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
+| 84 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
+| 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
 
 ---
 
@@ -149,6 +149,7 @@
 ## Recent Commits (from this session)
 
 ```
+fec30b0 fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands
 7a076db chore: delete 7 obsolete scripts from scripts/ (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh)
 e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 ```
@@ -168,4 +169,4 @@ e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T03:00:00Z*
+*Last updated: 2026-04-18T12:00:00Z*
