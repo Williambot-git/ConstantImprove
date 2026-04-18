@@ -60,8 +60,10 @@ jest.mock('../src/services/plisioService', () => ({
 }));
 
 // Mock paymentProcessingService — processPlisioPaymentAsync called by plisioWebhook
+// processPaymentsCloudPaymentAsync called by paymentsCloudWebhook
 jest.mock('../src/services/paymentProcessingService', () => ({
-  processPlisioPaymentAsync: jest.fn().mockResolvedValue(true)
+  processPlisioPaymentAsync: jest.fn().mockResolvedValue(true),
+  processPaymentsCloudPaymentAsync: jest.fn().mockResolvedValue(true)
 }));
 
 // Mock authorizeNetUtils — getAuthorizeTransactionDetails and AuthorizeNetService
@@ -605,6 +607,24 @@ describe('paymentsCloudWebhook handler', () => {
     await paymentsCloudWebhook(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' });
+  });
+
+  test('dispatches processPaymentsCloudPaymentAsync when event is payment.succeeded (async, non-blocking)', async () => {
+    const body = {
+      event: 'payment.succeeded',
+      data: { id: 'pc_async', amount: '29.99', currency: 'USD', metadata: { account_number: '12345678', plan_key: 'month' } }
+    };
+    const sig = computePaymentsCloudSignature(process.env.PAYCLOUD_SECRET, body);
+    const req = buildReq('POST', body, { 'x-paymentscloud-signature': sig });
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // isReplayAttack
+    mockDbQuery.mockResolvedValueOnce({ rows: [] }); // recordWebhook
+    const paymentProcessingService = require('../src/services/paymentProcessingService');
+    paymentProcessingService.processPaymentsCloudPaymentAsync.mockResolvedValue(true);
+    const res = { json: jest.fn() };
+    await paymentsCloudWebhook(req, res);
+    expect(res.json).toHaveBeenCalledWith({ received: true, status: 'payment.succeeded' });
+    // processPaymentsCloudPaymentAsync is called via .catch() — verify it was invoked
+    expect(paymentProcessingService.processPaymentsCloudPaymentAsync).toHaveBeenCalledWith(body.data);
   });
 });
 

@@ -9,7 +9,7 @@ const emailService = require('../services/emailService');
 const promoService = require('../services/promoService');
 const plisioService = require('../services/plisioService');
 const { createVpnAccount } = require('../services/userService');
-const { processPlisioPaymentAsync } = require('../services/paymentProcessingService');
+const { processPlisioPaymentAsync, processPaymentsCloudPaymentAsync } = require('../services/paymentProcessingService');
 const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
 const { applyAffiliateCommissionIfEligible } = require('./paymentController');
 
@@ -268,97 +268,6 @@ const paymentsCloudWebhook = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-// Async payment processing for PaymentsCloud
-async function processPaymentsCloudPaymentAsync(data) {
-  try {
-    // Extract metadata
-    const { account_number, plan_key } = data.metadata || {};
-    
-    if (!account_number || !plan_key) {
-      console.error('Missing account_number or plan_key in webhook metadata');
-      return;
-    }
-    
-    // Find user by account number
-    const userResult = await db.query(
-      'SELECT id FROM users WHERE account_number = $1',
-      [account_number]
-    );
-    
-    if (userResult.rows.length === 0) {
-      console.error(`User not found for account ${account_number}`);
-      return;
-    }
-    
-    const userId = userResult.rows[0].id;
-    
-    // Find subscription
-    const subQuery = `
-      SELECT s.*, u.account_number
-      FROM subscriptions s
-      JOIN users u ON s.user_id = u.id
-      WHERE s.user_id = $1 AND s.status = 'trialing'
-      ORDER BY s.created_at DESC
-      LIMIT 1
-    `;
-    const subResult = await db.query(subQuery, [userId]);
-    
-    if (subResult.rows.length === 0) {
-      console.error(`No trialing subscription found for user ${userId}`);
-      return;
-    }
-    
-    const subscription = subResult.rows[0];
-    
-    // Update subscription status to active
-    const updateSubQuery = `
-      UPDATE subscriptions 
-      SET status = 'active', 
-          provider = 'paymentscloud',
-          provider_transaction_id = $1,
-          updated_at = NOW()
-      WHERE id = $2
-      RETURNING *
-    `;
-    await db.query(updateSubQuery, [data.id, subscription.id]);
-    
-    // Create VPN account via PureWL
-    const vpnAccount = await createVpnAccount(userId, account_number, plan_key);
-    
-    // Send welcome email with VPN credentials (if email exists)
-    const userResult2 = await db.query('SELECT email FROM users WHERE id = $1', [userId]);
-    const userEmail = userResult2.rows[0]?.email;
-    
-    if (userEmail) {
-      const expiryDate = new Date(subscription.current_period_end).toLocaleDateString('en-US', { 
-        year: 'numeric', month: 'long', day: 'numeric' 
-      });
-      await emailService.sendAccountCreatedEmail(userEmail, vpnAccount.username, vpnAccount.password, expiryDate);
-    }
-    
-    // Create payment record
-    const paymentQuery = `
-      INSERT INTO payments (user_id, subscription_id, amount_cents, currency, status, payment_method, payment_intent_id, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-      RETURNING id
-    `;
-    const amountCents = Math.round(parseFloat(data.amount) * 100);
-    await db.query(paymentQuery, [
-      userId,
-      subscription.id,
-      amountCents,
-      data.currency || 'usd',
-      'succeeded',
-      'paymentscloud',
-      data.id
-    ]);
-    
-    console.log(`✅ PaymentsCloud payment processed for user ${userId}, subscription ${subscription.id}`);
-  } catch (error) {
-    console.error('Async PaymentsCloud payment processing error:', error);
-  }
-}
 
 // Authorize.net webhook handler
 const authorizeNetWebhook = async (req, res) => {

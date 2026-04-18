@@ -89,7 +89,7 @@
 | 83 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
 | 84 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
 | 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
-| 86 | test(frontend): add checkout component unit tests — PlanSelector (8), CryptoSelector (7), PaymentMethodSelector (9) = 24 cases, 0% → fully covered | **DONE** (commit 3581f6a) |
+| 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
 
 ---
 
