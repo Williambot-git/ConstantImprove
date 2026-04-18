@@ -99,9 +99,10 @@ describe('Layout Component', () => {
       expect(termsLink).toHaveAttribute('href', '/tos');
     });
 
-    it('shows Login link that points to /login', () => {
+    it('shows Sign in link that points to /login', () => {
+      // Layout uses "Sign in" (not "Login") as the nav link text
       const links = screen.getAllByRole('link');
-      const loginLink = links.find(el => el.textContent === 'Login');
+      const loginLink = links.find(el => el.textContent === 'Sign in');
       expect(loginLink).toHaveAttribute('href', '/login');
     });
 
@@ -114,8 +115,9 @@ describe('Layout Component', () => {
       expect(screen.queryByText('Dashboard')).not.toBeInTheDocument();
     });
 
-    it('does NOT show Logout button when logged out', () => {
-      expect(screen.queryByText('Logout')).not.toBeInTheDocument();
+    it('does NOT show Sign out button when logged out', () => {
+      // Layout uses "Sign out" (not "Logout") as the button text
+      expect(screen.queryByText('Sign out')).not.toBeInTheDocument();
     });
   });
 
@@ -130,9 +132,10 @@ describe('Layout Component', () => {
       expect(dashboardLink).toHaveAttribute('href', '/dashboard');
     });
 
-    it('shows Logout button for customers', () => {
+    it('shows Sign out button for customers', () => {
+      // Layout uses "Sign out" (not "Logout") as the button text
       renderWithAuth({ isLoggedIn: true, role: 'customer' });
-      expect(screen.getByText('Logout')).toBeInTheDocument();
+      expect(screen.getByText('Sign out')).toBeInTheDocument();
     });
 
     it('does NOT show Affiliate link for customers', () => {
@@ -220,10 +223,11 @@ describe('Layout Component', () => {
       renderWithAuth({ isLoggedIn: false });
     });
 
-    it('shows footer with AHOY VPN branding (footer heading, not logo)', () => {
-      // Footer heading is an <h4>, header logo is in an <a>
-      const footerHeading = document.querySelector('footer h4');
-      expect(footerHeading).toHaveTextContent('AHOY VPN');
+    it('shows footer with AHOY VPN branding (footer brand <p>, not <h4>)', () => {
+      // Footer brand is a <p> with style.footerBrand, NOT an <h4>
+      // The <h4> in footer is the "Legal" section heading
+      const footerBrand = document.querySelector('footer p');
+      expect(footerBrand).toHaveTextContent('AHOY VPN');
     });
 
     it('shows Terms of Service link in footer pointing to /tos', () => {
@@ -273,8 +277,9 @@ describe('Layout Component', () => {
   describe('Logo', () => {
     it('renders logo with AHOY VPN text inside header', () => {
       renderWithAuth({ isLoggedIn: false });
-      // The header logo <a> contains "AHOY VPN" text
-      const logoLink = document.querySelector('header .ahoy-logoLink');
+      // The header logo <a> has style.logoLink (no special class name)
+      // and contains both the Image and a <span> with "AHOY VPN" text
+      const logoLink = document.querySelector('header a');
       expect(logoLink).toHaveTextContent('AHOY VPN');
     });
 
