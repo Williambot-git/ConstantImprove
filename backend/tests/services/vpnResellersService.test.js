@@ -72,6 +72,78 @@ describe('vpnResellersService', () => {
     });
   };
 
+  // ─── request() method — tests the internal HTTP wrapper used by all public methods.
+  // These exercise the low-level fetch wrapper directly, covering branch paths
+  // that the public-method tests don't reach (e.g. explicit DELETE method, body-less
+  // POST, response.ok path, response.ok=false path, response.json() throw).
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('request (low-level wrapper)', () => {
+    it('should use explicit DELETE method when options.method is DELETE', async () => {
+      // DELETE is explicitly specified — exercises the `options.method || ...` branch
+      // where the left side is truthy
+      mockFetchSuccess({ success: true });
+      await service.request('/v3_2/accounts/acc-123', { method: 'DELETE' });
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.test-vpnresellers.com/v3_2/accounts/acc-123',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+    });
+
+    it('should default to POST when body is provided but no method is specified', async () => {
+      // No explicit method, but body is truthy → defaults to POST
+      mockFetchSuccess({ id: 'new' });
+      await service.request('/v3_2/accounts', { body: { username: 'test' } });
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.test-vpnresellers.com/v3_2/accounts',
+        expect.objectContaining({ method: 'POST' })
+      );
+    });
+
+    it('should default to GET when no body and no method is specified', async () => {
+      // Neither body nor method specified — defaults to GET
+      mockFetchSuccess({ available: true });
+      await service.request('/v3_2/accounts/check_username?username=testuser');
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.test-vpnresellers.com/v3_2/accounts/check_username?username=testuser',
+        expect.objectContaining({ method: 'GET' })
+      );
+    });
+
+    it('should parse successful JSON response', async () => {
+      // Exercises response.ok path returning response.json()
+      mockFetchSuccess({ id: 'acc-789', status: 'active' });
+      const result = await service.request('/v3_2/accounts/acc-789', { method: 'GET' });
+      expect(result).toEqual({ id: 'acc-789', status: 'active' });
+    });
+
+    it('should throw with status and body on error response', async () => {
+      // Exercises response.ok=false path — the catch block that extracts err.status/err.body
+      mockFetchError(503, 'Service temporarily unavailable');
+      await expect(service.request('/v3_2/accounts', { method: 'POST' }))
+        .rejects.toThrow('VPN Resellers API error: 503: Service temporarily unavailable');
+    });
+
+    it('should include custom headers merged with defaults', async () => {
+      mockFetchSuccess({ ok: true });
+      await service.request('/v3_2/accounts', {
+        method: 'POST',
+        headers: { 'X-Custom-Header': 'custom-value' }
+      });
+      expect(fetch).toHaveBeenCalledWith(
+        'https://api.test-vpnresellers.com/v3_2/accounts',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Custom-Header': 'custom-value',
+            Authorization: 'Bearer TEST_API_TOKEN',
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          })
+        })
+      );
+    });
+  });
+
   describe('checkUsername', () => {
     it('should return availability result for a valid username', async () => {
       mockFetchSuccess({ available: true, username: 'testuser' });
