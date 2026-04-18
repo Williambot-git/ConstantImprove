@@ -106,6 +106,7 @@
 | 109 | test(subscriptionController): add 13 error-handling branch tests — all 8 catch blocks now covered (userService throws ×6, db query throws ×6, createSubscription throws) | **DONE** (commit 83b2bcf) |
 | 110 | test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%) | **DONE** (commit f7cfb84) |
 | 111 | chore(frontend): delete orphaned `pages/management/dashboard.jsx` (499-line duplicate of `admin.jsx` with different import paths — confirmed no importers) | **DONE** (commit f7de9be) |
+| 112 | test(frontend): expand SalesTaxTab coverage (+11 tests) — pagination prev/next/disabled, date filters, export CSV, filter resets page | **DONE** (commit 503ea65) |
 
 ---
 
@@ -166,15 +167,15 @@
 ## Recent Commits (from this session)
 
 ```
-f7cfb84 test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%)
+503ea65 test(frontend): expand SalesTaxTab coverage (+11 tests) — pagination prev/next/disabled, date filters, export CSV, filter resets page
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,059 tests passing** (35 test suites, 100% passing) — +6 vpnResellersService branch-coverage tests
-- **Frontend test suite: 590 tests passing** (41 test suites, 100% passing)
-- **Total test count: 1,649 tests** across frontend and backend (1,059 backend + 590 frontend)
-- **webhookController coverage: 86.2% line / 63.2% branch** (was 83.6% / 59.7%)
+- **Backend test suite: 1,059 tests passing** (35 test suites, 100% passing)
+- **Frontend test suite: 601 tests passing** (41 test suites, 100% passing)
+- **Total test count: 1,660 tests** across frontend and backend (1,059 backend + 601 frontend)
+- **SalesTaxTab coverage: 84.48% line / 85.71% branch** (was 55.17% / 71.42%)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
