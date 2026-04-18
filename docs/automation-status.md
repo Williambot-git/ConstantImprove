@@ -89,6 +89,7 @@
 | 83 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
 | 84 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
 | 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
+| 86 | test(frontend): add checkout component unit tests — PlanSelector (8), CryptoSelector (7), PaymentMethodSelector (9) = 24 cases, 0% → fully covered | **DONE** (commit 3581f6a) |
 
 ---
 
@@ -156,17 +157,18 @@ e8b0d7b refactor(cleanup): move deleteOldAccounts to cleanupService + add tests
 
 ## Notes for William
 
-- **Backend test suite: 1,021 tests passing** (35 test suites, 100% passing) — +3 from cleanupOldAccounts tests
-- **Frontend test suite: 522 tests passing** (37 test suites, 100% passing)
-- **Total test count: 1,543 tests** across frontend and backend
+- **Backend test suite: 1,021 tests passing** (35 test suites, 100% passing)
+- **Frontend test suite: 537 tests passing** (40 test suites, 100% passing) — +15 from checkout component tests
+- **Total test count: 1,558 tests** across frontend and backend
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
 - **Backend routes with tests: 15** — all route files have test coverage
 - **Backend middleware with tests: 4** (authMiddleware_new, errorMiddleware, passwordValidation, securityMiddleware)
 - **Backend controllers/services without tests: 0** — ALL have tests
+- **Frontend checkout components now tested**: PlanSelector, CryptoSelector, PaymentMethodSelector — all 3 fully covered (24 tests total)
 - **cleanupService now has 6 cleanup functions** (was 5): cleanupDataExports, cleanupOldAuditLogs, cleanupOldConnections, cleanupAbandonedCheckouts, suspendExpiredTrials, cleanupOldAccounts (new)
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T12:00:00Z*
+*Last updated: 2026-04-18T00:15:00Z*
