@@ -482,3 +482,34 @@ describe('getOptimizedServer', () => {
       .toThrow('PureWL server optimization failed: No servers available for country');
   });
 });
+
+// =============================================================================
+// PureWLService constructor — throws when PUREWL_SECRET_KEY is missing
+// =============================================================================
+describe('PureWLService constructor', () => {
+  it('throws when PUREWL_SECRET_KEY is not defined', () => {
+    // Save and clear the env var so a fresh module load triggers the constructor throw.
+    const saved = process.env.PUREWL_SECRET_KEY;
+    delete process.env.PUREWL_SECRET_KEY;
+
+    try {
+      // jest.isolateModules gives us a fresh module registry — the service module
+      // will re-evaluate and hit the constructor throw before axios is called.
+      let threw = false;
+      let thrownMsg = '';
+      try {
+        jest.isolateModules(() => {
+          require('../../src/services/purewlService');
+        });
+      } catch (e) {
+        threw = true;
+        thrownMsg = e.message;
+      }
+
+      expect(threw).toBe(true);
+      expect(thrownMsg).toContain('PUREWL_SECRET_KEY is not defined');
+    } finally {
+      process.env.PUREWL_SECRET_KEY = saved;
+    }
+  });
+});

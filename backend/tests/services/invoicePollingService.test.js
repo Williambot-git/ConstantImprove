@@ -307,6 +307,119 @@ describe('invoicePollingService', () => {
     it('CHECKPOINT_MINUTES is [15, 30, 45]', () => {
       expect(CHECKPOINT_MINUTES).toEqual([15, 30, 45]);
     });
+
+    // -------------------------------------------------------------------------
+    // runOnce — getAttempts edge cases tested indirectly through runOnce behavior.
+    // getAttempts returns 0 when metadata is null/undefined (line 11).
+    // getAttempts returns 0 when poll_attempts is NaN or Infinity (line 11).
+    // getAttempts returns 0 when poll_attempts is negative (line 12: fails >= 0 check).
+    // All these cases cause the subscription to behave as if poll_attempts=0.
+    // -------------------------------------------------------------------------
+    it('null metadata — behaves as poll_attempts=0 (skips checkpoints, not yet at age)', async () => {
+      // 5 min ago — would hit first checkpoint (15 min) if attempts=0, but still skips
+      // because age < nextCheckpoint even with attempts=0
+      const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-null-meta',
+          user_id: 'user-null',
+          status: 'trialing',
+          plisio_invoice_id: 'inv_null',
+          metadata: null, // null → getAttempts returns 0
+          created_at: createdAt
+        }]
+      });
+
+      await runOnce();
+
+      // Should skip because age (5 min) < nextCheckpoint (15 min) with attempts=0
+      expect(plisioService.getInvoiceStatus).not.toHaveBeenCalled();
+    });
+
+    it('NaN poll_attempts — behaves as poll_attempts=0 (skips checkpoints)', async () => {
+      const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-nan-meta',
+          user_id: 'user-nan',
+          status: 'trialing',
+          plisio_invoice_id: 'inv_nan',
+          metadata: { poll_attempts: NaN }, // NaN → getAttempts returns 0
+          created_at: createdAt
+        }]
+      });
+
+      await runOnce();
+
+      expect(plisioService.getInvoiceStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  describe('pollArbSubscriptions — inner catch (line 156-157)', () => {
+    beforeEach(() => {
+      _resetAuthorizeService();
+    });
+
+    // The inner catch inside the for-of loop (runOnce lines 41-108 / pollArbSubscriptions
+    // lines 155-157) catches errors from getArbSubscription and logs them, then continues.
+    // We test this by having getArbSubscription throw — the catch should log and continue.
+    it('getArbSubscription throws — inner catch logs and continues to next subscription', async () => {
+      // Spy so the auto-mocked AuthorizeNetService returns a throwing mock
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'active',
+          paymentStatus: 'settledSuccessfully'
+        })
+        .mockRejectedValueOnce(new Error('Authorize.net API temporarily unavailable'))
+        .mockResolvedValueOnce({
+          status: 'active',
+          paymentStatus: 'pending'
+        });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'sub-arb-ok',
+              user_id: 'user-arb-ok',
+              status: 'active',
+              metadata: { arb_subscription_id: 'arb_ok' },
+              current_period_end: new Date().toISOString()
+            },
+            {
+              id: 'sub-arb-err',
+              user_id: 'user-arb-err',
+              status: 'active',
+              metadata: { arb_subscription_id: 'arb_err' },
+              current_period_end: new Date().toISOString()
+            },
+            {
+              id: 'sub-arb-pending',
+              user_id: 'user-arb-pending',
+              status: 'active',
+              metadata: { arb_subscription_id: 'arb_pending' },
+              current_period_end: new Date().toISOString()
+            }
+          ]
+        })
+        .mockResolvedValue({ rows: [] }); // all subsequent queries
+
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      await pollArbSubscriptions();
+
+      // sub-arb-ok: should have called getArbSubscription (settledSuccessfully → activate)
+      // sub-arb-err: getArbSubscription threw → inner catch logs error → continues
+      // sub-arb-pending: should have called getArbSubscription (pending → no action)
+      expect(AuthorizeNetService.prototype.getArbSubscription).toHaveBeenCalledTimes(3);
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ARB polling error for subscription', 'sub-arb-err',
+        'Authorize.net API temporarily unavailable'
+      );
+
+      consoleSpy.mockRestore();
+    });
   });
 
   // =========================================================================
