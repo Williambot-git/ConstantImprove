@@ -110,6 +110,9 @@
 | 113 | test(frontend): index.jsx landing page tests (21 tests — hero, features, pricing, how-it-works, CTA banner) | **DONE** (commit aeef9f9) |
 | 114 | fix(frontend): affiliates-tab.test.jsx — all import paths used ../../ prefix from tests/ subdir (went to repo root instead of frontend root); also fix 4 failing tests using wrong waitFor/mock patterns | **DONE** (commit 6038395) |
 | 115 | test(frontend): add api/client unit tests (488 lines, 63 tests) + LinksTab unit tests (449 lines, 39 tests) + AffiliatesTab unit tests (604 lines, 41 tests) — all 3 were untracked/new | **DONE** (commit 6038395) |
+| 116 | fix(frontend): downloads.test.jsx — Linux platform added to DOWNLOADS array (6 platforms, not 5); update test assertions + regex filter to include 🐧 Linux | **DONE** (commit 6c62d11) |
+| 117 | fix(authController): remove console.log of plaintext password reset token in forgotPassword — security fix (tokens must never appear in logs) | **DONE** (commit 15d23ab) |
+| 118 | fix(frontend): add eslint-disable for social media img tags in index.jsx footer — consistent with existing pattern in _app.jsx and checkout.jsx | **DONE** (commit e956f0e) |
 
 ---
 
