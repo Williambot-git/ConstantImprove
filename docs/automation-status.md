@@ -92,6 +92,7 @@
 | 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
 | 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
 || 108 | test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) | **DONE** (commit 24def56) |
+| 121 | test(paymentController): add 3 branch-coverage tests — direct card flow (responseCode=1/success, responseCode!=1/failure, hostedRedirectBridge default formUrl); line 82.93%→85.31%, branch 63.07%→65.14% | **DONE** (commit 9f69dfd) |
 | 98 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
 | 99 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
 | 100 | Frontend cleanup — fix `<a>` → accessible external links (dns-guide, affiliate-agreement, faq, downloads, Layout) | **DONE** (commit 945bc04) |
