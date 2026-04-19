@@ -156,5 +156,48 @@ describe('Form Component', () => {
 
       expect(screen.getByRole('combobox')).toHaveValue('a');
     });
+
+    it('applies focus styles on focus (borderColor + boxShadow)', () => {
+      render(
+        <Select>
+          <option value="a">A</option>
+        </Select>
+      );
+      const select = screen.getByRole('combobox');
+      // Initial state: no inline focus styles
+      fireEvent.focus(select);
+      // Focus style: borderColor=#3B82F6, boxShadow='0 0 0 3px rgba(59,130,246,0.15)'
+      expect(select.style.borderColor).toBe('rgb(59, 130, 246)');
+      expect(select.style.boxShadow).toBe('0 0 0 3px rgba(59,130,246,0.15)');
+    });
+
+    it('reverts focus styles on blur back to default border', () => {
+      render(
+        <Select>
+          <option value="a">A</option>
+        </Select>
+      );
+      const select = screen.getByRole('combobox');
+      fireEvent.focus(select);
+      // After focus: styles applied
+      expect(select.style.borderColor).toBe('rgb(59, 130, 246)');
+      fireEvent.blur(select);
+      // After blur: borderColor reverts to #2E2E2E, boxShadow cleared
+      expect(select.style.borderColor).toBe('rgb(46, 46, 46)');
+      expect(select.style.boxShadow).toBe('none');
+    });
+
+    it('does not apply focus styles when error prop is true', () => {
+      render(
+        <Select error>
+          <option value="a">A</option>
+        </Select>
+      );
+      const select = screen.getByRole('combobox');
+      fireEvent.focus(select);
+      // Focus guard: if (error) skip borderColor change
+      // Error border stays #EF4444, no blue focus applied
+      expect(select.style.borderColor).toBe('rgb(239, 68, 68)');
+    });
   });
 });

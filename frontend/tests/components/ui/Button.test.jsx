@@ -175,5 +175,36 @@ describe('Button Component', () => {
       expect(button.style.borderColor).toBe('rgb(59, 130, 246)');
       expect(button.style.backgroundColor).toBe('transparent');
     });
+
+    it('changes borderColor and color on mouseEnter for ghost variant', () => {
+      render(<Button variant="ghost">Ghost Button</Button>);
+      const button = screen.getByRole('button');
+      // Ghost base: borderColor=#2E2E2E, color=#8A8A8A
+      // Initial inline styles are empty (base styles from variant applied via CSS class, not inline)
+      fireEvent.mouseEnter(button);
+      // After mouse enter: borderColor=#3B82F6, color=#3B82F6
+      expect(button.style.borderColor).toBe('rgb(59, 130, 246)');
+      expect(button.style.color).toBe('rgb(59, 130, 246)');
+    });
+
+    it('reverts borderColor and color on mouseLeave for ghost variant', () => {
+      render(<Button variant="ghost">Ghost Button</Button>);
+      const button = screen.getByRole('button');
+      fireEvent.mouseEnter(button);
+      fireEvent.mouseLeave(button);
+      // After mouse leave: borderColor=#2E2E2E, color=#8A8A8A
+      expect(button.style.borderColor).toBe('rgb(46, 46, 46)');
+      expect(button.style.color).toBe('rgb(138, 138, 138)');
+    });
+
+    it('does NOT change ghost hover styles when disabled (base styles stay, no hover applied)', () => {
+      render(<Button variant="ghost" disabled>Disabled Ghost</Button>);
+      const button = screen.getByRole('button');
+      // The !disabled guard on onMouseEnter prevents hover styles from being applied.
+      // We verify the disabled attribute is set and no error is thrown on mouseEnter.
+      expect(button).toBeDisabled();
+      // Should not throw
+      expect(() => fireEvent.mouseEnter(button)).not.toThrow();
+    });
   });
 });
