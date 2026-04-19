@@ -25,7 +25,11 @@ jest.mock('../src/services/plisioService', () => ({
 }));
 jest.mock('../src/services/authorizeNetUtils', () => ({
   getAuthorizeTransactionDetails: jest.fn(),
-  AuthorizeNetService: { createHostedPaymentPage: jest.fn(), cancelSubscription: jest.fn() }
+  AuthorizeNetService: {
+    createHostedPaymentPage: jest.fn(),
+    createTransaction: jest.fn(),
+    cancelSubscription: jest.fn()
+  }
 }));
 jest.mock('../src/services/ziptaxService', () => ({ lookupCombinedSalesTaxRate: jest.fn() }));
 jest.mock('../src/services/paymentProcessingService', () => ({
@@ -757,4 +761,118 @@ describe('Error handling', () => {
   });
 
   // ── getInvoiceStatus — error handler already covered in existing test ──
+
+  // ════════════════════════════════════════════════════════════════════════════════
+  // Direct card flow — Authorize.Net direct transaction (lines 850–932)
+  // Covers: responseCode='1' (success → creates sub + activates user)
+  //         responseCode != '1' (failure → 400 with error details)
+  //         cardData present + not card_redirect → enters direct flow
+  // ════════════════════════════════════════════════════════════════════════════════
+  describe('direct card payment flow (cardData present, no card_redirect)', () => {
+    // Lines 850-932: legacy direct-card flow triggered when cardData is provided
+    // (useHostedRedirect = false because paymentMethod='card' AND cardData is truthy)
+    it('should return 200 with success:true when Authorize.Net returns responseCode=1', async () => {
+      db.query
+        .mockResolvedValueOnce({ rows: [{ ...mockUser }] })       // user lookup
+        .mockResolvedValueOnce({ rows: [{ ...mockPlan }] })       // plan lookup
+        .mockResolvedValueOnce({ rows: [] })                       // no existing subscription
+        .mockResolvedValueOnce({ rows: [{ id: 'sub-uuid-123' }] }) // INSERT subscription — return the new row
+        .mockResolvedValueOnce({ rows: [] });                      // UPDATE users (activate account)
+      // Authorize.net direct transaction success
+      AuthorizeNetService.createTransaction.mockResolvedValueOnce({
+        transactionResponse: {
+          responseCode: '1',  // '1' = Approved — triggers success path (lines 862-892)
+          transId: 'txn-direct-ok',
+          errors: null
+        }
+      });
+      const r = makeRes();
+      await paymentController.createCheckout(
+        {
+          user: { ...mockUser },
+          body: {
+            planId: 'monthly',
+            paymentMethod: 'card',  // NOT 'card_redirect' → useHostedRedirect=false
+            cardData: { cardNumber: '4111111111111111', expiry: '12/26', cvv: '123' },  // truthy → direct flow
+            billingInfo: { country: null }
+          },
+          get: () => 'https://app.ahoyvpn.com'
+        },
+        r
+      );
+      expect(r.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          paymentMethod: 'card',
+          flow: 'direct',
+          success: true,
+          accountNumber: 'ACC001',
+          pricing: expect.objectContaining({
+            baseAmountCents: 999,
+            totalAmountCents: expect.any(Number)
+          })
+        })
+      );
+    });
+
+    it('should return 400 with error details when Authorize.Net returns non-1 responseCode', async () => {
+      db.query
+        .mockResolvedValueOnce({ rows: [{ ...mockUser }] })
+        .mockResolvedValueOnce({ rows: [{ ...mockPlan }] })
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] });
+      // responseCode '2' = Declined — triggers failure path (lines 922-928)
+      AuthorizeNetService.createTransaction.mockResolvedValueOnce({
+        transactionResponse: {
+          responseCode: '2',  // Declined
+          errors: [{ errorCode: '200', errorText: 'Insufficient funds' }]
+        }
+      });
+      const r = makeRes();
+      await paymentController.createCheckout(
+        {
+          user: { ...mockUser },
+          body: {
+            planId: 'monthly',
+            paymentMethod: 'card',
+            cardData: { cardNumber: '4111111111111111', expiry: '12/26', cvv: '123' },
+            billingInfo: { country: null }
+          },
+          get: () => 'https://app.ahoyvpn.com'
+        },
+        r
+      );
+      expect(r.status).toHaveBeenCalledWith(400);
+      expect(r.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: 'Payment failed',
+          details: expect.arrayContaining([
+            expect.objectContaining({ errorCode: '200', errorText: 'Insufficient funds' })
+          ])
+        })
+      );
+    });
+  });
+
+  // ════════════════════════════════════════════════════════════════════════════════
+  // hostedRedirectBridge — HTML page render edge cases
+  // ════════════════════════════════════════════════════════════════════════════════
+  describe('hostedRedirectBridge — missing formUrl fallback', () => {
+    it('should use default Authorize.Net formUrl when none is returned', async () => {
+      // When hosted.token exists but hosted.formUrl is absent (empty string),
+      // code falls back to 'https://accept.authorize.net/payment/payment' (line 1075).
+      // This test verifies the bridge page still renders with the default formUrl.
+      const r = makeRes();
+      await paymentController.hostedRedirectBridge(
+        { query: { token: 'tok-no-formurl', formUrl: '' }, get: () => 'https://app.ahoyvpn.com' },
+        r
+      );
+      // Code uses res.status(200).send(html) — not res.set().send()
+      expect(r.status).toHaveBeenCalledWith(200);
+      expect(r.send).toHaveBeenCalled();
+      const html = r.send.mock.calls[0][0];
+      // Default formUrl should appear in the rendered HTML
+      expect(html).toContain('https://accept.authorize.net/payment/payment');
+      expect(html).toContain('tok-no-formurl');
+    });
+  });
 });
