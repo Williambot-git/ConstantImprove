@@ -124,7 +124,8 @@
 | 124 | test(invoicePollingService): add timeout_no_payment branch test (line 98) — subscription at 3rd checkpoint with pending invoice sets poll_result=timeout_no_payment in metadata; invoicePollingService line 97.33%→98.66%, total 1,100 backend tests | **DONE** (commit 542974c) |
 | 125 | test(frontend): add Button ghost hover coverage (+3 tests: ghost enter/leave/disabled-guard) + Select focus/blur coverage (+3 tests: focus apply, blur revert, error-guard) | **DONE** (commit 26da963) |
 | 126 | fix(services): remove debug console.log statements — plisioService raw API response + paymentProcessingService 5 success-path logs; all remaining console.* calls are error logging only | **DONE** (commit 58fa1da) |
-| 127 | fix(frontend): replace truncated Cloudflare analytics token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
+| 127 | fix(frontend): replace truncated Cloudflare token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
+| 128 | test(backend): add totp utility unit tests (14 cases, 100% — generateSecret, generateQRCode, verifyToken, generateRecoveryCodes) — new tests/utils/ directory | **DONE** (commit 92e36a6) |
 
 ---
 
