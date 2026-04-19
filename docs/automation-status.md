@@ -182,16 +182,17 @@
 ## Recent Commits (from this session)
 
 ```
-d2d462b test(cleanupService): add unit tests — 27 cases, 100% line/branch/function coverage
-84688ca docs: update automation-status — tasks 121-122, ziptaxService branch 83.33%→96.29%, 1,862 total tests
-5a6b91f test: add branch coverage tests for ziptaxService and invoicePollingService
+ec5c7a9 docs(frontend): update README.md — remove 50+ stale TODO markers, reflect actual implemented state
+ffa2fa7 fix(auth): wire forgotPassword email sending (was TODO) and add 53 unit tests
+aa8bf4b docs: update automation-status — task 124, invoicePollingService timeout_no_payment branch test, 1,100 backend tests
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,099 tests passing** (35 test suites, all passing; 16 suites fail due to pre-existing argon2/jsonwebtoken module-not-found in test environment — unrelated to any code changes)
-- **Frontend test suite: 776 tests passing** (47 test suites, 100% passing)
-- **Total test count: 1,875 tests** across frontend and backend (1,099 backend + 776 frontend)
+- **Backend test suite: 1,144 tests passing** (36 test suites, all passing)
+- **Frontend test suite: 778 tests passing** (47 test suites, 100% passing; 2 skipped, 1 todo)
+- **Total test count: 1,922 tests** across frontend and backend (1,144 backend + 778 frontend)
+- **frontend/README.md updated** — removed 50+ stale TODO markers; reflects actual implemented state (all pages, components, integrations documented as complete/live)
 - **cleanupService: 27 tests, 100% line/branch/function coverage** (new file — all 6 cleanup functions + runAllCleanup orchestrator tested)
 - **Backend services with tests: 14** (all have tests)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
