@@ -20,6 +20,7 @@ jest.mock('../../src/config/database');
 jest.mock('../../src/services/plisioService');
 jest.mock('../../src/services/paymentProcessingService');
 jest.mock('../../src/services/authorizeNetUtils');
+jest.mock('../../src/services/vpnResellersService');
 
 const db = require('../../src/config/database');
 const plisioService = require('../../src/services/plisioService');
@@ -525,6 +526,102 @@ describe('invoicePollingService', () => {
 
       // getArbSubscription should NOT be called since arbId is null
       expect(arbSpy || jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')).not.toHaveBeenCalled();
+    });
+
+    // -------------------------------------------------------------------------
+    // pollArbSubscriptions — line 183: vpnResellersService.deactivateAccount throws
+    // VPN account has purewl_uuid, ARB is suspended, but deactivateAccount throws.
+    // The error is caught (line 183), logged, and VPN account status still updated.
+    // -------------------------------------------------------------------------
+    it('ARB suspended with VPN account but deactivateAccount throws — logs warning, VPN still suspended, user deactivated', async () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'suspended',
+          paymentStatus: ''
+        });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-arb-suspend',
+            user_id: 'user-arb-suspend',
+            status: 'active',
+            metadata: { arb_subscription_id: 'arb_suspend' },
+            current_period_end: new Date().toISOString()
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions (canceled)
+        .mockResolvedValueOnce({ // SELECT vpn_accounts — returns account WITH purewl_uuid
+          rows: [{ id: 'va-suspend', purewl_uuid: 'uuid-suspend' }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts (suspended)
+        .mockResolvedValueOnce({ rows: [] }); // UPDATE users (deactivated)
+
+      await pollArbSubscriptions();
+
+      // 5 DB calls fired (subscription, VPN account, user all updated despite throw)
+      expect(db.query).toHaveBeenCalledTimes(5);
+      // VPN account was still suspended (UPDATE still fired despite the throw)
+      const updateVpnCall = db.query.mock.calls.find(
+        c => c[0].includes('vpn_accounts') && c[0].includes("status = 'suspended'")
+      );
+      expect(updateVpnCall).toBeDefined();
+      // User was deactivated
+      const deactivateUserCall = db.query.mock.calls.find(
+        c => c[0].includes('users') && c[0].includes('is_active = false')
+      );
+      expect(deactivateUserCall).toBeDefined();
+      // Warning was logged for the deactivation failure (proves deactivateAccount was called and threw)
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to deactivate VPN on ARB cancel:', 'uuid-suspend', expect.any(String)
+      );
+
+      consoleSpy.mockRestore();
+    });
+
+    // -------------------------------------------------------------------------
+    // pollArbSubscriptions — line 180: purewl_uuid is falsy (empty string)
+    // VPN account exists but purewl_uuid is null/empty — deactivateAccount NOT called.
+    // VPN account status still updated to suspended; user still deactivated.
+    // -------------------------------------------------------------------------
+    it('ARB suspended with VPN account but purewl_uuid falsy — deactivateAccount skipped, VPN still suspended', async () => {
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockResolvedValueOnce({
+          status: 'suspended',
+          paymentStatus: ''
+        });
+
+      // VPN account row has no purewl_uuid (line 180: if (va.purewl_uuid) is FALSE)
+      // so the deactivateAccount try block is skipped entirely.
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-arb-nouuid',
+            user_id: 'user-arb-nouuid',
+            status: 'active',
+            metadata: { arb_subscription_id: 'arb_nouuid' },
+            current_period_end: new Date().toISOString()
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions (canceled)
+        .mockResolvedValueOnce({ // SELECT vpn_accounts — row exists but purewl_uuid is null
+          rows: [{ id: 'va-nouuid', purewl_uuid: null }]
+        })
+        .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts (suspended)
+        .mockResolvedValueOnce({ rows: [] }); // UPDATE users (deactivated)
+
+      await pollArbSubscriptions();
+
+      // 5 DB calls: SELECT subs, UPDATE sub, SELECT vpn, UPDATE vpn, UPDATE user
+      expect(db.query).toHaveBeenCalledTimes(5);
+      // VPN account was still suspended even without calling deactivateAccount
+      const updateVpnCall = db.query.mock.calls.find(
+        c => c[0].includes('vpn_accounts') && c[0].includes("status = 'suspended'")
+      );
+      expect(updateVpnCall).toBeDefined();
+      expect(updateVpnCall[1]).toEqual(['va-nouuid']);
     });
   });
 });

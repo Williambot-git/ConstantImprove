@@ -187,6 +187,43 @@ describe('vpnAccountScheduler', () => {
       expect(mockDisableAccount).not.toHaveBeenCalled();
       expect(mockQuery).toHaveBeenCalledTimes(1);
     });
+
+    // -------------------------------------------------------------------------
+    // suspendExpiredTrials — line 91: disableAccount throws inside inner try block
+    // VPN account exists with purewl_uuid, subscription canceled, but disableAccount
+    // throws. The error is caught at line 91, logged, and pipeline continues —
+    // subscription remains canceled and user remains deactivated.
+    // -------------------------------------------------------------------------
+    it('disableAccount throws during trial expiry — subscription still canceled, user still deactivated, error logged', async () => {
+      const expiredTrialRows = {
+        rows: [
+          { id: 25, user_id: 205, status: 'trialing', plisio_invoice_id: 'inv-25' }
+        ]
+      };
+
+      const vpnAccountRows = {
+        rows: [
+          { id: 31, purewl_uuid: 'uuid-trial-fail' }
+        ]
+      };
+
+      mockQuery
+        .mockResolvedValueOnce(expiredTrialRows)  // SELECT expired trials
+        .mockResolvedValueOnce({})                // UPDATE subscription -> canceled
+        .mockResolvedValueOnce(vpnAccountRows)    // SELECT vpn_account
+        .mockResolvedValueOnce({})                 // UPDATE vpn_account -> suspended
+        .mockResolvedValueOnce({});               // UPDATE users -> is_active = false
+
+      // disableAccount throws — triggers the inner catch at line 91
+      mockDisableAccount.mockRejectedValue(new Error('VPN Resellers API unavailable'));
+
+      await expect(suspendExpiredTrials()).resolves.not.toThrow();
+
+      // disableAccount was called (we entered the inner try block at line 88)
+      expect(mockDisableAccount).toHaveBeenCalledWith('uuid-trial-fail');
+      // 5 DB calls fired regardless of the throw (subscription, VPN, user all updated)
+      expect(mockQuery).toHaveBeenCalledTimes(5);
+    });
   });
 
   // ============================================================
