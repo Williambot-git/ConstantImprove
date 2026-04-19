@@ -220,3 +220,6 @@
 *Last updated: 2026-04-19T20:35:00Z*
 - **Structured logger utility**: New `backend/src/utils/logger.js` with 4 severity levels (error/warn/info/debug), LOG_LEVEL env var control, NODE_ENV=production defaulting to info-level. affiliateCommissionService migrated: affiliate-not-found → debug (noisy per-referral), commission credited → structured info with metadata (commit 277e3d3)
 - **authorizeNetUtils**: imported logger (commit pending)
+
+## 2026-04-19T21:00:00Z
+- **test(frontend): api/client.js branch coverage** — added 17 branch tests covering qs ternary branches (`getTaxTransactions`, `getTaxSummary`, `getNexusOverview`, `getAffiliates`, `getPayoutRequests`, `getAdminReferrals` with params and empty-params), `initiateCheckout` edge cases (with/without affiliateId, all options payload). api/client.js branch: 53.57% → 54.76%. Note: interceptor callback branches (lines 19-26, 30-55) structurally uncovered — mock setup replaces axios methods before interceptors execute; documented in test file header. **1,990 total tests passing** (1,175 backend + 815 frontend).
