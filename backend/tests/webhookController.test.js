@@ -85,6 +85,23 @@ jest.mock('../src/controllers/paymentController', () => ({
   applyAffiliateCommissionIfEligible: jest.fn().mockResolvedValue(true)
 }));
 
+// Mock structured logger — webhookController.js uses logger.js for all console output.
+// The mock captures structured calls for assertion AND calls through to the real logger
+// so that console.* spies can still capture the formatted output.
+const realLogger = jest.requireActual('../src/utils/logger');
+const mockLogger = {
+  error: jest.fn((...args) => mockLogger.__call('error', ...args)),
+  warn: jest.fn((...args) => mockLogger.__call('warn', ...args)),
+  info: jest.fn((...args) => mockLogger.__call('info', ...args)),
+  debug: jest.fn((...args) => mockLogger.__call('debug', ...args)),
+  // Secret internal method that records + forwards — tests use this in assertions
+  __call: jest.fn((level, ...args) => {
+    const method = { error: 'error', warn: 'warn', info: 'info', debug: 'debug' }[level];
+    realLogger[method](...args);
+  }),
+};
+jest.mock('../src/utils/logger', () => mockLogger);
+
 // ─── ENV SETUP ────────────────────────────────────────────────────────────────
 process.env.NODE_ENV = 'test';
 process.env.PLISIO_API_KEY = 'test-plisio-api-key-32chars!!';
@@ -256,15 +273,16 @@ describe('WebhookVerifier.verifyPlisio', () => {
     });
   });
 
-  // ─── Edge cases ───────────────────────────────────────────────────────────
   describe('Environment edge cases', () => {
     test('returns false (and logs warning) when PLISIO_API_KEY is not set', () => {
       const originalKey = process.env.PLISIO_API_KEY;
       delete process.env.PLISIO_API_KEY;
+      mockLogger.warn.mockClear();
       const req = buildReq('POST', { invoice_id: 'inv123' }, { 'x-plisio-signature': 'any' });
       expect(WebhookVerifier.verifyPlisio(req)).toBe(false);
-      expect(consoleWarnSpy).toHaveBeenCalledWith('PLISIO_API_KEY not configured');
-      process.env.PLISIO_API_KEY = originalKey;
+      // Logger.warn is called with the plain message string (real logger formats before console)
+      expect(mockLogger.warn).toHaveBeenCalledWith('PLISIO_API_KEY not configured');
+      process.env.PLISIO_API_KEY=originalKey;
     });
   });
 });
@@ -316,11 +334,12 @@ describe('WebhookVerifier.verifyPaymentsCloud', () => {
   test('returns false (and logs warning) when PAYCLOUD_SECRET is not set', () => {
     const originalSecret = process.env.PAYCLOUD_SECRET;
     delete process.env.PAYCLOUD_SECRET;
+    mockLogger.warn.mockClear();
     const body = { event: 'payment.succeeded', data: { id: 'pc_123' } };
     const req = buildReq('POST', body, { 'x-paymentscloud-signature': 'any' });
     expect(WebhookVerifier.verifyPaymentsCloud(req)).toBe(false);
-    expect(consoleWarnSpy).toHaveBeenCalledWith('PAYCLOUD_SECRET not configured');
-    process.env.PAYCLOUD_SECRET = originalSecret;
+    expect(mockLogger.warn).toHaveBeenCalledWith('PAYCLOUD_SECRET not configured');
+    process.env.PAYCLOUD_SECRET=originalSecret;
   });
 });
 
@@ -379,11 +398,12 @@ describe('WebhookVerifier.verifyAuthorizeNet', () => {
   test('returns false when AUTHORIZE_SIGNATURE_KEY is not set', () => {
     const originalKey = process.env.AUTHORIZE_SIGNATURE_KEY;
     delete process.env.AUTHORIZE_SIGNATURE_KEY;
+    mockLogger.warn.mockClear();
     const raw = Buffer.from('{}');
     const req = { method: 'POST', body: {}, query: {}, headers: { 'x-anet-signature': 'sha512=abc' }, rawBody: raw };
     expect(WebhookVerifier.verifyAuthorizeNet(req)).toBe(false);
-    expect(consoleWarnSpy).toHaveBeenCalledWith('AUTHORIZE_SIGNATURE_KEY not configured');
-    process.env.AUTHORIZE_SIGNATURE_KEY = originalKey;
+    expect(mockLogger.warn).toHaveBeenCalledWith('AUTHORIZE_SIGNATURE_KEY not configured');
+    process.env.AUTHORIZE_SIGNATURE_KEY=originalKey;
   });
 });
 
@@ -1073,12 +1093,15 @@ describe('logAuthorizeEvent', () => {
   });
 
   test('does not throw when fs.appendFileSync fails (swallows error)', () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockLogger.error.mockClear();
     fs.appendFileSync.mockImplementationOnce(() => { throw new Error('disk full'); });
     // Should not throw
     expect(() => logAuthorizeEvent('test', {})).not.toThrow();
-    expect(consoleErrorSpy).toHaveBeenCalledWith('Authorize webhook logging error:', expect.any(Error));
-    consoleErrorSpy.mockRestore();
+    // Logger.error is called with the structured message + meta object
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'Authorize webhook logging error',
+      { error: 'disk full' }
+    );
   });
 
   test('creates logs directory recursively if it does not exist', () => {

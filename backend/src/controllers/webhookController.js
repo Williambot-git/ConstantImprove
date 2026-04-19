@@ -5,6 +5,7 @@ const fetch = require('node-fetch');
 const argon2 = require('argon2');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../config/database');
+const log = require('../utils/logger');
 const emailService = require('../services/emailService');
 const promoService = require('../services/promoService');
 const plisioService = require('../services/plisioService');
@@ -20,7 +21,7 @@ const logAuthorizeEvent = (label, data) => {
     const line = JSON.stringify({ ts: new Date().toISOString(), label, ...data });
     fs.appendFileSync(path.join(dir, 'authorize-webhook.log'), line + '\n');
   } catch (error) {
-    console.error('Authorize webhook logging error:', error);
+    log.error('Authorize webhook logging error', { error: error.message });
   }
 };
 
@@ -31,7 +32,7 @@ class WebhookVerifier {
   static verifyPlisio(req) {
     const apiKey = process.env.PLISIO_API_KEY;
     if (!apiKey) {
-      console.warn('PLISIO_API_KEY not configured');
+      log.warn('PLISIO_API_KEY not configured');
       return false;
     }
 
@@ -76,7 +77,7 @@ class WebhookVerifier {
   static verifyPaymentsCloud(req) {
     const secret = process.env.PAYCLOUD_SECRET;
     if (!secret) {
-      console.warn('PAYCLOUD_SECRET not configured');
+      log.warn('PAYCLOUD_SECRET not configured');
       return false;
     }
     
@@ -104,7 +105,7 @@ class WebhookVerifier {
   static verifyAuthorizeNet(req) {
     const signatureKey = process.env.AUTHORIZE_SIGNATURE_KEY;
     if (!signatureKey) {
-      console.warn('AUTHORIZE_SIGNATURE_KEY not configured');
+      log.warn('AUTHORIZE_SIGNATURE_KEY not configured');
       return false;
     }
 
@@ -164,12 +165,12 @@ const plisioWebhook = async (req, res) => {
   try {
     // Plisio may send as GET (query params) or POST (JSON body)
     const source = req.method === 'GET' ? req.query : req.body;
-    console.log('Plisio webhook received:', source);
+    log.info('Plisio webhook received', { source });
     
     // Verify webhook signature
     const isValid = WebhookVerifier.verifyPlisio(req);
     if (!isValid) {
-      console.error('Invalid Plisio webhook signature');
+      log.error('Invalid Plisio webhook signature');
       return res.status(400).json({ error: 'Invalid signature' });
     }
     
@@ -192,14 +193,14 @@ const plisioWebhook = async (req, res) => {
     
     // Check for replay attack
     if (await WebhookVerifier.isReplayAttack(webhookId, 'plisio')) {
-      console.log('Replay attack detected, ignoring webhook');
+      log.info('Replay attack detected, ignoring Plisio webhook', { webhookId });
       return res.json({ received: true, status: 'ignored' });
     }
     
     // Record webhook
     await WebhookVerifier.recordWebhook(webhookId, 'plisio', req.headers['x-plisio-signature']);
     
-    console.log(`Plisio webhook: status=${status}, order=${order_number}, invoice=${invoice_id}`);
+    log.info('Plisio webhook received', { status, order_number, invoice_id });
     
     // Return 200 OK immediately
     res.json({ received: true, status });
@@ -210,11 +211,11 @@ const plisioWebhook = async (req, res) => {
       // If invoice_id is missing, use order_number as fallback
       const effectiveInvoiceId = invoice_id || order_number;
       processPlisioPaymentAsync(effectiveInvoiceId, tx_id, amount, currency).catch(err => {
-        console.error('Async Plisio payment processing error:', err);
+        log.error('Async Plisio payment processing error', { error: err.message });
       });
     }
   } catch (error) {
-    console.error('Plisio webhook error:', error);
+    log.error('Plisio webhook error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -225,12 +226,12 @@ const plisioWebhook = async (req, res) => {
 // PaymentsCloud webhook handler - returns 200 OK immediately, processes async
 const paymentsCloudWebhook = async (req, res) => {
   try {
-    console.log('PaymentsCloud webhook received:', req.body);
+    log.info('PaymentsCloud webhook received', { body: req.body });
     
     // Verify webhook signature
     const isValid = WebhookVerifier.verifyPaymentsCloud(req);
     if (!isValid) {
-      console.error('Invalid PaymentsCloud webhook signature');
+      log.error('Invalid PaymentsCloud webhook signature');
       return res.status(400).json({ error: 'Invalid signature' });
     }
     
@@ -244,14 +245,14 @@ const paymentsCloudWebhook = async (req, res) => {
     // Check for replay attack
     const webhookId = data.id;
     if (await WebhookVerifier.isReplayAttack(webhookId, 'paymentscloud')) {
-      console.log('Replay attack detected, ignoring webhook');
+      log.info('Replay attack detected, ignoring PaymentsCloud webhook', { webhookId });
       return res.json({ received: true, status: 'ignored' });
     }
     
     // Record webhook
     await WebhookVerifier.recordWebhook(webhookId, 'paymentscloud', req.headers['x-paymentscloud-signature']);
     
-    console.log(`PaymentsCloud webhook: event=${event}, payment_id=${data.id}`);
+    log.info('PaymentsCloud webhook', { event, payment_id: data.id });
     
     // Return 200 OK immediately
     res.json({ received: true, status: event });
@@ -259,11 +260,11 @@ const paymentsCloudWebhook = async (req, res) => {
     // Process payment asynchronously (don't await)
     if (event === 'payment.succeeded') {
       processPaymentsCloudPaymentAsync(data).catch(err => {
-        console.error('Async PaymentsCloud payment processing error:', err);
+        log.error('Async PaymentsCloud payment processing error', { error: err.message });
       });
     }
   } catch (error) {
-    console.error('PaymentsCloud webhook error:', error);
+    log.error('PaymentsCloud webhook error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -334,7 +335,7 @@ const authorizeNetWebhook = async (req, res) => {
     });
 
     if (!isValid) {
-      console.error('Authorize.net signature invalid or missing', JSON.stringify({
+      log.error('Authorize.net signature invalid or missing', {
         hasHeader: Boolean(provided),
         providedPrefix: provided ? provided.slice(0, 16) : 'none',
         expectedHexPrefix: expectedHex ? expectedHex.slice(0, 16) : 'none',
@@ -343,7 +344,7 @@ const authorizeNetWebhook = async (req, res) => {
         eventType: req.body?.eventType || req.body?.event_type || null,
         transactionId,
         invoiceNumber
-      }));
+      });
       return res.status(400).json({ received: true, signatureValid: false });
     }
 
@@ -358,7 +359,7 @@ const authorizeNetWebhook = async (req, res) => {
     });
 
     if (!invoiceNumber) {
-      console.error('Authorize.net webhook missing invoice number');
+      log.error('Authorize.net webhook missing invoice number');
       return res.json({ received: true, signatureValid: true });
     }
 
@@ -383,7 +384,7 @@ const authorizeNetWebhook = async (req, res) => {
       }
 
       if (responseCode !== '1') {
-        console.warn('Authorize.net webhook non-success response', { invoiceNumber, responseCode });
+        log.warn('Authorize.net webhook non-success response', { invoiceNumber, responseCode });
         return res.json({ received: true, signatureValid: true });
       }
     }
@@ -426,7 +427,7 @@ const authorizeNetWebhook = async (req, res) => {
     }
 
     if (subResult.rows.length === 0) {
-      console.error(`Authorize.net webhook: subscription not found for invoice ${invoiceNumber}`);
+      log.error('Authorize.net webhook: subscription not found', { invoiceNumber });
       return res.json({ received: true, signatureValid: true });
     }
 
@@ -442,7 +443,7 @@ const authorizeNetWebhook = async (req, res) => {
         const { createVpnAccount } = require('../services/userService');
         vpnAccountResult = await createVpnAccount(subscription.user_id, subscription.account_number, planInterval, { renew: true });
       } catch (vpnErr) {
-        console.error('[Webhook] VPN renewal failed:', vpnErr.message);
+        log.error('[Webhook] VPN renewal failed', { error: vpnErr.message, subscriptionId: subscription.id });
       }
     }
 
@@ -522,7 +523,7 @@ const authorizeNetWebhook = async (req, res) => {
           );
         }
       } catch (taxErr) {
-        console.error('Failed to record tax_transaction:', taxErr.message);
+        log.error('Failed to record tax_transaction', { error: taxErr.message, invoiceNumber });
       }
     } catch (error) {
       await db.query('ROLLBACK');
@@ -555,15 +556,15 @@ const authorizeNetWebhook = async (req, res) => {
             });
             if (arbResult?.subscriptionId) {
               await db.query('UPDATE subscriptions SET arb_subscription_id = $1, updated_at = NOW() WHERE id = $2', [arbResult.subscriptionId, subscription.id]);
-              console.log('[Webhook] ARB created:', arbResult.subscriptionId, '| sub:', subscription.id);
+              log.info('[Webhook] ARB created', { arbSubscriptionId: arbResult.subscriptionId, subscriptionId: subscription.id });
             } else {
-              console.warn('[Webhook] ARB missing subscriptionId:', arbResult);
+              log.warn('[Webhook] ARB missing subscriptionId', { arbResult });
             }
           } else {
-            console.warn('[Webhook] Missing customerProfileId or customerPaymentProfileId from tx', transactionId);
+            log.warn('[Webhook] Missing customerProfileId or customerPaymentProfileId', { transactionId });
           }
         } catch (arbErr) {
-          console.error('[Webhook] ARB creation failed:', arbErr.message);
+          log.error('[Webhook] ARB creation failed', { error: arbErr.message, subscriptionId: subscription.id });
         }
       }
     }
@@ -580,7 +581,7 @@ const authorizeNetWebhook = async (req, res) => {
 
     return res.json({ received: true, signatureValid: true });
   } catch (err) {
-    console.error('Authorize.net webhook error:', err);
+    log.error('Authorize.net webhook error', { error: err.message });
     return res.status(500).json({ error: 'Internal server error' });
   }
 };

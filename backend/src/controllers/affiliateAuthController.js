@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const db = require('../config/database');
 const { setCsrfTokenCookie } = require('../middleware/authMiddleware_new');
+const log = require('../utils/logger');
 
 // Login endpoint for affiliates
 const login = async (req, res) => {
@@ -67,7 +68,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Affiliate login error:', error);
+    log.error('Affiliate login error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -144,7 +145,7 @@ const validateRecoveryCode = async (req, res) => {
       message: 'Recovery code valid. Set your new password.'
     });
   } catch (error) {
-    console.error('Validate recovery code error:', error);
+    log.error('Validate recovery code error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -185,7 +186,7 @@ const resetPassword = async (req, res) => {
       message: 'Password reset successfully'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    log.error('Reset password error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -258,7 +259,7 @@ const generateRecoveryKit = async (req, res) => {
       return res.status(400).json({ error: 'Invalid request' });
     }
   } catch (error) {
-    console.error('Generate recovery kit error:', error);
+    log.error('Generate recovery kit error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -280,7 +281,7 @@ const getProfile = async (req, res) => {
       data: affiliateResult.rows[0]
     });
   } catch (error) {
-    console.error('Get affiliate profile error:', error);
+    log.error('Get affiliate profile error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -330,7 +331,7 @@ const changePassword = async (req, res) => {
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    log.error('Change password error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

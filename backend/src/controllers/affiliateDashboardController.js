@@ -1,6 +1,7 @@
 const argon2 = require('argon2');
 const crypto = require('crypto');
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 // Get affiliate dashboard metrics
 const getMetrics = async (req, res) => {
@@ -67,7 +68,7 @@ const getMetrics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get affiliate metrics error:', error);
+    log.error('Get affiliate metrics error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -109,7 +110,7 @@ const getLinks = async (req, res) => {
       data: links
     });
   } catch (error) {
-    console.error('Get affiliate links error:', error);
+    log.error('Get affiliate links error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -161,7 +162,7 @@ const generateLink = async (req, res) => {
       data: { ...linkResult.rows[0], signups: 0 }
     });
   } catch (error) {
-    console.error('Generate link error:', error);
+    log.error('Generate link error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -204,7 +205,7 @@ const getReferrals = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referrals error:', error);
+    log.error('Get referrals error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -245,7 +246,7 @@ const getTransactions = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get transactions error:', error);
+    log.error('Get transactions error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -271,7 +272,7 @@ const getPayoutRequests = async (req, res) => {
       data: payouts
     });
   } catch (error) {
-    console.error('Get payout requests error:', error);
+    log.error('Get payout requests error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -321,7 +322,7 @@ const requestPayout = async (req, res) => {
       message: 'Payout request submitted. Email Ahoyvpn@ahoyvpn.net to complete.'
     });
   } catch (error) {
-    console.error('Request payout error:', error);
+    log.error('Request payout error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -366,7 +367,7 @@ const createCode = async (req, res) => {
       data: { ...linkResult.rows[0], discount_cents: discount, signups: 0 }
     });
   } catch (error) {
-    console.error('Create affiliate code error:', error);
+    log.error('Create affiliate code error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -388,7 +389,7 @@ const deleteCode = async (req, res) => {
     
     res.json({ success: true, message: 'Link deleted' });
   } catch (error) {
-    console.error('Delete affiliate code error:', error);
+    log.error('Delete affiliate code error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

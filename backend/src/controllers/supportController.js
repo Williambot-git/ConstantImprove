@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 /**
  * Create a new support ticket.
@@ -23,7 +24,7 @@ const createTicket = async (req, res) => {
 
     res.status(201).json({ success: true, ticket: result.rows[0] });
   } catch (error) {
-    console.error('Create ticket error:', error);
+    log.error('Create ticket error:', { error: error.message });
     res.status(500).json({ error: 'Failed to create ticket' });
   }
 };
@@ -46,7 +47,7 @@ const getTickets = async (req, res) => {
 
     res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('Get tickets error:', error);
+    log.error('Get tickets error:', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch tickets' });
   }
 };
@@ -69,7 +70,7 @@ const replyToTicket = async (req, res) => {
 
     res.status(200).json({ success: true, message: 'Reply added successfully' });
   } catch (error) {
-    console.error('Reply to ticket error:', error);
+    log.error('Reply to ticket error:', { error: error.message });
     res.status(500).json({ error: 'Failed to add reply' });
   }
 };
@@ -88,7 +89,7 @@ const getKnowledgeBase = async (req, res) => {
 
     res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('Get knowledge base error:', error);
+    log.error('Get knowledge base error:', { error: error.message });
     res.status(500).json({ error: 'Failed to fetch knowledge base' });
   }
 };

@@ -1,6 +1,7 @@
 const db = require('../config/database');
 const crypto = require('crypto');
 const emailService = require('../services/emailService');
+const log = require('../utils/logger');
 const User = require('../models/userModel');
 
 // Hash token (same as authController_csrf)
@@ -380,7 +381,7 @@ const verifyEmailPage = async (req, res) => {
     `));
     
   } catch (error) {
-    console.error('Verify email page error:', error);
+    log.error('Verify email page error:', { error: error.message });
     res.status(500).send(renderTemplate('Error', `
       <h1>Something Went Wrong</h1>
       <p class="subtitle">An unexpected error occurred.</p>
@@ -553,7 +554,7 @@ const resetPasswordPage = async (req, res) => {
     `));
     
   } catch (error) {
-    console.error('Reset password page error:', error);
+    log.error('Reset password page error:', { error: error.message });
     res.status(500).send(renderTemplate('Error', `
       <h1>Something Went Wrong</h1>
       <p class="subtitle">An unexpected error occurred.</p>
@@ -609,7 +610,7 @@ const resendVerificationEmail = async (req, res) => {
     const verificationLink = `${frontendUrl}/verify-email/${verifyToken}`;
     
     // Log verification link for debugging (production logs go to monitoring)
-    console.log(`New verification link for ${email}: ${verificationLink}`);
+    log.error("New verification link for :", {email: email, verificationLink: verificationLink});
     
     // Send email via emailService (if template exists)
     try {
@@ -620,7 +621,7 @@ const resendVerificationEmail = async (req, res) => {
         { verificationLink }
       );
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      log.error('Failed to send verification email:', { error: emailError.message });
     }
     
     res.status(200).json({
@@ -629,7 +630,7 @@ const resendVerificationEmail = async (req, res) => {
     });
     
   } catch (error) {
-    console.error('Resend verification error:', error);
+    log.error('Resend verification error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const log = require('../utils/logger');
 const { generateToken, generateRefreshToken, verifyToken, verifyRefreshToken } = require('../utils/jwt');
 const { generateSecret, generateQRCode, verifyToken: verifyTotpToken, generateRecoveryCodes: generateRecoveryCodesUtil } = require('../utils/totp');
 const bcrypt = require('bcrypt');
@@ -93,7 +94,7 @@ const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    log.error('Registration error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -173,7 +174,7 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
+    log.error('Login error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -267,7 +268,7 @@ const forgotPassword = async (req, res) => {
       message: 'If an account exists with this email, you will receive a password reset link shortly.'
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    log.error('Forgot password error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -330,7 +331,7 @@ const resetPassword = async (req, res) => {
       message: 'Password reset successfully. You can now login with your new password.'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    log.error('Reset password error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -363,7 +364,7 @@ const enable2FA = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Enable 2FA error:', error);
+    log.error('Enable 2FA error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -403,7 +404,7 @@ const verify2FA = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Verify 2FA error:', error);
+    log.error('Verify 2FA error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -469,7 +470,7 @@ const verify2FALogin = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Verify 2FA login error:', error);
+    log.error('Verify 2FA login error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -492,7 +493,7 @@ const generateNewRecoveryCodes = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Generate recovery codes error:', error);
+    log.error('Generate recovery codes error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -559,7 +560,7 @@ const verifyRecoveryCode = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Verify recovery code error:', error);
+    log.error('Verify recovery code error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -585,7 +586,7 @@ const disable2FA = async (req, res) => {
       message: 'Two-factor authentication disabled successfully',
     });
   } catch (error) {
-    console.error('Disable 2FA error:', error);
+    log.error('Disable 2FA error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -643,7 +644,7 @@ const verifyEmail = async (req, res) => {
       email: tokenData.email
     });
   } catch (error) {
-    console.error('Verify email error:', error);
+    log.error('Verify email error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

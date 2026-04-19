@@ -1,4 +1,5 @@
 const vpnResellersService = new (require('../services/vpnResellersService'))();
+const log = require('../utils/logger');
 const db = require('../config/database');
 
 /**
@@ -102,7 +103,7 @@ const getWireGuardConfig = async (req, res) => {
       // user should retrieve it from their dashboard or email
     });
   } catch (err) {
-    console.error('getWireGuardConfig error:', err);
+    log.error('getWireGuardConfig error:', { error: err.message });
     res.status(500).json({ error: 'Failed to generate WireGuard config' });
   }
 };
@@ -169,7 +170,7 @@ const getOpenVPNConfig = async (req, res) => {
       server: account.server_name || account.server_host,
     });
   } catch (err) {
-    console.error('getOpenVPNConfig error:', err);
+    log.error('getOpenVPNConfig error:', { error: err.message });
     res.status(500).json({ error: 'Failed to generate OpenVPN config' });
   }
 };

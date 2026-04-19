@@ -9,6 +9,7 @@ const fs = require('fs');
 const path = require('path');
 
 const paymentConfig = require('../config/paymentConfig');
+const log = require('../utils/logger');
 
 const { createVpnAccount } = require('../services/userService');
 
@@ -48,7 +49,7 @@ const logAuthorizeRelay = (data) => {
 
   } catch (error) {
 
-    console.error('Authorize relay logging error:', error);
+    log.error('Authorize relay logging error', { error: error.message });
 
   }
 
@@ -163,7 +164,7 @@ const getPlans = async (req, res) => {
 
   } catch (error) {
 
-    console.error('Get plans error:', error);
+    log.error('Get plans error', { error: error.message });
 
     res.status(500).json({ error: 'Failed to get plans' });
 
@@ -340,7 +341,7 @@ const createCheckout = async (req, res) => {
 
         discountedBaseCents = Math.max(0, plan.amount_cents - perLinkDiscount);
 
-        console.log("Affiliate link discount: " + perLinkDiscount + " cents off, " + plan.amount_cents + " -> " + discountedBaseCents);
+        log.info("Affiliate link discount", { perLinkDiscount, originalCents: plan.amount_cents, discountedCents: discountedBaseCents });
 
       }
 
@@ -416,7 +417,7 @@ const createCheckout = async (req, res) => {
 
       } catch (err) {
 
-        console.error('ZipTax error during checkout:', err.message || err);
+        log.error('ZipTax error during checkout', { error: err.message || String(err) });
 
         return res.status(503).json({
 
@@ -780,7 +781,7 @@ const createCheckout = async (req, res) => {
 
         if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
 
-          console.log('Authorize.net hosted token created', {
+          log.info("Authorize.net hosted token created", {
 
             invoiceNumber,
 
@@ -932,7 +933,7 @@ const createCheckout = async (req, res) => {
 
   } catch (error) {
 
-    console.error('Checkout error:', error);
+    log.error('Checkout error', { error: error.message });
 
     res.status(500).json({ error: 'Checkout failed', message: error.message });
 
@@ -1042,7 +1043,7 @@ const getInvoiceStatus = async (req, res) => {
 
   } catch (error) {
 
-    console.error('Invoice status error:', error);
+    log.error('Invoice status error', { error: error.message });
 
     res.status(500).json({ error: 'Failed to fetch invoice status' });
 
@@ -1200,7 +1201,7 @@ const hostedRedirectBridge = async (req, res) => {
 
   } catch (error) {
 
-    console.error('Hosted redirect bridge error:', error);
+    log.error('Hosted redirect bridge error', { error: error.message });
 
     return res.status(500).send('Bridge failed');
 
@@ -1230,7 +1231,7 @@ const authorizeRelayResponse = async (req, res) => {
 
         if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
 
-      console.log('Authorize relay payload', {
+      log.info('Authorize relay payload', {
 
         method: req.method,
 
@@ -1618,11 +1619,11 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-          console.log(`ARB subscription ${arbResult.subscriptionId} created for subscription ${subscription.id}, starts ${arbStartStr}`);
+          log.info("ARB subscription created", { arbSubscriptionId: arbResult.subscriptionId, subscriptionId: subscription.id, arbStartStr });
 
         } else {
 
-          console.warn(`No stored payment profile found for transId ${transactionId} — cannot create ARB subscription for subscription ${subscription.id}`);
+          log.warn("No stored payment profile found — cannot create ARB subscription", { transactionId, subscriptionId: subscription.id });
 
         }
 
@@ -1632,7 +1633,7 @@ const authorizeRelayResponse = async (req, res) => {
 
         // The subscription is active; ARB can be retried or set up manually.
 
-        console.error('ARB setup failed (non-fatal — payment succeeded):', arbError.message || arbError);
+        log.error('ARB setup failed (non-fatal — payment succeeded)', { error: arbError.message || String(arbError) });
 
       }
 
@@ -1712,7 +1713,7 @@ const authorizeRelayResponse = async (req, res) => {
 
     try { await db.query('ROLLBACK'); } catch (_) {}
 
-    console.error('Authorize relay processing error:', error);
+    log.error('Authorize relay processing error', { error: error.message });
 
 
 

@@ -6,6 +6,7 @@ const db = require('../config/database');
 const { generateCsrfToken, storeCsrfToken, setCsrfTokenCookie } = require('../middleware/authMiddleware_new');
 const { validatePasswordComplexity } = require('../middleware/passwordValidation');
 const { cancelArbSubscription } = require('../services/authorizeNetUtils');
+const log = require('../utils/logger');
 
 // Generate numeric account number (8 digits)
 function generateAccountNumber() {
@@ -131,7 +132,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    log.error('Login error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -208,7 +209,7 @@ const register = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    log.error('Registration error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -269,7 +270,7 @@ const claimCredentials = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Claim credentials error:', error);
+    log.error('Claim credentials error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -365,7 +366,7 @@ const useRecoveryKit = async (req, res) => {
       throw txError;
     }
   } catch (error) {
-    console.error('Use recovery kit error:', error);
+    log.error('Use recovery kit error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -429,7 +430,7 @@ const rotateRecoveryKit = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Rotate recovery kit error:', error);
+    log.error('Rotate recovery kit error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -494,7 +495,7 @@ const changePassword = async (req, res) => {
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    log.error('Change password error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -527,7 +528,7 @@ const getProfile = async (req, res) => {
       data: userResult.rows[0]
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    log.error('Get profile error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -566,7 +567,7 @@ const getSubscription = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Get subscription error:', error);
+    log.error('Get subscription error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -594,7 +595,7 @@ const cancelSubscription = async (req, res) => {
       try {
         await cancelArbSubscription(arbSubscriptionId);
       } catch (arbError) {
-        console.error('ARB cancellation failed (will proceed with DB update):', arbError.message || arbError);
+        log.error('ARB cancellation failed (will proceed with DB update)', { error: arbError.message || String(arbError) });
       }
     }
 
@@ -611,7 +612,7 @@ const cancelSubscription = async (req, res) => {
       message: 'Subscription cancelled successfully'
     });
   } catch (error) {
-    console.error('Cancel subscription error:', error);
+    log.error('Cancel subscription error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -653,7 +654,7 @@ const changePlan = async (req, res) => {
       message: 'Plan changed successfully'
     });
   } catch (error) {
-    console.error('Change plan error:', error);
+    log.error('Change plan error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -672,7 +673,7 @@ const deleteAccount = async (req, res) => {
       message: 'Account scheduled for deletion. You will lose access in 30 days.'
     });
   } catch (error) {
-    console.error('Delete account error:', error);
+    log.error('Delete account error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -693,7 +694,7 @@ const getMessages = async (req, res) => {
       data: messagesResult.rows
     });
   } catch (error) {
-    console.error('Get messages error:', error);
+    log.error('Get messages error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -720,7 +721,7 @@ const createSupportTicket = async (req, res) => {
       message: 'Support ticket created successfully'
     });
   } catch (error) {
-    console.error('Create support ticket error:', error);
+    log.error('Create support ticket error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

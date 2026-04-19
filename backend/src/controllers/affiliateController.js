@@ -2,6 +2,7 @@ const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const { setCsrfTokenCookie } = require('../middleware/authMiddleware_new');
+const log = require('../utils/logger');
 
 // Login endpoint for affiliates
 const login = async (req, res) => {
@@ -62,7 +63,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Affiliate login error:', error);
+    log.error('Affiliate login error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -134,7 +135,7 @@ const createCode = async (req, res) => {
         );
       }
     } catch (linkErr) {
-      console.log('Affiliate link creation note:', linkErr.message);
+      log.warn('Affiliate link creation note', { error: linkErr.message });
     }
 
     res.json({
@@ -143,7 +144,7 @@ const createCode = async (req, res) => {
       message: 'Promo code created successfully'
     });
   } catch (error) {
-    console.error('Create promo code error:', error);
+    log.error('Create promo code error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -165,7 +166,7 @@ const getCodes = async (req, res) => {
       data: codesResult.rows
     });
   } catch (error) {
-    console.error('Get promo codes error:', error);
+    log.error('Get promo codes error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -208,7 +209,7 @@ const deleteCode = async (req, res) => {
       message: `Code "${promoExisting.rows[0].code}" deleted`
     });
   } catch (error) {
-    console.error('Delete promo code error:', error);
+    log.error('Delete promo code error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -244,7 +245,7 @@ const generateAffiliateLink = async (req, res) => {
       data: linkData
     });
   } catch (error) {
-    console.error('Generate affiliate link error:', error);
+    log.error('Generate affiliate link error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -316,7 +317,7 @@ const getMetrics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get metrics error:', error);
+    log.error('Get metrics error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -353,7 +354,7 @@ const getEarnings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get earnings error:', error);
+    log.error('Get earnings error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -392,7 +393,7 @@ const getReferralPerformance = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referral performance error:', error);
+    log.error('Get referral performance error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -413,7 +414,7 @@ const getPayoutHistory = async (req, res) => {
       data: payoutsResult.rows
     });
   } catch (error) {
-    console.error('Get payout history error:', error);
+    log.error('Get payout history error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -463,7 +464,7 @@ const requestPayout = async (req, res) => {
       message: 'Payout request submitted. Email Ahoyvpn@ahoyvpn.net to complete.'
     });
   } catch (error) {
-    console.error('Request payout error:', error);
+    log.error('Request payout error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -511,7 +512,7 @@ const changePassword = async (req, res) => {
       message: 'Password changed successfully'
     });
   } catch (error) {
-    console.error('Change password error:', error);
+    log.error('Change password error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -548,7 +549,7 @@ const getRecoveryKit = async (req, res) => {
       data: kitResult.rows[0]
     });
   } catch (error) {
-    console.error('Get recovery kit error:', error);
+    log.error('Get recovery kit error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -604,7 +605,7 @@ const regenerateRecoveryKit = async (req, res) => {
       message: 'Recovery kit regenerated successfully'
     });
   } catch (error) {
-    console.error('Regenerate recovery kit error:', error);
+    log.error('Regenerate recovery kit error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

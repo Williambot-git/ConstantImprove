@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const log = require('../utils/logger');
 const fs = require('fs').promises;
 const path = require('path');
 const db = require('../config/database');
@@ -77,7 +78,7 @@ const createExport = async (req, res) => {
       action: 'data_export_requested',
       ip: req.ip,
       metadata: { token, filePath }
-    }).catch(err => console.error('Audit log error:', err));
+    }).catch(err => log.error('Audit log error:', { error: err.message }));
 
     // In background, generate the export file (non‑blocking)
     // We'll await it for simplicity, but could use a job queue
@@ -99,9 +100,9 @@ const createExport = async (req, res) => {
         action: 'data_export_generated',
         ip: req.ip,
         metadata: { token, fileSize: JSON.stringify(redactedData).length }
-      }).catch(err => console.error('Audit log error:', err));
+      }).catch(err => log.error('Audit log error:', { error: err.message }));
     } catch (genError) {
-      console.error('Failed to generate export file:', genError);
+      log.error('Failed to generate export file:', { error: genError.message });
       await db.query(
         'UPDATE data_exports SET status = $1 WHERE token = $2',
         ['failed', token]
@@ -114,7 +115,7 @@ const createExport = async (req, res) => {
         action: 'data_export_failed',
         ip: req.ip,
         metadata: { token, error: genError.message }
-      }).catch(err => console.error('Audit log error:', err));
+      }).catch(err => log.error('Audit log error:', { error: err.message }));
       return res.status(500).json({ error: 'Failed to generate export' });
     }
 
@@ -127,7 +128,7 @@ const createExport = async (req, res) => {
       note: 'The file will be automatically deleted after 24 hours.'
     });
   } catch (error) {
-    console.error('Export creation error:', error);
+    log.error('Export creation error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -176,7 +177,7 @@ const downloadExport = async (req, res) => {
       action: 'data_export_downloaded',
       ip: req.ip,
       metadata: { token, filePath, format: format || 'json' }
-    }).catch(err => console.error('Audit log error:', err));
+    }).catch(err => log.error('Audit log error:', { error: err.message }));
 
     // Serve file in requested format
     if (format === 'zip') {
@@ -198,7 +199,7 @@ const downloadExport = async (req, res) => {
       res.sendFile(filePath); // Express will stream the file
     }
   } catch (error) {
-    console.error('Download error:', error);
+    log.error('Download error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -224,9 +225,9 @@ const cleanupExpiredExports = async () => {
         [record.id]
       );
     }
-    console.log(`Cleaned up ${expired.rows.length} expired exports`);
+    log.error("Cleaned up ${expired.rows.length} expired exports");
   } catch (error) {
-    console.error('Cleanup error:', error);
+    log.error('Cleanup error:', { error: error.message });
   }
 };
 

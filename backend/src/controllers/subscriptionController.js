@@ -33,7 +33,7 @@ const getPlans = async (req, res) => {
     
     res.json({ success: true, data: plans });
   } catch (error) {
-    console.error('Get plans error:', error);
+    log.error('Get plans error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -41,6 +41,7 @@ const getPlans = async (req, res) => {
 const userService = require('../services/userService');
 const db = require('../config/database');
 const { cancelArbSubscription } = require('../services/authorizeNetUtils');
+const log = require('../utils/logger');
 
 const getSubscription = async (req, res) => {
   try {
@@ -54,7 +55,7 @@ const getSubscription = async (req, res) => {
       data: subscription
     });
   } catch (error) {
-    console.error('Get subscription error:', error);
+    log.error('Get subscription error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -87,7 +88,7 @@ const createSubscription = async (req, res) => {
       message: 'Subscription created. Please complete payment to activate.'
     });
   } catch (error) {
-    console.error('Create subscription error:', error);
+    log.error('Create subscription error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -123,7 +124,7 @@ const pauseSubscription = async (req, res) => {
       message: 'Subscription paused for 30 days'
     });
   } catch (error) {
-    console.error('Pause subscription error:', error);
+    log.error('Pause subscription error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -158,7 +159,7 @@ const resumeSubscription = async (req, res) => {
       message: 'Subscription resumed'
     });
   } catch (error) {
-    console.error('Resume subscription error:', error);
+    log.error('Resume subscription error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -184,7 +185,7 @@ const cancelSubscription = async (req, res) => {
       try {
         await cancelArbSubscription(arbSubscriptionId);
       } catch (arbError) {
-        console.error('ARB cancellation failed (will proceed with DB update):', arbError.message || arbError);
+        log.error('ARB cancellation failed (will proceed with DB update)', { error: arbError.message || String(arbError) });
       }
     }
 
@@ -203,7 +204,7 @@ const cancelSubscription = async (req, res) => {
       message: 'Subscription cancelled. You will retain access until the end of your billing period.'
     });
   } catch (error) {
-    console.error('Cancel subscription error:', error);
+    log.error('Cancel subscription error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -245,7 +246,7 @@ const switchPlan = async (req, res) => {
       message: `Plan switched to ${newPlanKey}`
     });
   } catch (error) {
-    console.error('Switch plan error:', error);
+    log.error('Switch plan error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -269,7 +270,7 @@ const getInvoices = async (req, res) => {
       data: result.rows
     });
   } catch (error) {
-    console.error('Get invoices error:', error);
+    log.error('Get invoices error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

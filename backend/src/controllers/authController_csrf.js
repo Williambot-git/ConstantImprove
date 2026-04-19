@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const log = require('../utils/logger');
 const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
@@ -81,7 +82,7 @@ const register = async (req, res) => {
       csrfToken
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    log.error('Registration error:', { error: error.message });
     res.status(500).json({
       error: 'Registration failed',
       message: error.message
@@ -169,7 +170,7 @@ const login = async (req, res) => {
       csrfToken
     });
   } catch (error) {
-    console.error('Login error:', error);
+    log.error('Login error:', { error: error.message });
     res.status(500).json({
       error: 'Login failed',
       message: error.message
@@ -184,7 +185,7 @@ const logout = async (req, res) => {
     res.clearCookie('csrfToken');
     res.json({ message: 'Logged out successfully' });
   } catch (error) {
-    console.error('Logout error:', error);
+    log.error('Logout error:', { error: error.message });
     res.status(500).json({ error: 'Logout failed' });
   }
 };
@@ -223,7 +224,7 @@ const refreshToken = async (req, res) => {
       csrfToken
     });
   } catch (error) {
-    console.error('Refresh token error:', error);
+    log.error('Refresh token error:', { error: error.message });
     res.status(401).json({ error: 'Invalid refresh token' });
   }
 };

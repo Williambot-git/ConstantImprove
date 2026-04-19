@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const { setCsrfTokenCookie } = require('../middleware/authMiddleware_new');
+const log = require('../utils/logger');
 
 // ============ AUTH ============
 
@@ -39,7 +40,7 @@ const adminLogin = async (req, res) => {
     // Also return token in body for localStorage use
     res.json({ success: true, data: { username: admin.username, role: admin.role, token: accessToken } });
   } catch (error) {
-    console.error('Admin login error:', error);
+    log.error('Admin login error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -81,7 +82,7 @@ const getDashboardMetrics = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get dashboard metrics error:', error);
+    log.error('Get dashboard metrics error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -160,7 +161,7 @@ const getAffiliates = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get affiliates error:', error);
+    log.error('Get affiliates error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -210,7 +211,7 @@ const getAffiliate = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get affiliate error:', error);
+    log.error('Get affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -255,7 +256,7 @@ const createAffiliate = async (req, res) => {
       message: 'Affiliate created. Give them their recovery codes.'
     });
   } catch (error) {
-    console.error('Create affiliate error:', error);
+    log.error('Create affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -271,7 +272,7 @@ const suspendAffiliate = async (req, res) => {
     
     res.json({ success: true, message: 'Affiliate suspended' });
   } catch (error) {
-    console.error('Suspend affiliate error:', error);
+    log.error('Suspend affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -287,7 +288,7 @@ const reactivateAffiliate = async (req, res) => {
     
     res.json({ success: true, message: 'Affiliate reactivated' });
   } catch (error) {
-    console.error('Reactivate affiliate error:', error);
+    log.error('Reactivate affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -313,7 +314,7 @@ const regenerateAffiliateRecoveryKit = async (req, res) => {
       message: 'Recovery kit regenerated. Old codes are invalidated.'
     });
   } catch (error) {
-    console.error('Regenerate recovery kit error:', error);
+    log.error('Regenerate recovery kit error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -395,7 +396,7 @@ const getReferrals = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get referrals error:', error);
+    log.error('Get referrals error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -450,7 +451,7 @@ const getPayoutRequests = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get payout requests error:', error);
+    log.error('Get payout requests error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -491,7 +492,7 @@ const approvePayout = async (req, res) => {
     
     res.json({ success: true, message: 'Payout approved and logged' });
   } catch (error) {
-    console.error('Approve payout error:', error);
+    log.error('Approve payout error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -508,7 +509,7 @@ const rejectPayout = async (req, res) => {
     
     res.json({ success: true, message: 'Payout rejected' });
   } catch (error) {
-    console.error('Reject payout error:', error);
+    log.error('Reject payout error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -549,7 +550,7 @@ const logManualPayout = async (req, res) => {
     
     res.json({ success: true, message: 'Manual payout logged successfully' });
   } catch (error) {
-    console.error('Log manual payout error:', error);
+    log.error('Log manual payout error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -573,7 +574,7 @@ const getSettings = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get settings error:', error);
+    log.error('Get settings error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -604,7 +605,7 @@ const updateSettings = async (req, res) => {
     
     res.json({ success: true, message: 'Settings updated' });
   } catch (error) {
-    console.error('Update settings error:', error);
+    log.error('Update settings error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -636,7 +637,7 @@ const resetAffiliatePassword = async (req, res) => {
 
     res.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
-    console.error('Reset affiliate password error:', error);
+    log.error('Reset affiliate password error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -689,7 +690,7 @@ const getTaxTransactions = async (req, res) => {
     const { rows } = await db.query(query, params);
     res.json({ success: true, data: rows });
   } catch (error) {
-    console.error('GetTaxTransactions error:', error);
+    log.error('GetTaxTransactions error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -748,7 +749,7 @@ const getTaxSummary = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('GetTaxSummary error:', error);
+    log.error('GetTaxSummary error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -815,7 +816,7 @@ const getNexusOverview = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('getNexusOverview error:', error);
+    log.error('getNexusOverview error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -870,7 +871,7 @@ const exportTaxTransactionsCSV = async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="tax-transactions-${new Date().toISOString().split('T')[0]}.csv"`);
     res.send([header, ...csvRows].join('\n'));
   } catch (error) {
-    console.error('ExportTaxCSV error:', error);
+    log.error('ExportTaxCSV error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -920,7 +921,7 @@ const createAffiliateCode = async (req, res) => {
       message: 'Affiliate code created'
     });
   } catch (error) {
-    console.error('Create affiliate code error:', error);
+    log.error('Create affiliate code error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -940,7 +941,7 @@ const getAffiliateCodes = async (req, res) => {
     
     res.json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('Get affiliate codes error:', error);
+    log.error('Get affiliate codes error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -959,7 +960,7 @@ const updateAffiliateCodeDiscount = async (req, res) => {
     
     res.json({ success: true, message: 'Discount updated' });
   } catch (error) {
-    console.error('Update affiliate code discount error:', error);
+    log.error('Update affiliate code discount error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -988,7 +989,7 @@ const deleteAffiliate = async (req, res) => {
     await db.query('DELETE FROM affiliates WHERE id = $1', [id]);
     res.json({ success: true, message: 'Affiliate permanently deleted' });
   } catch (error) {
-    console.error('Delete affiliate error:', error);
+    log.error('Delete affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -1003,7 +1004,7 @@ const archiveAffiliate = async (req, res) => {
     if (!result.rows.length) return res.status(404).json({ error: 'Affiliate not found' });
     res.json({ success: true, message: 'Affiliate archived', data: result.rows[0] });
   } catch (error) {
-    console.error('Archive affiliate error:', error);
+    log.error('Archive affiliate error', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

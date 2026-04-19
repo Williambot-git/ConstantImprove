@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 const getProfile = async (req, res) => {
   // Return safe user profile (exclude sensitive fields)
@@ -65,7 +66,7 @@ const updateProfile = async (req, res) => {
       message: 'Profile updated successfully'
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    log.error('Update profile error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -91,7 +92,7 @@ const getDevices = async (req, res) => {
       data: devices
     });
   } catch (error) {
-    console.error('Get devices error:', error);
+    log.error('Get devices error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -112,7 +113,7 @@ const revokeDevice = async (req, res) => {
       message: `Device ${deviceId} revoked successfully`
     });
   } catch (error) {
-    console.error('Revoke device error:', error);
+    log.error('Revoke device error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -185,7 +186,7 @@ const getActivity = async (req, res) => {
     } catch (err) {
       // Non-fatal: subscription query failure should not break the whole endpoint.
       // Log and continue with whatever account/login activities we already collected.
-      console.error('getActivity: could not fetch subscription events:', err.message);
+      log.error('getActivity: could not fetch subscription events:', { error: err.message });
     }
 
     // Sort by timestamp descending
@@ -199,7 +200,7 @@ const getActivity = async (req, res) => {
       data: recent
     });
   } catch (error) {
-    console.error('Error fetching activity:', error);
+    log.error('Error fetching activity:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -219,7 +220,7 @@ const getUsage = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Error fetching usage:', error);
+    log.error('Error fetching usage:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -238,7 +239,7 @@ const deleteAccount = async (req, res) => {
     
     res.status(200).json({ success: true, message: 'Account deleted successfully' });
   } catch (error) {
-    console.error('Delete account error:', error);
+    log.error('Delete account error:', { error: error.message });
     res.status(500).json({ error: 'Failed to delete account. Please try again.' });
   }
 };
