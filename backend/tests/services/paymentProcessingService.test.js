@@ -219,6 +219,41 @@ describe('paymentProcessingService', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
+  // TEST 3b: getInvoiceStatus throws — inner catch handles, outer continues
+  // Line 72 outer catch: plisioService.getInvoiceStatus throws while
+  // resolving invoice chain. The inner try/catch (lines 34-74) catches it,
+  // logs the error, and the outer try block ends gracefully — the subscription
+  // was never found (rows === 0 after both direct query AND chain resolution),
+  // so the function returns early from line 77-79.
+  // ─────────────────────────────────────────────────────────────────────────
+  it('getInvoiceStatus throws during invoice chain resolution — returns early without side effects', async () => {
+    // Only the direct SELECT runs; getInvoiceStatus throws before any candidate query.
+    // So the call sequence is just: 1 SELECT → getInvoiceStatus throws → return.
+    let callIndex = 0;
+    _origDbQuery.mockImplementation(() => {
+      callIndex++;
+      // Only one call: the direct SELECT that finds nothing.
+      return Promise.resolve({ rows: [] });
+    });
+
+    // getInvoiceStatus throws → inner catch at line 72 logs and re-throws nothing
+    // (the catch block at line 72 only contains console.error, no throw).
+    // After the inner catch, subResult.rows.length is still 0, so line 77 fires.
+    plisioService.getInvoiceStatus.mockRejectedValue(new Error('Plisio API unreachable'));
+
+    await processPlisioPaymentAsync('inv_unreachable', 'tx_999', '49.99', 'USD');
+
+    // getInvoiceStatus was called once trying to resolve the chain
+    expect(plisioService.getInvoiceStatus).toHaveBeenCalledWith('inv_unreachable');
+
+    // No promo, no VPN account, no email, no commission (subscription never found)
+    expect(promoService.markPromoCodeUsed).not.toHaveBeenCalled();
+    expect(createVpnAccount).not.toHaveBeenCalled();
+    expect(emailService.sendAccountCreatedEmail).not.toHaveBeenCalled();
+    expect(applyAffiliateCommissionIfEligible).not.toHaveBeenCalled();
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
   // TEST 4: Promo code is marked as used when subscription has promo_code_id
   // ─────────────────────────────────────────────────────────────────────────
   it('subscription with promo_code_id — marks promo code as used', async () => {
