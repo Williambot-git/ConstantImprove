@@ -86,7 +86,6 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
     // Mark promo code as used if applicable
     if (subscription.promo_code_id) {
       await promoService.markPromoCodeUsed(subscription.promo_code_id);
-      console.log(`Promo code ${subscription.promo_code_id} marked as used`);
     }
 
     // Update subscription status to active
@@ -151,16 +150,12 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
 
     // Process referral commission if referral code exists
     if (subscription.referral_code) {
-      console.log(`Referral code found: ${subscription.referral_code}`);
       const commissionCents = await applyAffiliateCommissionIfEligible({
         affiliateCode: subscription.referral_code,
         accountNumber: subscription.account_number,
         plan: subscription.plan_id,
         amountCents: amountCents
       });
-      if (commissionCents) {
-        console.log(`💰 Commission $${(commissionCents / 100).toFixed(2)} credited for referral`);
-      }
     }
 
     // Create payment record
@@ -179,7 +174,6 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
       tx_id || effectiveInvoiceId
     ]);
 
-    console.log(`✅ Payment processed for user ${userId}, subscription ${subscription.id}`);
   } catch (error) {
     console.error('Async Plisio payment processing error:', error);
   }
@@ -284,7 +278,6 @@ async function processPaymentsCloudPaymentAsync(data) {
       data.id
     ]);
 
-    console.log(`✅ PaymentsCloud payment processed for user ${userId}, subscription ${subscription.id}`);
   } catch (error) {
     console.error('Async PaymentsCloud payment processing error:', error);
   }

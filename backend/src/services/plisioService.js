@@ -28,8 +28,6 @@ class PlisioService {
       const url = `${this.baseUrl}/invoices/new?${params.toString()}`;
       const response = await axios.get(url);
 
-      console.log('Plisio createInvoice raw response:', JSON.stringify(response.data, null, 2));
-
       if (response.data.status === 'success') {
         const data = response.data.data || {};
         return {
