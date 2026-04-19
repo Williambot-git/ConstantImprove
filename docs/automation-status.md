@@ -127,6 +127,7 @@
 | 127 | fix(frontend): replace truncated Cloudflare token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
 | 128 | test(backend): add totp utility unit tests (14 cases, 100% — generateSecret, generateQRCode, verifyToken, generateRecoveryCodes) — new tests/utils/ directory | **DONE** (commit 92e36a6) |
 | 129 | test(backend): add 3 branch-coverage tests — ARB VPN deactivation throw (invoicePollingService line 183), purewl_uuid falsy skip (line 180), suspendExpiredTrials inner catch (vpnAccountScheduler line 91) | **DONE** (commit 1f382e4) |
+| 130 | test(backend): add branch coverage — purewlService constructor throw (line 12) + invoicePollingService getAttempts null/NaN edge cases + ARB inner catch coverage; purewlService 100% line coverage | **DONE** (commit 898f44d) |
 
 ---
 
@@ -194,9 +195,10 @@ aa8bf4b docs: update automation-status — task 124, invoicePollingService timeo
 
 ## Notes for William
 
-- **Backend test suite: 1,161 tests passing** (37 test suites, all passing)
+- **Backend test suite: 1,165 tests passing** (37 test suites, all passing)
 - **Frontend test suite: 798 tests passing** (48 test suites, 100% passing; 2 skipped, 1 todo)
-- **Total test count: 1,959 tests** across frontend and backend (1,161 backend + 798 frontend)
+- **Total test count: 1,963 tests** across frontend and backend (1,165 backend + 798 frontend)
+- **purewlService: 100% line coverage** — added constructor throw test; 34 tests total
 - **frontend/README.md updated** — removed 50+ stale TODO markers; reflects actual implemented state (all pages, components, integrations documented as complete/live)
 - **cleanupService: 27 tests, 100% line/branch/function coverage** (new file — all 6 cleanup functions + runAllCleanup orchestrator tested)
 - **Backend services with tests: 14** (all have tests)
