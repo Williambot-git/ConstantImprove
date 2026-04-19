@@ -127,9 +127,10 @@
 | 127 | fix(frontend): replace truncated Cloudflare token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
 | 128 | test(backend): add totp utility unit tests (14 cases, 100% — generateSecret, generateQRCode, verifyToken, generateRecoveryCodes) — new tests/utils/ directory | **DONE** (commit 92e36a6) |
 | 129 | test(backend): add 3 branch-coverage tests — ARB VPN deactivation throw (invoicePollingService line 183), purewl_uuid falsy skip (line 180), suspendExpiredTrials inner catch (vpnAccountScheduler line 91) | **DONE** (commit 1f382e4) |
-| 130 | test(backend): add branch coverage — purewlService constructor throw (line 12) + invoicePollingService getAttempts null/NaN edge cases + ARB inner catch coverage; purewlService 100% line coverage | **DONE** (commit 898f44d) |
+| 130 | test(backend): add branch coverage — purewlService constructor throw + invoicePollingService getAttempts edge cases + ARB inner catch; purewlService 100% line coverage | **DONE** (commit 898f44d) |
 | 131 | fix(vpnAccountScheduler): wrap UPDATE queries in try/catch so one bad row can't stop the cleanup loop (cleanupExpiredAccounts + cleanupCanceledSubscriptions) | **DONE** (commit f1e865f) |
 | 132 | test(paymentProcessingService): add getInvoiceStatus throw test — plisioService.getInvoiceStatus throws while resolving invoice chain (line 72 inner catch); 1,168 backend tests | **DONE** (commit 7356f21) |
+| 133 | fix(webhookController.test.js): webhookController migrated to logger.js but tests spied on console.* — added mockLogger passthrough that records + forwards calls, updated 4 assertion sites (env-missing warns + logAuthorizeEvent fs-error); 1,175 backend tests green | **DONE** (commit 64d18a6) |
 
 ---
 
