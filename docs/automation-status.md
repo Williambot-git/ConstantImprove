@@ -120,6 +120,7 @@
 | 120 | feat(userController): getActivity — replace TODO with real subscription event queries; surfaces trial/active/canceled/expired subscription events in activity feed (+3 tests, 21 total) | **DONE** (commit 940cfd0) |
 | 121 | test(ziptaxService): add 5 branch-coverage tests — CAN country branch, metadata defaults, error code !=100 branches (2 paths), name defaulting; branch 83.33%→96.29% | **DONE** (commit 5a6b91f) |
 | 122 | test(invoicePollingService): add ARB null-skip test; removed 1 vpnResellersService.deactivateAccount test (prototype method not mockable via module mock) | **DONE** (commit 5a6b91f) |
+| 123 | cleanupService unit tests (27 cases, 100% line/branch/function coverage — all 6 cleanup functions + runAllCleanup orchestrator) | **DONE** (commit d2d462b) |
 
 ---
 
@@ -180,18 +181,17 @@
 ## Recent Commits (from this session)
 
 ```
+d2d462b test(cleanupService): add unit tests — 27 cases, 100% line/branch/function coverage
+84688ca docs: update automation-status — tasks 121-122, ziptaxService branch 83.33%→96.29%, 1,862 total tests
 5a6b91f test: add branch coverage tests for ziptaxService and invoicePollingService
-940cfd0 feat(userController): getActivity — replace TODO with real subscription event queries (+3 tests, 21 total)
-a93f420 docs: update automation-status — +23 NexusTab tests (776 frontend tests total, 1,839 overall)
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,086 tests passing** (35 test suites, all passing; 16 suites fail due to pre-existing argon2/jsonwebtoken module-not-found in test environment — unrelated to any code changes)
+- **Backend test suite: 1,099 tests passing** (35 test suites, all passing; 16 suites fail due to pre-existing argon2/jsonwebtoken module-not-found in test environment — unrelated to any code changes)
 - **Frontend test suite: 776 tests passing** (47 test suites, 100% passing)
-- **Total test count: 1,862 tests** across frontend and backend (1,086 backend + 776 frontend; +20 this session from ziptaxService + invoicePollingService additions)
-- **ziptaxService branch coverage: 96.29%** (was 83.33% — improved via 5 new tests covering CAN country branch, metadata defaults, error code !=100 branches, name defaulting)
-- **invoicePollingService: 15 tests** (added 1 ARB null-skip test; 1 test for vpnResellersService.deactivateAccount removed due to prototype method mocking limitation)
+- **Total test count: 1,875 tests** across frontend and backend (1,099 backend + 776 frontend)
+- **cleanupService: 27 tests, 100% line/branch/function coverage** (new file — all 6 cleanup functions + runAllCleanup orchestrator tested)
 - **Backend services with tests: 14** (all have tests)
 - **Backend controllers with tests: 16** (admin, affiliateAuth, affiliateController, affiliateDashboardController, ahoyman, authController, authController_csrf, customer, export, pageController, payment, subscription, support, user, vpn, webhook)
 - **Backend routes with tests: 15** — all route files have test coverage
@@ -202,4 +202,4 @@ a93f420 docs: update automation-status — +23 NexusTab tests (776 frontend test
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-19T11:17:00Z*
+*Last updated: 2026-04-19T11:46:00Z*
