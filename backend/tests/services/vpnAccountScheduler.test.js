@@ -230,6 +230,91 @@ describe('vpnAccountScheduler', () => {
   // cleanupAbandonedCheckouts
   // ============================================================
 
+  // -------------------------------------------------------------------------
+  // cleanupExpiredAccounts — line 18 (now 24 after fix): outer catch inside for loop
+  // UPDATE db.query is now inside its own try/catch (was previously unguarded).
+  // When UPDATE throws, the error is caught and logged, loop continues to next row.
+  // -------------------------------------------------------------------------
+  describe('cleanupExpiredAccounts — UPDATE query can now throw without stopping loop', () => {
+    it('UPDATE throw during cleanupExpiredAccounts — error logged, loop processes all rows', async () => {
+      // Simulate: SELECT finds 2 rows; UPDATE for row[0] throws; UPDATE for row[1] succeeds
+      const rows = [
+        { id: 50, purewl_uuid: 'uuid-expired-1', user_id: 501 },
+        { id: 51, purewl_uuid: 'uuid-expired-2', user_id: 502 }
+      ];
+
+      // Mutable flag — checked BEFORE incrementing, so first UPDATE throws and subsequent ones succeed.
+      // (closure variable survives jest.clearAllMocks() because clearAllMocks doesn't touch closures)
+      let updateShouldThrow = true;
+
+      mockQuery.mockImplementation((sql) => {
+        if (sql.includes('SELECT')) return Promise.resolve({ rows });
+        // First UPDATE call: check flag (true → throw), then set flag to false.
+        // Second UPDATE call: flag is now false → succeeds.
+        if (updateShouldThrow) {
+          updateShouldThrow = false;
+          return Promise.reject(new Error('DB write failure'));
+        }
+        return Promise.resolve({});
+      });
+      mockDisableAccount.mockResolvedValue({});
+
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      await expect(cleanupExpiredAccounts()).resolves.not.toThrow();
+
+      // Count UPDATE calls via mock call history (jest.clearAllMocks resets this)
+      const updateCalls = mockQuery.mock.calls.filter(c => c[0] && c[0].includes('UPDATE vpn_accounts'));
+
+      // Both disableAccount calls fired (one per row, none threw)
+      expect(mockDisableAccount).toHaveBeenCalledTimes(2);
+      // Two UPDATE calls were made (one per row)
+      expect(updateCalls.length).toBe(2);
+      // Warning was logged for the failed UPDATE
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Failed to update vpn_accounts status for id', 50, 'DB write failure'
+      );
+      warnSpy.mockRestore();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // cleanupCanceledSubscriptions — same pattern as cleanupExpiredAccounts
+  // -------------------------------------------------------------------------
+  describe('cleanupCanceledSubscriptions — UPDATE query can now throw without stopping loop', () => {
+    it('UPDATE throw during cleanupCanceledSubscriptions — error logged, loop processes all rows', async () => {
+      const rows = [
+        { id: 60, purewl_uuid: 'uuid-cancel-1' },
+        { id: 61, purewl_uuid: 'uuid-cancel-2' }
+      ];
+
+      // Mutable flag — first UPDATE throws, subsequent ones succeed
+      let updateShouldThrow = true;
+
+      mockQuery.mockImplementation((sql) => {
+        if (sql.includes('SELECT')) return Promise.resolve({ rows });
+        if (updateShouldThrow) {
+          updateShouldThrow = false;
+          return Promise.reject(new Error('Connection lost'));
+        }
+        return Promise.resolve({});
+      });
+      mockDisableAccount.mockResolvedValue({});
+
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      await expect(cleanupCanceledSubscriptions()).resolves.not.toThrow();
+
+      // Count UPDATE calls via mock call history (jest.clearAllMocks resets this)
+      const updateCalls = mockQuery.mock.calls.filter(c => c[0] && c[0].includes('UPDATE vpn_accounts'));
+
+      expect(mockDisableAccount).toHaveBeenCalledTimes(2);
+      expect(updateCalls.length).toBe(2);
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Failed to update vpn_accounts status for id', 60, 'Connection lost'
+      );
+      warnSpy.mockRestore();
+    });
+  });
+
   describe('cleanupAbandonedCheckouts', () => {
     it('should delete old subscriptions and their pending payments (3 DB calls)', async () => {
       const deletedRows = {

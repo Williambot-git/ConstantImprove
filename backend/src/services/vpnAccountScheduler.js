@@ -19,12 +19,18 @@ async function cleanupExpiredAccounts() {
       console.warn('Failed to deactivate VPN Reseller account', row.purewl_uuid, err.message);
     }
 
-    await db.query(
-      `UPDATE vpn_accounts
-       SET status = 'expired', updated_at = NOW()
-       WHERE id = $1`,
-      [row.id]
-    );
+    try {
+      await db.query(
+        `UPDATE vpn_accounts
+         SET status = 'expired', updated_at = NOW()
+         WHERE id = $1`,
+        [row.id]
+      );
+    } catch (err) {
+      // Swallow UPDATE failures — the row may already be in the desired state
+      // or the DB may have already processed it. Don't block other rows.
+      console.warn('Failed to update vpn_accounts status for id', row.id, err.message);
+    }
   }
 }
 
@@ -47,12 +53,17 @@ async function cleanupCanceledSubscriptions() {
       console.warn('Failed to deactivate canceled VPN Reseller account', row.purewl_uuid, err.message);
     }
 
-    await db.query(
-      `UPDATE vpn_accounts
-       SET status = 'expired', updated_at = NOW()
-       WHERE id = $1`,
-      [row.id]
-    );
+    try {
+      await db.query(
+        `UPDATE vpn_accounts
+         SET status = 'expired', updated_at = NOW()
+         WHERE id = $1`,
+        [row.id]
+      );
+    } catch (err) {
+      // Swallow UPDATE failures — don't let one bad row block others
+      console.warn('Failed to update vpn_accounts status for id', row.id, err.message);
+    }
   }
 }
 
