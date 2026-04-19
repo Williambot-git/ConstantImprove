@@ -122,6 +122,7 @@
 | 122 | test(invoicePollingService): add ARB null-skip test; removed 1 vpnResellersService.deactivateAccount test (prototype method not mockable via module mock) | **DONE** (commit 5a6b91f) |
 | 123 | cleanupService unit tests (27 cases, 100% line/branch/function coverage — all 6 cleanup functions + runAllCleanup orchestrator) | **DONE** (commit d2d462b) |
 | 124 | test(invoicePollingService): add timeout_no_payment branch test (line 98) — subscription at 3rd checkpoint with pending invoice sets poll_result=timeout_no_payment in metadata; invoicePollingService line 97.33%→98.66%, total 1,100 backend tests | **DONE** (commit 542974c) |
+| 125 | test(frontend): add Button ghost hover coverage (+3 tests: ghost enter/leave/disabled-guard) + Select focus/blur coverage (+3 tests: focus apply, blur revert, error-guard) | **DONE** (commit 26da963) |
 
 ---
 
@@ -190,8 +191,8 @@ aa8bf4b docs: update automation-status — task 124, invoicePollingService timeo
 ## Notes for William
 
 - **Backend test suite: 1,144 tests passing** (36 test suites, all passing)
-- **Frontend test suite: 778 tests passing** (47 test suites, 100% passing; 2 skipped, 1 todo)
-- **Total test count: 1,922 tests** across frontend and backend (1,144 backend + 778 frontend)
+- **Frontend test suite: 781 tests passing** (47 test suites, 100% passing; 2 skipped, 1 todo)
+- **Total test count: 1,925 tests** across frontend and backend (1,144 backend + 781 frontend)
 - **frontend/README.md updated** — removed 50+ stale TODO markers; reflects actual implemented state (all pages, components, integrations documented as complete/live)
 - **cleanupService: 27 tests, 100% line/branch/function coverage** (new file — all 6 cleanup functions + runAllCleanup orchestrator tested)
 - **Backend services with tests: 14** (all have tests)
