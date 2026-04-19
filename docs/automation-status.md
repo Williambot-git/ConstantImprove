@@ -223,3 +223,17 @@
 
 ## 2026-04-19T21:00:00Z
 - **test(frontend): api/client.js branch coverage** — added 17 branch tests covering qs ternary branches (`getTaxTransactions`, `getTaxSummary`, `getNexusOverview`, `getAffiliates`, `getPayoutRequests`, `getAdminReferrals` with params and empty-params), `initiateCheckout` edge cases (with/without affiliateId, all options payload). api/client.js branch: 53.57% → 54.76%. Note: interceptor callback branches (lines 19-26, 30-55) structurally uncovered — mock setup replaces axios methods before interceptors execute; documented in test file header. **1,990 total tests passing** (1,175 backend + 815 frontend).
+
+## 2026-04-19T22:30:00Z
+- **Structured logger migration — phase 2 complete**: Migrated remaining raw `console.*` calls to structured `logger.js` utility across all backend services/middleware that hadn't been updated yet:
+  - `securityMiddleware.js`: script integrity monitoring (warn/error), CSP violation reports (warn in dev, error in prod)
+  - `authorizeNetUtils.js`: hosted response debug logging
+  - `cleanupService.js`: info/debug/error for all 6 cleanup operations
+  - `emailService.js`: info for email sending
+  - `invoicePollingService.js`: info/debug/warn/error for polling checkpoints and ARB lifecycle
+  - `userService.js`: warn for VPN expiry sync failures during renewal
+  - `vpnAccountScheduler.js`: warn for individual row UPDATE failures, error for catch blocks
+- **Test fixes**: `cleanupService.test.js` — fixed regex `/Deleted \d+ old connection/` → `/Deleted old connection/` since structured logger puts count in JSON metadata; `securityMiddleware.test.js` — fixed `handleCSPReport` warn assertion to use `toHaveBeenCalledWith` with matchers (order-independent) instead of indexing into shared mock; `invoicePollingService.test.js` and `vpnAccountScheduler.test.js` — updated for structured logger mock integration.
+- **Confirmed**: `DEBUG_AUTHORIZE_NET === 'true'` check in authorizeNetUtils.js is syntactically correct (three `=` signs confirmed via hex dump; `git diff` display of `=***` was line-redaction artifact).
+- **1,990 tests passing** (1,175 backend + 815 frontend). 37 backend suites, 48 frontend suites — all passing.
+- Remaining `console.*` calls in backend are in controllers (~180 calls) and a few external-service wrappers (purewlService, plisioService, ziptaxService, promoService, paymentProcessingService) — these can be migrated in a future phase if desired.
