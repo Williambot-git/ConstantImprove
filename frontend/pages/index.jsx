@@ -171,6 +171,7 @@ export default function Home() {
       <footer style={styles.footer}>
         <div style={styles.footerSocial}>
           <a href="https://www.instagram.com/ahoy_vpn/" target="_blank" rel="noreferrer" style={styles.socialLink} aria-label="Follow AhoyVPN on Instagram">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png"
               alt="Instagram"
@@ -181,6 +182,7 @@ export default function Home() {
             Instagram
           </a>
           <a href="https://www.facebook.com/AhoyVPN" target="_blank" rel="noreferrer" style={styles.socialLink} aria-label="Follow AhoyVPN on Facebook">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg"
               alt="Facebook"
