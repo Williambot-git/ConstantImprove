@@ -142,9 +142,52 @@ const getActivity = async (req, res) => {
       });
     }
     
-    // 3. Subscription events (if any)
-    // TODO: query subscription table for user's subscription events
-    
+    // 3. Subscription events — query the subscriptions table so users see
+    //    their actual subscription lifecycle in the activity feed.
+    //    Status values: 'trialing' | 'active' | 'canceled' | 'expired'
+    //    We surface the most notable transitions (activation, cancellation).
+    try {
+      const subResult = await db.query(
+        `SELECT status, created_at, updated_at
+         FROM subscriptions
+         WHERE user_id = $1
+         ORDER BY created_at ASC`,
+        [user.id]
+      );
+
+      for (const sub of subResult.rows) {
+        const ts = new Date(sub.created_at).toISOString();
+        let title = 'Subscription';
+        let details = `Subscription status: ${sub.status}`;
+
+        if (sub.status === 'active') {
+          // Surface activation (transition from trialing or initial activation)
+          title = 'Subscription Activated';
+          details = 'VPN subscription is now active';
+        } else if (sub.status === 'canceled') {
+          title = 'Subscription Canceled';
+          details = 'VPN subscription has been canceled';
+        } else if (sub.status === 'expired') {
+          title = 'Subscription Expired';
+          details = 'VPN subscription has expired';
+        } else if (sub.status === 'trialing') {
+          title = 'Trial Started';
+          details = 'Trial subscription initiated';
+        }
+
+        activities.push({
+          id: `subscription_${sub.id || sub.status}`,
+          title,
+          timestamp: ts,
+          details
+        });
+      }
+    } catch (err) {
+      // Non-fatal: subscription query failure should not break the whole endpoint.
+      // Log and continue with whatever account/login activities we already collected.
+      console.error('getActivity: could not fetch subscription events:', err.message);
+    }
+
     // Sort by timestamp descending
     activities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     

@@ -300,6 +300,70 @@ describe('userController', () => {
       // Actually the code doesn't throw — sort handles null gracefully
       expect(mockRes.status).toHaveBeenCalledWith(200);
     });
+
+    it('200: returns subscription events from subscriptions table', async () => {
+      // Mock the subscriptions query to return rows
+      mockQuery.mockResolvedValueOnce({
+        rows: [
+          { id: 'sub_1', status: 'trialing', created_at: '2026-01-01T00:00:00Z', updated_at: '2026-01-01T00:00:00Z' },
+          { id: 'sub_2', status: 'active',   created_at: '2026-01-08T00:00:00Z', updated_at: '2026-01-08T00:00:00Z' },
+        ]
+      });
+
+      const mockReq = { user: { id: 'user_123', created_at: '2026-01-01T00:00:00Z', last_login: null } };
+
+      await getActivity(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      const jsonCall = mockRes.json.mock.calls[0][0];
+      expect(jsonCall.success).toBe(true);
+
+      // Should have account creation + 2 subscription events
+      expect(jsonCall.data.length).toBeGreaterThanOrEqual(2);
+
+      // First event is the oldest (sorted desc), which should be account creation
+      // or trialing depending on timestamps
+      const titles = jsonCall.data.map(e => e.title);
+      expect(titles).toContain('Trial Started');
+      expect(titles).toContain('Subscription Activated');
+    });
+
+    it('200: surfaces canceled and expired subscription events', async () => {
+      mockQuery.mockResolvedValueOnce({
+        rows: [
+          { id: 'sub_3', status: 'canceled', created_at: '2026-02-01T00:00:00Z', updated_at: '2026-02-01T00:00:00Z' },
+          { id: 'sub_4', status: 'expired',  created_at: '2026-03-01T00:00:00Z', updated_at: '2026-03-01T00:00:00Z' },
+        ]
+      });
+
+      const mockReq = { user: { id: 'user_123', created_at: null, last_login: null } };
+
+      await getActivity(mockReq, mockRes);
+
+      expect(mockRes.status).toHaveBeenCalledWith(200);
+      const jsonCall = mockRes.json.mock.calls[0][0];
+      const titles = jsonCall.data.map(e => e.title);
+      expect(titles).toContain('Subscription Canceled');
+      expect(titles).toContain('Subscription Expired');
+    });
+
+    it('200: subscription query failure is non-fatal — returns account/login events only', async () => {
+      // mockQuery is the shared db.query mock. When it rejects, the subscription
+      // query in the try/catch block fails but the function still returns 200.
+      mockQuery.mockImplementation(() => Promise.reject(new Error('DB connection lost')));
+
+      const mockReq = { user: { id: 'user_123', created_at: '2026-01-01T00:00:00Z', last_login: null } };
+      const localRes = { status: jest.fn().mockReturnThis(), json: jest.fn() };
+
+      await getActivity(mockReq, localRes);
+
+      expect(localRes.status).toHaveBeenCalledWith(200);
+      const jsonCall = localRes.json.mock.calls[0][0];
+      expect(jsonCall.success).toBe(true);
+      // Account creation event should still be present even though subscription query failed
+      const titles = jsonCall.data.map(e => e.title);
+      expect(titles).toContain('Account Created');
+    });
   });
 
   // ============================================================
