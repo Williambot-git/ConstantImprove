@@ -26,6 +26,7 @@
 
 const db = require('../config/database');
 const crypto = require('crypto');
+const log = require('../utils/logger');
 
 // =============================================================================
 // MINIMUM PAYOUT CONFIGURATION
@@ -141,8 +142,10 @@ const applyAffiliateCommissionIfEligible = async ({
   );
 
   if (affiliateResult.rows.length === 0) {
-    // Unknown or inactive affiliate code — silent no-op (not an error)
-    console.log(`Affiliate not found for code: ${affiliateCode}`);
+    // Unknown or inactive affiliate code — silent no-op (not an error).
+    // Downgrade to debug level: this fires on every non-affiliate referral,
+    // so info level would be noisy in production logs.
+    log.debug(`Affiliate not found for code: ${affiliateCode}`);
     return null;
   }
 
@@ -178,7 +181,14 @@ const applyAffiliateCommissionIfEligible = async ({
     ]
   );
 
-  console.log(`💰 Commission $${(finalCommissionCents / 100).toFixed(2)} credited to affiliate ${affiliate.username} (${affiliate.id})`);
+  log.info(`Commission credited`, {
+    affiliateId: affiliate.id,
+    affiliateUsername: affiliate.username,
+    commissionCents: finalCommissionCents,
+    commissionDollars: (finalCommissionCents / 100).toFixed(2),
+    plan: plan || 'signup',
+    amountCents,
+  });
 
   return finalCommissionCents;
 };
