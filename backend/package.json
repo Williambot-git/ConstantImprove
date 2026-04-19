@@ -8,7 +8,7 @@
     "dev": "nodemon src/index.js",
     "migrate": "node db/runMigrations.js",
     "seed": "node db/seed.js",
-    "lint": "eslint src",
+    "lint": "./node_modules/.bin/eslint src",
     "test": "jest --coverage",
     "webhook:test": "node scripts/test-webhook.js"
   },
