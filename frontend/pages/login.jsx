@@ -67,6 +67,7 @@ export default function Login() {
               error={error ? '' : undefined}
             >
               <Input
+                id="account-number"
                 type="text"
                 placeholder="Enter your numeric account number"
                 value={accountNumber}
@@ -78,6 +79,7 @@ export default function Login() {
 
             <FormGroup label="Password">
               <Input
+                id="password"
                 type="password"
                 placeholder="Enter your password"
                 value={password}
