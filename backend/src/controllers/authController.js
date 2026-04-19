@@ -254,8 +254,7 @@ const forgotPassword = async (req, res) => {
     );
     
     // TODO: Send email with reset link
-    // For now, just return success
-    console.log(`Password reset token for ${email}: ${token}`);
+    // NOTE: console.log of token removed — security: plaintext tokens must never appear in logs
     
     res.json({
       success: true,
