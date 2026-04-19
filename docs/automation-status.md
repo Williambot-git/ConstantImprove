@@ -113,6 +113,7 @@
 | 116 | fix(frontend): downloads.test.jsx — Linux platform added to DOWNLOADS array (6 platforms, not 5); update test assertions + regex filter to include 🐧 Linux | **DONE** (commit 6c62d11) |
 | 117 | fix(authController): remove console.log of plaintext password reset token in forgotPassword — security fix (tokens must never appear in logs) | **DONE** (commit 15d23ab) |
 | 118 | fix(frontend): add eslint-disable for social media img tags in index.jsx footer — consistent with existing pattern in _app.jsx and checkout.jsx | **DONE** (commit e956f0e) |
+| 119 | test(frontend): Form.jsx focus/blur coverage (Input + Select onFocus/onBlur) → 100% line, 96.15% branch; Button.jsx ghost hover coverage (onMouseEnter/onMouseLeave) → 100% line, 95.83% branch | **DONE** (commits a56edf1, feee694) |
 
 ---
 
