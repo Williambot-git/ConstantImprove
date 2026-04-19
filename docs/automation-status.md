@@ -128,6 +128,8 @@
 | 128 | test(backend): add totp utility unit tests (14 cases, 100% — generateSecret, generateQRCode, verifyToken, generateRecoveryCodes) — new tests/utils/ directory | **DONE** (commit 92e36a6) |
 | 129 | test(backend): add 3 branch-coverage tests — ARB VPN deactivation throw (invoicePollingService line 183), purewl_uuid falsy skip (line 180), suspendExpiredTrials inner catch (vpnAccountScheduler line 91) | **DONE** (commit 1f382e4) |
 | 130 | test(backend): add branch coverage — purewlService constructor throw (line 12) + invoicePollingService getAttempts null/NaN edge cases + ARB inner catch coverage; purewlService 100% line coverage | **DONE** (commit 898f44d) |
+| 131 | fix(vpnAccountScheduler): wrap UPDATE queries in try/catch so one bad row can't stop the cleanup loop (cleanupExpiredAccounts + cleanupCanceledSubscriptions) | **DONE** (commit f1e865f) |
+| 132 | test(paymentProcessingService): add getInvoiceStatus throw test — plisioService.getInvoiceStatus throws while resolving invoice chain (line 72 inner catch); 1,168 backend tests | **DONE** (commit 7356f21) |
 
 ---
 
@@ -185,20 +187,14 @@
 
 ---
 
-## Recent Commits (from this session)
-
-```
-ec5c7a9 docs(frontend): update README.md — remove 50+ stale TODO markers, reflect actual implemented state
-ffa2fa7 fix(auth): wire forgotPassword email sending (was TODO) and add 53 unit tests
-aa8bf4b docs: update automation-status — task 124, invoicePollingService timeout_no_payment branch test, 1,100 backend tests
-```
+*Last updated: 2026-04-19T19:30:00Z*
 
 ## Notes for William
-
-- **Backend test suite: 1,165 tests passing** (37 test suites, all passing)
+- **Backend test suite: 1,168 tests passing** (37 test suites, all passing)
 - **Frontend test suite: 798 tests passing** (48 test suites, 100% passing; 2 skipped, 1 todo)
-- **Total test count: 1,963 tests** across frontend and backend (1,165 backend + 798 frontend)
-- **purewlService: 100% line coverage** — added constructor throw test; 34 tests total
+- **Total test count: 1,966 tests** across frontend and backend (1,168 backend + 798 frontend)
+- **vpnAccountScheduler resilience fix**: UPDATE queries in cleanupExpiredAccounts and cleanupCanceledSubscriptions now wrapped in individual try/catch — one bad row (constraint violation, row locked) no longer aborts the entire cleanup loop. Remaining rows are still processed and a warning is logged for the failure.
+- **paymentProcessingService branch coverage**: line 72 (plisioService.getInvoiceStatus throw during invoice chain resolution) now tested. When the API throws, the inner catch logs and continues; since no candidate invoice IDs resolve, the subscription is still not found and the function returns early — no side effects.
 - **frontend/README.md updated** — removed 50+ stale TODO markers; reflects actual implemented state (all pages, components, integrations documented as complete/live)
 - **cleanupService: 27 tests, 100% line/branch/function coverage** (new file — all 6 cleanup functions + runAllCleanup orchestrator tested)
 - **Backend services with tests: 14** (all have tests)
@@ -211,4 +207,4 @@ aa8bf4b docs: update automation-status — task 124, invoicePollingService timeo
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-19T18:00:00Z*
+*Last updated: 2026-04-19T19:30:00Z*
