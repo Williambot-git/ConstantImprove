@@ -121,6 +121,7 @@
 | 121 | test(ziptaxService): add 5 branch-coverage tests — CAN country branch, metadata defaults, error code !=100 branches (2 paths), name defaulting; branch 83.33%→96.29% | **DONE** (commit 5a6b91f) |
 | 122 | test(invoicePollingService): add ARB null-skip test; removed 1 vpnResellersService.deactivateAccount test (prototype method not mockable via module mock) | **DONE** (commit 5a6b91f) |
 | 123 | cleanupService unit tests (27 cases, 100% line/branch/function coverage — all 6 cleanup functions + runAllCleanup orchestrator) | **DONE** (commit d2d462b) |
+| 124 | test(invoicePollingService): add timeout_no_payment branch test (line 98) — subscription at 3rd checkpoint with pending invoice sets poll_result=timeout_no_payment in metadata; invoicePollingService line 97.33%→98.66%, total 1,100 backend tests | **DONE** (commit 542974c) |
 
 ---
 
