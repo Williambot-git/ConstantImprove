@@ -370,6 +370,102 @@ describe('userService', () => {
       expect(result.username).toMatch(/^user_12345_\d{4}$/);
       expect(result.accountId).toBe('vpn-account-err');
     });
+
+    // ── { renew: true } branch tests ──────────────────────────────────────────
+
+    it('renew:true — extends expiry on existing vpn_accounts row without calling VPN Resellers createAccount', async () => {
+      // Existing VPN account for user_id=1
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      db.query
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_acc1', purewl_password: 'secret_old' }] }) // existing lookup
+        .mockResolvedValueOnce({ rowCount: 1 })   // UPDATE expiry
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_acc1', purewl_password: 'secret_old', expiry_date: '2026-05-19' }] }); // SELECT updated row
+
+      const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
+
+      // createAccount must NOT be called — credentials must stay the same
+      expect(mockCreateAccount).not.toHaveBeenCalled();
+      // setExpiry must be called on VPN Resellers with existing UUID
+      expect(mockSetExpiry).toHaveBeenCalledTimes(1);
+      const [calledUuid, calledDate] = mockSetExpiry.mock.calls[0];
+      expect(calledUuid).toBe('uuid_123');
+      expect(calledDate).toMatch(/^\d{4}-\d{2}-\d{2}$/); // YYYY-MM-DD
+      // Returns existing credentials + renewed: true
+      expect(result.username).toBe('user_acc1');
+      expect(result.password).toBe('secret_old');
+      expect(result.accountId).toBe('uuid_123');
+      expect(result.renewed).toBe(true);
+    });
+
+    it('renew:true — updates local vpn_accounts expiry_date and updated_at', async () => {
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      db.query
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_456', purewl_username: 'user_acc2', purewl_password: 'pw456' }] })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_456', purewl_username: 'user_acc2', purewl_password: 'pw456', expiry_date: '2026-06-19' }] });
+
+      await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
+
+      // Second db.query call should be UPDATE with new expiry
+      const updateCall = db.query.mock.calls[1];
+      expect(updateCall[0]).toContain('UPDATE vpn_accounts');
+      expect(updateCall[0]).toContain('expiry_date');
+      expect(updateCall[1][0]).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    });
+
+    it('renew:true — VPN Resellers setExpiry failure does not throw', async () => {
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      db.query
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_789', purewl_username: 'user_acc3', purewl_password: 'pw789' }] })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_789', purewl_username: 'user_acc3', purewl_password: 'pw789', expiry_date: '2026-05-19' }] });
+      mockSetExpiry.mockRejectedValueOnce(new Error('VPN Resellers down'));
+
+      await expect(userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true })).resolves.toBeDefined();
+    });
+
+    it('renew:true — does not call VPN Resellers setExpiry when existing purewl_uuid is null', async () => {
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      db.query
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: null, purewl_username: 'user_acc4', purewl_password: 'pw4' }] })
+        .mockResolvedValueOnce({ rowCount: 1 })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: null, purewl_username: 'user_acc4', purewl_password: 'pw4', expiry_date: '2026-05-19' }] });
+
+      const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
+
+      expect(mockSetExpiry).not.toHaveBeenCalled();
+      expect(result.renewed).toBe(true);
+    });
+
+    it('renew:true — falls through to normal creation when no existing vpn_accounts row', async () => {
+      // No existing VPN account
+      db.query.mockResolvedValueOnce({ rows: [] });
+      // Normal creation path
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      mockCheckUsername.mockResolvedValueOnce({ data: { message: 'Username not taken' } });
+      mockCreateAccount.mockResolvedValueOnce({ data: { id: 'new_vpn_uuid', allowed_countries: ['US'] } });
+      mockSetExpiry.mockResolvedValueOnce(undefined);
+      db.query.mockResolvedValueOnce({ rows: [{ id: 20, purewl_uuid: 'new_vpn_uuid' }] });
+
+      const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
+
+      // Falls through to normal creation — createAccount IS called
+      expect(mockCreateAccount).toHaveBeenCalledTimes(1);
+      expect(result.renewed).toBeUndefined();
+    });
+
+    it('renew:false (default) — normal account creation unchanged', async () => {
+      User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
+      mockCheckUsername.mockResolvedValueOnce({ data: { message: 'Username not taken' } });
+      mockCreateAccount.mockResolvedValueOnce({ data: { id: 'brand_new_uuid', allowed_countries: ['US'] } });
+      mockSetExpiry.mockResolvedValueOnce(undefined);
+      db.query.mockResolvedValueOnce({ rows: [{ id: 99, purewl_uuid: 'brand_new_uuid' }] });
+
+      const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month');
+
+      expect(mockCreateAccount).toHaveBeenCalledTimes(1);
+      expect(result.renewed).toBeUndefined();
+    });
   });
 
   describe('createSubscription', () => {

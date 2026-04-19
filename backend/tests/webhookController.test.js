@@ -781,6 +781,46 @@ describe('authorizeNetWebhook handler', () => {
     // Verify AuthorizeNetService was instantiated (for ARB creation)
     expect(authorizeNetUtils.AuthorizeNetService).toHaveBeenCalled();
   });
+
+  test('calls createVpnAccount with renew:true on ARB renewal (existing VPN account)', async () => {
+    // This test verifies the fix: on every monthly ARB webhook fire, we extend
+    // the existing VPN account's expiry rather than creating new credentials.
+    const body = {
+      eventType: 'authcapture.created',
+      payload: { id: 'txn_renew', invoiceNumber: 'inv_renew', responseCode: '1', authAmount: '9.99' }
+    };
+    const req = buildAuthorizeReq(body, 'valid_hex');
+    const mockSub = {
+      id: 'sub_renew',
+      user_id: 'u_renew',
+      status: 'active',             // already active — just renewing
+      account_number: '11223344',
+      arb_subscription_id: 'arb_existing', // already has ARB — goes straight to VPN extension
+      metadata: { plan_interval: 'month', plan_amount_cents: '999' }
+    };
+    mockDbQuery
+      .mockResolvedValueOnce({ rows: [mockSub] }) // subscription found
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions
+      .mockResolvedValueOnce({ rows: [] }) // INSERT payments
+      .mockResolvedValueOnce({ rows: [] }) // UPDATE users
+      .mockResolvedValueOnce({ rows: [] }) // COMMIT
+      .mockResolvedValueOnce({ rows: [] }) // tax_transactions
+      .mockResolvedValueOnce({ rows: [{ email: 'renew@example.com' }] }); // user email
+
+    const res = { json: jest.fn() };
+    await authorizeNetWebhook(req, res);
+
+    expect(res.json).toHaveBeenCalledWith({ received: true, signatureValid: true });
+    // The key assertion: createVpnAccount must be called with renew: true
+    const userService = require('../src/services/userService');
+    expect(userService.createVpnAccount).toHaveBeenCalledWith(
+      'u_renew',
+      '11223344',
+      'month',
+      { renew: true }
+    );
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════

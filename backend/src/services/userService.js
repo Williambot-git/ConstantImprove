@@ -198,7 +198,19 @@ async function getUserSubscription(userId) {
   return subscription;
 }
 
-async function createVpnAccount(userId, accountNumber, planInterval) {
+/**
+ * Create a new VPN account or extend an existing one.
+ *
+ * @param {number} userId          - The user ID
+ * @param {string} accountNumber    - PureWL account number (used in username prefix)
+ * @param {string} planInterval     - 'month', 'quarter', 'semi_annual', or 'year'
+ * @param {{ renew?: boolean }} opts - Options
+ * @param {boolean} opts.renew      - If true, extends expiry on the existing vpn_accounts
+ *                                    row instead of creating new VPN Resellers credentials.
+ *                                    Used by ARB subscription renewal webhooks to prevent
+ *                                    orphaning the user's current credentials each month.
+ */
+async function createVpnAccount(userId, accountNumber, planInterval, { renew = false } = {}) {
   const user = await User.findById(userId);
   if (!user) {
     throw new Error('User not found');
@@ -206,6 +218,48 @@ async function createVpnAccount(userId, accountNumber, planInterval) {
 
   if (!resolvePlanId(planInterval)) {
     throw new Error(`VPN Resellers plan ID not configured for interval '${planInterval}'`);
+  }
+
+  // ── Renewal path: extend expiry on existing VPN account, no new credentials ──
+  // When an ARB subscription fires its monthly renewal webhook we do NOT want to
+  // create fresh VPN Resellers credentials (that orphans the old sub-account).
+  // Instead we extend the expiry on the row we already have.
+  if (renew) {
+    const existing = await db.query(
+      'SELECT id, purewl_uuid, purewl_username, purewl_password FROM vpn_accounts WHERE user_id = $1',
+      [userId]
+    );
+    if (existing.rows.length > 0) {
+      const durationDays = resolvePlanDuration(planInterval);
+      const newExpiry = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+      const newExpiryYmd = newExpiry.toISOString().slice(0, 10);
+
+      // Update local expiry
+      await db.query(
+        'UPDATE vpn_accounts SET expiry_date = $1, updated_at = NOW() WHERE user_id = $2',
+        [newExpiryYmd, userId]
+      );
+
+      // Sync expiry to VPN Resellers so the server recognises it
+      const { purewl_uuid: existingUuid } = existing.rows[0];
+      if (existingUuid) {
+        try {
+          await vpnResellersService.setExpiry(existingUuid, newExpiryYmd);
+        } catch (warn) {
+          console.warn('Failed to sync VPN Resellers expiry during renewal:', warn.message || warn);
+        }
+      }
+
+      const updated = await db.query('SELECT * FROM vpn_accounts WHERE user_id = $1', [userId]);
+      return {
+        username: updated.rows[0]?.purewl_username,
+        password: updated.rows[0]?.purewl_password,   // unchanged — kept from original creation
+        accountId: existingUuid,
+        account: updated.rows[0],
+        renewed: true                                 // signals this was a renewal, not a fresh create
+      };
+    }
+    // No existing row — fall through to normal creation (first-time setup after a gap)
   }
 
   const baseUsername = `user_${accountNumber}`;

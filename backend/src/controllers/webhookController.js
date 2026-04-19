@@ -8,7 +8,6 @@ const db = require('../config/database');
 const emailService = require('../services/emailService');
 const promoService = require('../services/promoService');
 const plisioService = require('../services/plisioService');
-const { createVpnAccount } = require('../services/userService');
 const { processPlisioPaymentAsync, processPaymentsCloudPaymentAsync } = require('../services/paymentProcessingService');
 const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
 const { applyAffiliateCommissionIfEligible } = require('./paymentController');
@@ -434,6 +433,21 @@ const authorizeNetWebhook = async (req, res) => {
     const subscription = subResult.rows[0];
     const planInterval = subscription.plan_interval || subscription?.metadata?.plan_interval || 'month';
 
+    // ── VPN account provisioning / renewal ─────────────────────────────────────────
+    // Runs for ALL subscription states so ARB renewals (already-active) also extend
+    // the VPN expiry. Catches errors so VPN failures don't break the webhook response.
+    let vpnAccountResult = null;
+    if (subscription.account_number && planInterval) {
+      try {
+        const { createVpnAccount } = require('../services/userService');
+        vpnAccountResult = await createVpnAccount(subscription.user_id, subscription.account_number, planInterval, { renew: true });
+      } catch (vpnErr) {
+        console.error('[Webhook] VPN renewal failed:', vpnErr.message);
+      }
+    }
+
+    // ARB charge webhooks fire for already-active subscriptions — return early after
+    // renewing the VPN so we don't accidentally send a duplicate welcome email.
     if (subscription.status === 'active') {
       return res.json({ received: true, signatureValid: true });
     }
@@ -554,13 +568,14 @@ const authorizeNetWebhook = async (req, res) => {
       }
     }
 
-    const vpnAccount = await createVpnAccount(subscription.user_id, subscription.account_number, planInterval);
-
+    // Send welcome email only for trialing → active activation (first-time provisioning).
+    // For ARB renewals the subscription was already active; vpnAccountResult is null
+    // because the early-return above skipped this block.
     const userResult = await db.query('SELECT email FROM users WHERE id = $1', [subscription.user_id]);
     const userEmail = userResult.rows[0]?.email;
-    if (userEmail) {
+    if (userEmail && vpnAccountResult) {
       const expiryDate = new Date(subscription.current_period_end).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-      await emailService.sendAccountCreatedEmail(userEmail, vpnAccount.username, vpnAccount.password, expiryDate);
+      await emailService.sendAccountCreatedEmail(userEmail, vpnAccountResult.username, vpnAccountResult.password, expiryDate);
     }
 
     return res.json({ received: true, signatureValid: true });
