@@ -181,6 +181,46 @@ describe('invoicePollingService', () => {
     });
 
     // -------------------------------------------------------------------------
+    // runOnce — line 98: poll_attempts=2, age past 3rd checkpoint (45 min),
+    //            invoice still pending → updates metadata with poll_result=timeout_no_payment
+    //            (CHECKPOINT_MINUTES=[15,30,45]; attempts+1=3=length → timeout branch)
+    // -------------------------------------------------------------------------
+    it('subscription at final checkpoint with pending invoice — sets poll_result=timeout_no_payment', async () => {
+      const createdAt = new Date(Date.now() - 46 * 60 * 1000).toISOString(); // 46 min ago (past 45-min checkpoint)
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [{
+            id: 'sub-timeout',
+            user_id: 'user-timeout',
+            status: 'trialing',
+            plisio_invoice_id: 'inv_pending',
+            metadata: { poll_attempts: 2 }, // attempts+1=3=CHECKPOINT_MINUTES.length → timeout branch (line 97-101)
+            created_at: createdAt
+          }]
+        })
+        .mockResolvedValueOnce({ rows: [] }); // updateMetadata call
+
+      plisioService.getInvoiceStatus.mockResolvedValue({
+        invoice: { status: 'pending', amount: '49.99', currency: 'USD' } // not completed/cancelled
+      });
+
+      await runOnce();
+
+      expect(plisioService.getInvoiceStatus).toHaveBeenCalledWith('inv_pending');
+      expect(processPlisioPaymentAsync).not.toHaveBeenCalled();
+      // Second call is updateMetadata(sub.id, mergedMeta) where mergedMeta includes poll_result='timeout_no_payment'
+      // updateMetadata calls db.query(sql, [JSON.stringify(metadata), subscriptionId])
+      // → updateCall[1][0] = JSON metadata string, updateCall[1][1] = subscriptionId
+      const updateCall = db.query.mock.calls[1];
+      expect(updateCall[0]).toContain('UPDATE subscriptions');
+      expect(updateCall[1][1]).toBe('sub-timeout'); // subscriptionId as 2nd param
+      const parsedMeta = JSON.parse(updateCall[1][0]); // JSON metadata as 1st param
+      expect(parsedMeta.poll_result).toBe('timeout_no_payment');
+      expect(parsedMeta.poll_attempts).toBe(3); // incremented from 2
+      expect(parsedMeta.polling_stopped_at).toBeDefined();
+    });
+
+    // -------------------------------------------------------------------------
     // runOnce — subscription not yet at next checkpoint age, skips
     // -------------------------------------------------------------------------
     it('subscription not yet at checkpoint age — skips', async () => {
