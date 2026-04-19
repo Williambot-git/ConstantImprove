@@ -41,10 +41,11 @@ export default function Document() {
         <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
         <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
 
-        {/* Cloudflare Web Analytics */}
-        <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "c59d5d7cc96840ff9b5e8e057d8ade00"}'></script>
+        {/* Cloudflare Web Analytics — token from https://dash.cloudflare.com/sites/{site}/analytics/settings */}
+        {/* Replace YOUR_CLOUDFLARE_TOKEN with the real token from your Cloudflare dashboard */}
+        <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_CLOUDFLARE_TOKEN"}'></script>
 
-        {/* Analytics (placeholder) */}
+        {/* Google Analytics (placeholder) — uncomment and set GA_ID when ready */}
         {/* <script async src="https://www.googletagmanager.com/gtag/js?id=GA_ID"></script> */}
 
         {/* Preload critical resources */}
