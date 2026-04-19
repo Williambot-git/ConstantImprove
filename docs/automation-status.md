@@ -124,6 +124,7 @@
 | 124 | test(invoicePollingService): add timeout_no_payment branch test (line 98) — subscription at 3rd checkpoint with pending invoice sets poll_result=timeout_no_payment in metadata; invoicePollingService line 97.33%→98.66%, total 1,100 backend tests | **DONE** (commit 542974c) |
 | 125 | test(frontend): add Button ghost hover coverage (+3 tests: ghost enter/leave/disabled-guard) + Select focus/blur coverage (+3 tests: focus apply, blur revert, error-guard) | **DONE** (commit 26da963) |
 | 126 | fix(services): remove debug console.log statements — plisioService raw API response + paymentProcessingService 5 success-path logs; all remaining console.* calls are error logging only | **DONE** (commit 58fa1da) |
+| 127 | fix(frontend): replace truncated Cloudflare analytics token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
 
 ---
 
@@ -206,4 +207,4 @@ aa8bf4b docs: update automation-status — task 124, invoicePollingService timeo
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-19T11:46:00Z*
+*Last updated: 2026-04-19T16:01:00Z*
