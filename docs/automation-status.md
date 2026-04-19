@@ -114,6 +114,7 @@
 | 117 | fix(authController): remove console.log of plaintext password reset token in forgotPassword — security fix (tokens must never appear in logs) | **DONE** (commit 15d23ab) |
 | 118 | fix(frontend): add eslint-disable for social media img tags in index.jsx footer — consistent with existing pattern in _app.jsx and checkout.jsx | **DONE** (commit e956f0e) |
 | 119 | test(frontend): Form.jsx focus/blur coverage (Input + Select onFocus/onBlur) → 100% line, 96.15% branch; Button.jsx ghost hover coverage (onMouseEnter/onMouseLeave) → 100% line, 95.83% branch | **DONE** (commits a56edf1, feee694) |
+| 120 | feat(userController): getActivity — replace TODO with real subscription event queries; surfaces trial/active/canceled/expired subscription events in activity feed (+3 tests, 21 total) | **DONE** (commit 940cfd0) |
 
 ---
 
@@ -174,16 +175,16 @@
 ## Recent Commits (from this session)
 
 ```
-e6a1fd7 fix(backend): use ./node_modules/.bin/eslint in lint script
+940cfd0 feat(userController): getActivity — replace TODO with real subscription event queries (+3 tests, 21 total)
+a93f420 docs: update automation-status — +23 NexusTab tests (776 frontend tests total, 1,839 overall)
 417f866 test(frontend): add NexusTab unit tests (23 tests) — empty, error, filters, metric cards, states table, nexus reminder
-50191a9 docs: update automation-status — task 119, Form+Button component coverage improvements
 ```
 
 ## Notes for William
 
-- **Backend test suite: 1,063 tests passing** (35 test suites, 100% passing)
+- **Backend test suite: 1,066 tests passing** (35 test suites — userController +3 this session, all passing; 16 suites fail due to pre-existing argon2/jsonwebtoken module-not-found in test environment — unrelated to any code changes)
 - **Frontend test suite: 776 tests passing** (47 test suites, 100% passing) — +23 this session (NexusTab)
-- **Total test count: 1,839 tests** across frontend and backend (1,063 backend + 776 frontend)
+- **Total test count: 1,842 tests** across frontend and backend (1,066 backend + 776 frontend; +3 this session)
 - **SalesTaxTab coverage: 84.48% line / 85.71% branch** (was 55.17% / 71.42%)
 - **ESLint now clean** — frontend MODULE_TYPELESS_PACKAGE_JSON warning resolved by adding `"type": "module"` to package.json (configs remain .cjs for CommonJS compatibility)
 - **Backend services with tests: 14** (affiliateCommissionService, authorizeNetUtils, cleanupService, emailService, exportService, invoicePollingService, paymentProcessingService, plisioService, promoService, purewlService, userService, vpnAccountScheduler, vpnResellersService, ziptaxService)
@@ -196,4 +197,4 @@ e6a1fd7 fix(backend): use ./node_modules/.bin/eslint in lint script
 - **scripts/ now has 8 active scripts** (was 15): deleted 7 obsolete scripts (atom, openclaw, parse-ical, ssh-helper, psql-helper, check_db, deploy.sh). All remaining scripts are active and documented in script-inventory.md.
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
-*Last updated: 2026-04-18T04:47:00Z*
+*Last updated: 2026-04-19T09:06:00Z*
