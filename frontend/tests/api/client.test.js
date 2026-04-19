@@ -805,3 +805,181 @@ describe('Token priority for generic helpers', () => {
     });
   });
 });
+
+// ============================================================
+// ADMIN TAX — QUERY STRING BRANCH COVERAGE
+// getTaxTransactions/getTaxSummary — qs ternary branch (qs ? '?' + qs : '')
+// Lines 152-153 and 156-157: params object with keys → qs is truthy → '?key=val'
+// Empty params {} → qs is '' (falsy) → no query string appended
+// ============================================================
+
+describe('Admin Tax — query string branch coverage', () => {
+  beforeEach(() => { withAdminToken('tax-test-token'); });
+
+  it('getTaxTransactions with params — qs truthy branch: appends ?querystring', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getTaxTransactions({ startDate: '2024-01-01', endDate: '2024-12-31' });
+    // qs = 'startDate=2024-01-01&endDate=2024-12-31' → truthy → '?startDate=2024-01-01&endDate=2024-12-31'
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/tax-transactions?startDate=2024-01-01&endDate=2024-12-31');
+  });
+
+  it('getTaxTransactions with empty params — qs falsy branch: no query string', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getTaxTransactions({});
+    // qs = '' → falsy → ternary returns '' → URL has no '?'
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/tax-transactions');
+  });
+
+  it('getTaxSummary with params — qs truthy branch: appends ?querystring', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getTaxSummary({ state: 'CA' });
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/tax-transactions/summary?state=CA');
+  });
+
+  it('getTaxSummary with empty params — qs falsy branch: no query string', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getTaxSummary({});
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/tax-transactions/summary');
+  });
+});
+
+// ============================================================
+// NEXUS OVERVIEW — QUERY STRING BRANCH COVERAGE
+// getNexusOverview — qs ternary branch (qs ? '?' + qs : '')
+// Line 162-163: params object with keys → qs truthy → '?key=val'; {} → qs '' → no '?'
+// ============================================================
+
+describe('Nexus Overview — query string branch coverage', () => {
+  beforeEach(() => { withAdminToken('nexus-test-token'); });
+
+  it('getNexusOverview with params — qs truthy branch: appends ?querystring', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getNexusOverview({ year: 2024, state: 'TX' });
+    // qs = 'year=2024&state=TX' → truthy
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/nexus-overview?year=2024&state=TX');
+  });
+
+  it('getNexusOverview with empty params — qs falsy branch: no query string', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getNexusOverview({});
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/nexus-overview');
+  });
+
+  it('getNexusOverview with single param — qs truthy', async () => {
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getNexusOverview({ state: 'NY' });
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/nexus-overview?state=NY');
+  });
+});
+
+// ============================================================
+// INITIATE CHECKOUT — EDGE CASE BRANCH COVERAGE
+// Covers all conditional payload branches (lines 226-234)
+// ============================================================
+
+describe('Checkout — initiateCheckout edge case branches', () => {
+  it('initiateCheckout with only plan and paymentMethod — minimal payload', async () => {
+    postSpy.mockResolvedValueOnce({ data: {} });
+    await api.initiateCheckout('monthly', 'card');
+    expect(postSpy).toHaveBeenCalledWith('/payment/checkout', { planId: 'monthly', paymentMethod: 'card' });
+  });
+
+  it('initiateCheckout with affiliateId — affiliateId branch (line 227)', async () => {
+    postSpy.mockResolvedValueOnce({ data: {} });
+    await api.initiateCheckout('annual', 'crypto', 'AFF77');
+    expect(postSpy).toHaveBeenCalledWith('/payment/checkout', { planId: 'annual', paymentMethod: 'crypto', affiliateId: 'AFF77' });
+  });
+
+  it('initiateCheckout without affiliateId — does NOT include affiliateId key', async () => {
+    postSpy.mockResolvedValueOnce({ data: {} });
+    await api.initiateCheckout('annual', 'card');
+    const call = postSpy.mock.calls[0];
+    expect(call[1]).not.toHaveProperty('affiliateId');
+  });
+
+  it('initiateCheckout with all options — full payload branch coverage', async () => {
+    postSpy.mockResolvedValueOnce({ data: {} });
+    await api.initiateCheckout('monthly', 'crypto', 'AFF42', {
+      cryptoCurrency: 'ETH',
+      returnUrl: 'https://app.com/ok',
+      cancelUrl: 'https://app.com/cancel',
+      country: 'US',
+      stateOrProvince: 'TX',
+      postalCode: '78701',
+    });
+    expect(postSpy).toHaveBeenCalledWith('/payment/checkout', {
+      planId: 'monthly',
+      paymentMethod: 'crypto',
+      affiliateId: 'AFF42',
+      cryptoCurrency: 'ETH',
+      returnUrl: 'https://app.com/ok',
+      cancelUrl: 'https://app.com/cancel',
+      country: 'US',
+      stateOrProvince: 'TX',
+      postalCode: '78701',
+    });
+  });
+});
+
+// ============================================================
+// GENERIC HELPERS — URL QUERY STRING BUILDING BRANCH COVERAGE
+// getAffiliates — qs ternary branch (line 138-139)
+// getPayoutRequests — qs ternary branch (line 177-179)
+// getAdminReferrals — qs ternary branch (line 173-175)
+// ============================================================
+
+describe('Generic helpers — query string branch coverage', () => {
+  it('getAffiliates with params — qs truthy branch: appends ?querystring', async () => {
+    withAdminToken('affiliates-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getAffiliates({ status: 'active', page: 2 });
+    // NOTE: getAffiliates uses apiClient.get() directly — Authorization header comes from
+    // the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/affiliates?status=active&page=2');
+  });
+
+  it('getAffiliates with empty params — qs falsy branch: no query string', async () => {
+    withAdminToken('affiliates-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getAffiliates({});
+    // NOTE: getAffiliates uses apiClient.get() directly — Authorization header comes from
+    // the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/affiliates');
+  });
+
+  it('getPayoutRequests with params — qs truthy branch', async () => {
+    withAdminToken('payout-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getPayoutRequests({ status: 'pending' });
+    // NOTE: getPayoutRequests uses apiClient.get() directly — Authorization header comes
+    // from the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/payout-requests?status=pending');
+  });
+
+  it('getPayoutRequests with empty params — qs falsy branch', async () => {
+    withAdminToken('payout-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getPayoutRequests({});
+    // NOTE: getPayoutRequests uses apiClient.get() directly — Authorization header comes
+    // from the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/payout-requests');
+  });
+
+  it('getAdminReferrals with params — qs truthy branch', async () => {
+    withAdminToken('referrals-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getAdminReferrals({ affiliateId: 5 });
+    // NOTE: getAdminReferrals uses apiClient.get() directly — Authorization header comes
+    // from the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/referrals?affiliateId=5');
+  });
+
+  it('getAdminReferrals with empty params — qs falsy branch', async () => {
+    withAdminToken('referrals-test-token');
+    getSpy.mockResolvedValueOnce({ data: {} });
+    await api.getAdminReferrals({});
+    // NOTE: getAdminReferrals uses apiClient.get() directly — Authorization header comes from
+    // the request interceptor which does NOT run in our mock setup. Only URL is verified.
+    expect(getSpy).toHaveBeenCalledWith('/auth/ahoyman/referrals');
+  });
+});
