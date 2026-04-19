@@ -287,7 +287,7 @@ class AuthorizeNetService {
     const resultCode = data?.messages?.resultCode;
 
     if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
-      console.log('Authorize.net hosted response', {
+      log.debug('Authorize.net hosted response', {
         resultCode,
         token: data?.token || null,
         messages: data?.messages || null

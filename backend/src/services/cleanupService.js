@@ -1,6 +1,7 @@
 const exportController = require('../controllers/exportController');
 const AuditLog = require('../models/auditLogModel');
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 /**
  * Delete user accounts that registered > 30 days ago, never purchased,
@@ -23,10 +24,10 @@ const cleanupOldAccounts = async () => {
     );
 
     if (result.rows.length > 0) {
-      console.log(`Deleted ${result.rows.length} old ghost accounts`);
+      log.info('Deleted old ghost accounts', { count: result.rows.length });
     }
   } catch (error) {
-    console.error('cleanupOldAccounts error:', error);
+    log.error('cleanupOldAccounts error', { error: error.message || error });
   }
 };
 
@@ -34,7 +35,7 @@ const cleanupOldAccounts = async () => {
  * Run cleanup of expired data exports.
  */
 const cleanupDataExports = async () => {
-  console.log('Starting cleanup of expired data exports...');
+  log.debug('Starting cleanup of expired data exports...');
   await exportController.cleanupExpiredExports();
 };
 
@@ -43,7 +44,7 @@ const cleanupDataExports = async () => {
  */
 const cleanupOldAuditLogs = async () => {
   const deletedCount = await AuditLog.deleteOld(365);
-  console.log(`Deleted ${deletedCount} old audit logs`);
+  log.info('Deleted old audit logs', { count: deletedCount, retentionDays: 365 });
 };
 
 /**
@@ -53,7 +54,7 @@ const cleanupOldConnections = async () => {
   const result = await db.query(
     `DELETE FROM connections WHERE connected_at < NOW() - INTERVAL '7 days'`
   );
-  console.log(`Deleted ${result.rowCount} old connection records`);
+  log.info('Deleted old connection records', { count: result.rowCount });
 };
 
 /**
@@ -61,7 +62,7 @@ const cleanupOldConnections = async () => {
  */
 const cleanupAbandonedCheckouts = async () => {
   const { cleanupAbandonedCheckouts } = require('./vpnAccountScheduler');
-  console.log('Starting abandoned checkout cleanup...');
+  log.debug('Starting abandoned checkout cleanup...');
   await cleanupAbandonedCheckouts();
 };
 
@@ -70,7 +71,7 @@ const cleanupAbandonedCheckouts = async () => {
  */
 const suspendExpiredTrials = async () => {
   const { suspendExpiredTrials } = require('./vpnAccountScheduler');
-  console.log('Starting expired trial suspension...');
+  log.debug('Starting expired trial suspension...');
   await suspendExpiredTrials();
 };
 
@@ -85,9 +86,9 @@ const runAllCleanup = async () => {
     await cleanupAbandonedCheckouts();
     await suspendExpiredTrials();
     await cleanupOldAccounts();
-    console.log('All cleanup tasks completed.');
+    log.info('All cleanup tasks completed.');
   } catch (error) {
-    console.error('Cleanup task error:', error);
+    log.error('Cleanup task error', { error: error.message || error });
   }
 };
 

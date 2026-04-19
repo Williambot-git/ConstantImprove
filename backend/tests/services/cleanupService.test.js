@@ -123,7 +123,10 @@ describe('cleanupOldAuditLogs', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockAuditLogDeleteOld.mockResolvedValue(17);
     await cleanupService.cleanupOldAuditLogs();
-    expect(spy).toHaveBeenCalledWith('Deleted 17 old audit logs');
+    // Structured logger: `[timestamp] [INFO] Deleted old audit logs {"count":17,"retentionDays":365}`
+    // Check message contains the key phrase and JSON has the right count
+    expect(spy.mock.calls[0][0]).toMatch(/Deleted old audit logs/);
+    expect(spy.mock.calls[0][0]).toContain('"count":17');
     spy.mockRestore();
   });
 
@@ -132,7 +135,8 @@ describe('cleanupOldAuditLogs', () => {
     mockAuditLogDeleteOld.mockResolvedValue(0);
     // No guard in the implementation — it always logs
     await expect(cleanupService.cleanupOldAuditLogs()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Deleted 0 old audit logs');
+    expect(spy.mock.calls[0][0]).toMatch(/Deleted old audit logs/);
+    expect(spy.mock.calls[0][0]).toContain('"count":0');
     spy.mockRestore();
   });
 
@@ -167,16 +171,19 @@ describe('cleanupOldConnections', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockDbQuery.mockResolvedValue({ rows: [], rowCount: 23 });
     await cleanupService.cleanupOldConnections();
-    expect(spy).toHaveBeenCalledWith('Deleted 23 old connection records');
+    // Structured logger: `[timestamp] [INFO] Deleted 23 old connection records {"count":23}`
+    expect(spy.mock.calls[0][0]).toMatch(/Deleted old connection records/);
+    expect(spy.mock.calls[0][0]).toContain('"count":23');
     spy.mockRestore();
   });
 
   test('logs zero when no connections need cleanup', async () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockDbQuery.mockResolvedValue({ rows: [], rowCount: 0 });
-    // No guard in the implementation — it always logs
+    // No guard in the implementation — it always logs; structured logger: `[timestamp] [INFO] Deleted old connection records {"count":0}`
     await expect(cleanupService.cleanupOldConnections()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Deleted 0 old connection records');
+    expect(spy.mock.calls[0][0]).toMatch(/Deleted old connection records/);
+    expect(spy.mock.calls[0][0]).toContain('"count":0');
     spy.mockRestore();
   });
 
@@ -247,7 +254,9 @@ describe('cleanupOldAccounts', () => {
     const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockDbQuery.mockResolvedValue({ rows: [{ id: 1 }, { id: 2 }], rowCount: 2 });
     await cleanupService.cleanupOldAccounts();
-    expect(spy).toHaveBeenCalledWith('Deleted 2 old ghost accounts');
+    // Structured logger: `[timestamp] [INFO] Deleted old ghost accounts {"count":2}`
+    expect(spy.mock.calls[0][0]).toMatch(/Deleted old ghost accounts/);
+    expect(spy.mock.calls[0][0]).toContain('"count":2');
     spy.mockRestore();
   });
 
@@ -266,7 +275,9 @@ describe('cleanupOldAccounts', () => {
     // Error is caught internally in cleanupOldAccounts, so resolves
     await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
     // Error IS logged
-    expect(spy).toHaveBeenCalledWith('cleanupOldAccounts error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] cleanupOldAccounts error {"error":"Users DB error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('cleanupOldAccounts error');
     spy.mockRestore();
   });
 });
@@ -304,7 +315,9 @@ describe('runAllCleanup', () => {
     mockCleanupExpiredExports.mockRejectedValue(new Error('Export error'));
     // runAllCleanup catches all errors, so it resolves rather than rejects
     await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] Cleanup task error {"error":"Export error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('Cleanup task error');
     spy.mockRestore();
   });
 
@@ -312,7 +325,9 @@ describe('runAllCleanup', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockAuditLogDeleteOld.mockRejectedValue(new Error('Audit error'));
     await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] Cleanup task error {"error":"Export error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('Cleanup task error');
     spy.mockRestore();
   });
 
@@ -320,7 +335,9 @@ describe('runAllCleanup', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockDbQuery.mockRejectedValue(new Error('Connections DB error'));
     await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] Cleanup task error {"error":"Export error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('Cleanup task error');
     spy.mockRestore();
   });
 
@@ -328,7 +345,9 @@ describe('runAllCleanup', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockCleanupAbandonedCheckouts.mockRejectedValue(new Error('Abandoned checkout error'));
     await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] Cleanup task error {"error":"Export error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('Cleanup task error');
     spy.mockRestore();
   });
 
@@ -336,7 +355,9 @@ describe('runAllCleanup', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockSuspendExpiredTrials.mockRejectedValue(new Error('Suspend error'));
     await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    // Structured logger: format is `[timestamp] [ERROR] Cleanup task error {"error":"Export error"}`
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('[ERROR]'));
+    expect(spy.mock.calls[0][0]).toContain('Cleanup task error');
     spy.mockRestore();
   });
 

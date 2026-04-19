@@ -8,6 +8,18 @@
  * - handleCSPReport endpoint
  */
 
+// Mock the logger so tests can control log calls regardless of module-cache state
+// The factory captures refs to these functions so tests and the module under test share the same mocks
+const mockLoggerError = jest.fn();
+const mockLoggerWarn = jest.fn();
+const mockLoggerDebug = jest.fn();
+jest.mock('../../src/utils/logger', () => ({
+  error: (...args) => mockLoggerError(...args),
+  warn: (...args) => mockLoggerWarn(...args),
+  debug: (...args) => mockLoggerDebug(...args),
+  info: jest.fn(),
+}));
+
 const {
   cspConfig,
   ScriptIntegrityMonitor,
@@ -219,14 +231,14 @@ describe('securityMiddleware', () => {
       test('returns false and warns when no hash is registered', async () => {
         process.env.NODE_ENV = 'production';
         const monitor = new ScriptIntegrityMonitor();
-        const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
 
         const result = await monitor.verifyScriptIntegrity('https://example.com/unknown.js', 'content');
 
         expect(result).toBe(false);
-        expect(consoleSpy).toHaveBeenCalledWith('No expected hash registered for script: https://example.com/unknown.js');
-
-        consoleSpy.mockRestore();
+        // Now uses mockLoggerWarn (structured logger) — log.warn(message, meta)
+        expect(mockLoggerWarn).toHaveBeenCalled();
+        expect(mockLoggerWarn.mock.calls[0][0]).toContain('No expected hash registered for script');
+        expect(mockLoggerWarn.mock.calls[0][1]).toMatchObject({ url: 'https://example.com/unknown.js' });
       });
     });
 
@@ -234,32 +246,32 @@ describe('securityMiddleware', () => {
       test('logs security alert in production', () => {
         process.env.NODE_ENV = 'production';
         const monitor = new ScriptIntegrityMonitor();
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+        mockLoggerError.mockClear();
 
-      monitor.alertIntegrityFailure('https://example.com/script.js', 'sha384-expected', 'sha384-actual');
+        monitor.alertIntegrityFailure('https://example.com/script.js', 'sha384-expected', 'sha384-actual');
 
-      expect(consoleSpy).toHaveBeenCalled();
-      // console.error is called with two separate arguments: label + JSON string
-      expect(consoleSpy.mock.calls[0][0]).toBe('SECURITY ALERT:');
-      const parsed = JSON.parse(consoleSpy.mock.calls[0][1]);
-      expect(parsed.type).toBe('SCRIPT_INTEGRITY_FAILURE');
-      expect(parsed.url).toBe('https://example.com/script.js');
-      expect(parsed.severity).toBe('HIGH');
-
-      consoleSpy.mockRestore();
-    });
+        expect(mockLoggerError).toHaveBeenCalled();
+        expect(mockLoggerError.mock.calls[0][0]).toContain('SECURITY ALERT');
+        expect(mockLoggerError.mock.calls[0][0]).toContain('SCRIPT_INTEGRITY_FAILURE');
+        // The auditLog object is passed as second argument as { auditLog: {...} }
+        expect(mockLoggerError.mock.calls[0][1]).toMatchObject({
+          auditLog: expect.objectContaining({
+            type: 'SCRIPT_INTEGRITY_FAILURE',
+            url: 'https://example.com/script.js',
+            severity: 'HIGH'
+          })
+        });
+      });
 
     test('does not log in non-production', () => {
       // Ensure NODE_ENV is explicitly development before creating monitor
       process.env.NODE_ENV = 'development';
       const monitor = new ScriptIntegrityMonitor();
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockLoggerError.mockClear();
 
       monitor.alertIntegrityFailure('https://example.com/script.js', 'sha384-expected', 'sha384-actual');
 
-      expect(consoleSpy).not.toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
+      expect(mockLoggerError).not.toHaveBeenCalled();
     });
     });
 
@@ -297,14 +309,14 @@ describe('securityMiddleware', () => {
         const req = { url: '/static/script.js' };
         const res = {};
         const next = jest.fn();
-        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+        mockLoggerDebug.mockClear();
 
         middleware(req, res, next);
 
-        expect(consoleSpy).toHaveBeenCalledWith('Script request: /static/script.js');
+        expect(mockLoggerDebug).toHaveBeenCalled();
+        expect(mockLoggerDebug.mock.calls[0][0]).toContain('Script request');
+        expect(mockLoggerDebug.mock.calls[0][1]).toMatchObject({ url: '/static/script.js' });
         expect(next).toHaveBeenCalledTimes(1);
-
-        consoleSpy.mockRestore();
       });
 
       test('logs script request for /scripts/ path', () => {
@@ -314,14 +326,13 @@ describe('securityMiddleware', () => {
         const req = { url: '/scripts/app.js' };
         const res = {};
         const next = jest.fn();
-        const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+        mockLoggerDebug.mockClear();
 
         middleware(req, res, next);
 
-        expect(consoleSpy).toHaveBeenCalledWith('Script request: /scripts/app.js');
+        expect(mockLoggerDebug).toHaveBeenCalled();
+        expect(mockLoggerDebug.mock.calls[0][0]).toContain('Script request');
         expect(next).toHaveBeenCalledTimes(1);
-
-        consoleSpy.mockRestore();
       });
     });
   });
@@ -471,22 +482,27 @@ describe('securityMiddleware', () => {
 
         handleCSPReport(req, res);
 
-        expect(consoleSpy).toHaveBeenCalled();
-        // console.warn('CSP Violation Report:', JSON.stringify(report, null, 2))
-        // First arg is label string, second arg is the formatted JSON string of the report
-        expect(consoleSpy.mock.calls[0][0]).toBe('CSP Violation Report:');
-        const jsonArg = consoleSpy.mock.calls[0][1];
-        // The formatted JSON starts with a newline due to JSON.stringify(report, null, 2)
-        expect(jsonArg).toContain('"document-uri": "https://example.com/page"');
-        expect(jsonArg).toContain('"violated-directive": "script-src"');
+        // handleCSPReport uses log.warn for the CSP violation report.
+        // Use toHaveBeenCalledWith with matchers — the warn may not be the
+        // first call in the shared mock (ScriptIntegrityMonitor tests also call warn).
+        expect(mockLoggerWarn).toHaveBeenCalledWith(
+          expect.stringContaining('CSP Violation Report'),
+          expect.objectContaining({
+            report: expect.objectContaining({
+              'csp-report': expect.objectContaining({
+                'document-uri': 'https://example.com/page',
+                'violated-directive': 'script-src'
+              })
+            })
+          })
+        );
       } finally {
         consoleSpy.mockRestore();
       }
     });
-
     test('logs security alert in production via console.error', () => {
       process.env.NODE_ENV = 'production';
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockLoggerError.mockClear();
       try {
         const cspReport = { 'csp-report': { 'document-uri': 'https://example.com' } };
         const req = { body: cspReport };
@@ -497,19 +513,20 @@ describe('securityMiddleware', () => {
 
         handleCSPReport(req, res);
 
-        expect(consoleSpy).toHaveBeenCalled();
-        // console.error('CSP VIOLATION:', JSON.stringify(auditLog))
-        expect(consoleSpy.mock.calls[0][0]).toBe('CSP VIOLATION:');
-        const parsed = JSON.parse(consoleSpy.mock.calls[0][1]);
-        expect(parsed.type).toBe('CSP_VIOLATION');
+        // handleCSPReport uses log.error in production for the security audit
+        expect(mockLoggerError).toHaveBeenCalled();
+        expect(mockLoggerError.mock.calls[0][0]).toBe('SECURITY ALERT: CSP Violation');
+        expect(mockLoggerError.mock.calls[0][1]).toMatchObject({
+          auditLog: expect.objectContaining({ type: 'CSP_VIOLATION' })
+        });
       } finally {
-        consoleSpy.mockRestore();
+        mockLoggerError.mockClear();
       }
     });
 
     test('does not call console.error in non-production', () => {
       process.env.NODE_ENV = 'development';
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      mockLoggerError.mockClear();
       try {
         const req = { body: {} };
         const res = {
@@ -519,9 +536,9 @@ describe('securityMiddleware', () => {
 
         handleCSPReport(req, res);
 
-        expect(consoleSpy).not.toHaveBeenCalled();
+        expect(mockLoggerError).not.toHaveBeenCalled();
       } finally {
-        consoleSpy.mockRestore();
+        mockLoggerError.mockClear();
       }
     });
 

@@ -2,6 +2,7 @@ const db = require('../config/database');
 const plisioService = require('./plisioService');
 const VpnResellersService = require('./vpnResellersService');
 const { processPlisioPaymentAsync } = require('./paymentProcessingService');
+const log = require('../utils/logger');
 
 const vpnResellersService = new VpnResellersService();
 
@@ -103,7 +104,7 @@ async function runOnce() {
         await updateMetadata(sub.id, baseMeta);
       }
     } catch (error) {
-      console.error('Invoice polling error for subscription', sub.id, error.message || error);
+      log.error('Invoice polling error for subscription', { subscriptionId: sub.id, error: error.message || error });
     }
   }
 }
@@ -161,7 +162,7 @@ async function pollArbSubscriptions(opts = {}) {
       const arbStatus = String(arbSub.status || '').toLowerCase();
       const paymentStatus = arbSub.paymentStatus || '';
 
-      console.log(`ARB poll: sub=${sub.id} arb=${arbId} status=${arbStatus} payment=${paymentStatus}`);
+      log.info('ARB poll', { subscriptionId: sub.id, arbId, status: arbStatus, payment: paymentStatus });
 
       // If ARB is suspended/canceled but subscription is still active → suspend VPN
       if (arbStatus === 'suspended' || arbStatus === 'canceled' || paymentStatus === 'suspended') {
@@ -181,7 +182,7 @@ async function pollArbSubscriptions(opts = {}) {
             try {
               await vpnResellersService.deactivateAccount({ account_id: va.purewl_uuid });
             } catch (err) {
-              console.warn('Failed to deactivate VPN on ARB cancel:', va.purewl_uuid, err.message);
+              log.warn('Failed to deactivate VPN on ARB cancel', { purewlUuid: va.purewl_uuid, error: err.message });
             }
           }
           await db.query(
@@ -195,7 +196,7 @@ async function pollArbSubscriptions(opts = {}) {
           [sub.user_id]
         );
 
-        console.log(`ARB subscription ${arbId} canceled - VPN account suspended`);
+        log.info('ARB subscription canceled', { arbId });
       }
 
       // If ARB is active and payment came through → activate subscription
@@ -208,10 +209,10 @@ async function pollArbSubscriptions(opts = {}) {
           `UPDATE users SET is_active = true, updated_at = NOW() WHERE id = $1`,
           [sub.user_id]
         );
-        console.log(`ARB subscription ${arbId} payment confirmed - subscription activated`);
+        log.info('ARB payment confirmed, subscription activated', { arbId });
       }
     } catch (error) {
-      console.error('ARB polling error for subscription', sub.id, error.message || error);
+      log.error('ARB polling error for subscription', { subscriptionId: sub.id, error: error.message || error });
     }
   }
 }

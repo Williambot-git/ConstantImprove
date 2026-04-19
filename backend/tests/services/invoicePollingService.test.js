@@ -21,6 +21,12 @@ jest.mock('../../src/services/plisioService');
 jest.mock('../../src/services/paymentProcessingService');
 jest.mock('../../src/services/authorizeNetUtils');
 jest.mock('../../src/services/vpnResellersService');
+jest.mock('../../src/utils/logger', () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn()
+}));
 
 const db = require('../../src/config/database');
 const plisioService = require('../../src/services/plisioService');
@@ -248,7 +254,8 @@ describe('invoicePollingService', () => {
     // -------------------------------------------------------------------------
     it('getInvoiceStatus error — logs and continues to next subscription', async () => {
       const createdAt = new Date(Date.now() - 16 * 60 * 1000).toISOString();
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const { error: logError } = require('../../src/utils/logger');
+      logError.mockImplementation(() => {});
 
       db.query = jest.fn()
         .mockResolvedValueOnce({
@@ -292,13 +299,13 @@ describe('invoicePollingService', () => {
 
       await runOnce();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Invoice polling error for subscription', 'sub-1',
-        'Plisio API down'
+      expect(logError).toHaveBeenCalledWith(
+        'Invoice polling error for subscription',
+        expect.objectContaining({ subscriptionId: 'sub-1', error: 'Plisio API down' })
       );
       // sub-2 should still be processed
       expect(plisioService.getInvoiceStatus).toHaveBeenCalledTimes(2);
-      consoleSpy.mockRestore();
+      logError.mockReset();
     });
 
     // -------------------------------------------------------------------------
@@ -405,7 +412,8 @@ describe('invoicePollingService', () => {
         })
         .mockResolvedValue({ rows: [] }); // all subsequent queries
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const { error: logError } = require('../../src/utils/logger');
+      logError.mockImplementation(() => {});
 
       await pollArbSubscriptions();
 
@@ -413,12 +421,12 @@ describe('invoicePollingService', () => {
       // sub-arb-err: getArbSubscription threw → inner catch logs error → continues
       // sub-arb-pending: should have called getArbSubscription (pending → no action)
       expect(AuthorizeNetService.prototype.getArbSubscription).toHaveBeenCalledTimes(3);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'ARB polling error for subscription', 'sub-arb-err',
-        'Authorize.net API temporarily unavailable'
+      expect(logError).toHaveBeenCalledWith(
+        'ARB polling error for subscription',
+        expect.objectContaining({ subscriptionId: 'sub-arb-err', error: 'Authorize.net API temporarily unavailable' })
       );
 
-      consoleSpy.mockRestore();
+      logError.mockReset();
     });
   });
 
@@ -581,7 +589,8 @@ describe('invoicePollingService', () => {
     // getArbSubscription itself throws — caught by outer catch, logs, continues
     // -------------------------------------------------------------------------
     it('ARB getArbSubscription throws — logs error and continues to next subscription', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const { error: logError } = require('../../src/utils/logger');
+      logError.mockImplementation(() => {});
 
       // First subscription: getArbSubscription throws
       // Second subscription: succeeds with no status change
@@ -611,13 +620,14 @@ describe('invoicePollingService', () => {
 
       await pollArbSubscriptions();
 
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'ARB polling error for subscription', 'sub-arb-err-1', 'Authorize.net API error'
+      expect(logError).toHaveBeenCalledWith(
+        'ARB polling error for subscription',
+        expect.objectContaining({ subscriptionId: 'sub-arb-err-1', error: 'Authorize.net API error' })
       );
       // Second subscription still processed
       expect(arbSpy).toHaveBeenCalledTimes(2);
 
-      consoleSpy.mockRestore();
+      logError.mockReset();
     });
 
     // -------------------------------------------------------------------------
@@ -647,7 +657,8 @@ describe('invoicePollingService', () => {
     // The error is caught (line 183), logged, and VPN account status still updated.
     // -------------------------------------------------------------------------
     it('ARB suspended with VPN account but deactivateAccount throws — logs warning, VPN still suspended, user deactivated', async () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { warn: logWarn } = require('../../src/utils/logger');
+      logWarn.mockImplementation(() => {});
 
       arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
         .mockResolvedValueOnce({
@@ -687,11 +698,12 @@ describe('invoicePollingService', () => {
       );
       expect(deactivateUserCall).toBeDefined();
       // Warning was logged for the deactivation failure (proves deactivateAccount was called and threw)
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to deactivate VPN on ARB cancel:', 'uuid-suspend', expect.any(String)
+      expect(logWarn).toHaveBeenCalledWith(
+        'Failed to deactivate VPN on ARB cancel',
+        expect.objectContaining({ purewlUuid: 'uuid-suspend', error: expect.any(String) })
       );
 
-      consoleSpy.mockRestore();
+      logWarn.mockReset();
     });
 
     // -------------------------------------------------------------------------

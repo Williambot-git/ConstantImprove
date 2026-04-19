@@ -15,6 +15,14 @@ const mockQuery = jest.fn();
 // Mock the database
 jest.mock('../../src/config/database', () => ({ query: mockQuery }));
 
+// Mock the structured logger to intercept warn/error calls in tests
+jest.mock('../../src/utils/logger', () => ({
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+  debug: jest.fn()
+}));
+
 // Mock VpnResellersService — spy on the prototype disableAccount
 // The scheduler does `new VpnResellersService()` internally; the spy intercepts all calls
 jest.mock('../../src/services/vpnResellersService', () => {
@@ -259,7 +267,9 @@ describe('vpnAccountScheduler', () => {
       });
       mockDisableAccount.mockResolvedValue({});
 
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { warn } = require('../../src/utils/logger');
+      warn.mockImplementation(() => {});
+
       await expect(cleanupExpiredAccounts()).resolves.not.toThrow();
 
       // Count UPDATE calls via mock call history (jest.clearAllMocks resets this)
@@ -269,11 +279,12 @@ describe('vpnAccountScheduler', () => {
       expect(mockDisableAccount).toHaveBeenCalledTimes(2);
       // Two UPDATE calls were made (one per row)
       expect(updateCalls.length).toBe(2);
-      // Warning was logged for the failed UPDATE
-      expect(warnSpy).toHaveBeenCalledWith(
-        'Failed to update vpn_accounts status for id', 50, 'DB write failure'
+      // Warning was logged for the failed UPDATE via structured logger
+      expect(warn).toHaveBeenCalledWith(
+        'Failed to update vpn_accounts status',
+        expect.objectContaining({ vpnAccountId: 50, error: 'DB write failure' })
       );
-      warnSpy.mockRestore();
+      warn.mockReset();
     });
   });
 
@@ -282,6 +293,8 @@ describe('vpnAccountScheduler', () => {
   // -------------------------------------------------------------------------
   describe('cleanupCanceledSubscriptions — UPDATE query can now throw without stopping loop', () => {
     it('UPDATE throw during cleanupCanceledSubscriptions — error logged, loop processes all rows', async () => {
+      const { warn } = require('../../src/utils/logger');
+      warn.mockImplementation(() => {});
       const rows = [
         { id: 60, purewl_uuid: 'uuid-cancel-1' },
         { id: 61, purewl_uuid: 'uuid-cancel-2' }
@@ -300,7 +313,6 @@ describe('vpnAccountScheduler', () => {
       });
       mockDisableAccount.mockResolvedValue({});
 
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       await expect(cleanupCanceledSubscriptions()).resolves.not.toThrow();
 
       // Count UPDATE calls via mock call history (jest.clearAllMocks resets this)
@@ -308,10 +320,11 @@ describe('vpnAccountScheduler', () => {
 
       expect(mockDisableAccount).toHaveBeenCalledTimes(2);
       expect(updateCalls.length).toBe(2);
-      expect(warnSpy).toHaveBeenCalledWith(
-        'Failed to update vpn_accounts status for id', 60, 'Connection lost'
+      expect(warn).toHaveBeenCalledWith(
+        'Failed to update vpn_accounts status',
+        expect.objectContaining({ vpnAccountId: 60, error: 'Connection lost' })
       );
-      warnSpy.mockRestore();
+      warn.mockReset();
     });
   });
 

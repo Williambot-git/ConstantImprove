@@ -1,5 +1,6 @@
 const db = require('../config/database');
 const VpnResellersService = require('./vpnResellersService');
+const log = require('../utils/logger');
 
 const vpnResellersService = new VpnResellersService();
 
@@ -16,7 +17,7 @@ async function cleanupExpiredAccounts() {
         await vpnResellersService.disableAccount(row.purewl_uuid);
       }
     } catch (err) {
-      console.warn('Failed to deactivate VPN Reseller account', row.purewl_uuid, err.message);
+      log.warn('Failed to deactivate VPN account', { purewlUuid: row.purewl_uuid, error: err.message });
     }
 
     try {
@@ -29,7 +30,7 @@ async function cleanupExpiredAccounts() {
     } catch (err) {
       // Swallow UPDATE failures — the row may already be in the desired state
       // or the DB may have already processed it. Don't block other rows.
-      console.warn('Failed to update vpn_accounts status for id', row.id, err.message);
+      log.warn('Failed to update vpn_accounts status', { vpnAccountId: row.id, error: err.message });
     }
   }
 }
@@ -50,7 +51,7 @@ async function cleanupCanceledSubscriptions() {
         await vpnResellersService.disableAccount(row.purewl_uuid);
       }
     } catch (err) {
-      console.warn('Failed to deactivate canceled VPN Reseller account', row.purewl_uuid, err.message);
+      log.warn('Failed to deactivate VPN account (canceled subscription)', { purewlUuid: row.purewl_uuid, error: err.message });
     }
 
     try {
@@ -62,7 +63,7 @@ async function cleanupCanceledSubscriptions() {
       );
     } catch (err) {
       // Swallow UPDATE failures — don't let one bad row block others
-      console.warn('Failed to update vpn_accounts status for id', row.id, err.message);
+      log.warn('Failed to update vpn_accounts status', { vpnAccountId: row.id, error: err.message });
     }
   }
 }
@@ -99,7 +100,7 @@ async function suspendExpiredTrials() {
           try {
             await vpnResellersService.disableAccount(va.purewl_uuid);
           } catch (err) {
-            console.warn('Failed to deactivate VPN account during trial expiry', va.purewl_uuid, err.message);
+            log.warn('Failed to deactivate VPN account (trial expiry)', { purewlUuid: va.purewl_uuid, error: err.message });
           }
         }
         await db.query(
@@ -114,9 +115,9 @@ async function suspendExpiredTrials() {
         [row.user_id]
       );
 
-      console.log(`Suspended expired trial subscription ${row.id} for user ${row.user_id}`);
+      log.info('Suspended expired trial subscription', { subscriptionId: row.id, userId: row.user_id });
     } catch (err) {
-      console.error('Error suspending expired trial:', row.id, err.message);
+      log.error('Error suspending expired trial', { subscriptionId: row.id, error: err.message });
     }
   }
 }
@@ -132,7 +133,7 @@ async function cleanupAbandonedCheckouts() {
   );
 
   if (result.rows.length > 0) {
-    console.log(`Deleted ${result.rows.length} abandoned checkout subscriptions`);
+    log.info('Deleted abandoned checkout subscriptions', { count: result.rows.length });
 
     // Also delete associated pending payments
     for (const sub of result.rows) {

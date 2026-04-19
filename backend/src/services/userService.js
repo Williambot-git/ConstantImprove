@@ -4,6 +4,7 @@ const VpnResellersService = require('./vpnResellersService');
 const paymentConfig = require('../config/paymentConfig');
 const crypto = require('crypto');
 const { validatePasswordComplexity } = require('../middleware/passwordValidation');
+const log = require('../utils/logger');
 
 const vpnResellersService = new VpnResellersService();
 const PLAN_DURATION_DAYS = {
@@ -246,7 +247,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
         try {
           await vpnResellersService.setExpiry(existingUuid, newExpiryYmd);
         } catch (warn) {
-          console.warn('Failed to sync VPN Resellers expiry during renewal:', warn.message || warn);
+          log.warn('Failed to sync VPN Resellers expiry during renewal', { error: warn.message || warn });
         }
       }
 
@@ -295,7 +296,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
   try {
     await vpnResellersService.setExpiry(accountId, expiryDateYmd);
   } catch (error) {
-    console.warn('Failed setting VPN Resellers expiry date:', error.message || error);
+    log.warn('Failed to set VPN Resellers expiry date', { error: error.message || error });
   }
 
   const allowedCountries = createdData?.allowed_countries || [];

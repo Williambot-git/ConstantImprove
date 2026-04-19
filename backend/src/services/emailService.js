@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
+const log = require('../utils/logger');
 
 class EmailService {
   constructor() {
@@ -35,7 +36,7 @@ class EmailService {
     try {
       return fs.readFileSync(templatePath, 'utf8');
     } catch (error) {
-      console.warn(`Email template ${name}.html not found, using fallback.`);
+      log.warn('Email template not found, using fallback', { template: `${name}.html` });
       return `{{content}}`;
     }
   }
@@ -66,10 +67,10 @@ class EmailService {
     
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log(`📧 Email sent to ${to}: ${info.messageId}`);
+      log.info('Email sent', { to, messageId: info.messageId });
       return info;
     } catch (error) {
-      console.error(`❌ Failed to send email to ${to}:`, error);
+      log.error('Failed to send email', { to, error: error.message || error });
       throw error;
     }
   }

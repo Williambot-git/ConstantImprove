@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const log = require('../utils/logger');
 
 /**
  * Enhanced Content Security Policy configuration
@@ -88,7 +89,7 @@ class ScriptIntegrityMonitor {
 
     const expectedHash = this.scriptHashes.get(url);
     if (!expectedHash) {
-      console.warn(`No expected hash registered for script: ${url}`);
+      log.warn('No expected hash registered for script', { url });
       return false;
     }
 
@@ -96,10 +97,8 @@ class ScriptIntegrityMonitor {
     const isValid = actualHash === expectedHash;
 
     if (!isValid) {
-      console.error(`Script integrity check failed for: ${url}`);
-      console.error(`Expected: ${expectedHash}`);
-      console.error(`Actual: ${actualHash}`);
-      
+      log.error('Script integrity check failed', { url, expectedHash, actualHash });
+
       // Alert on integrity failure
       this.alertIntegrityFailure(url, expectedHash, actualHash);
     }
@@ -124,7 +123,8 @@ class ScriptIntegrityMonitor {
     // In production, send to security monitoring system
     if (process.env.NODE_ENV === 'production') {
       // TODO: Integrate with security monitoring service
-      console.error('SECURITY ALERT:', JSON.stringify(auditLog));
+      // Use structured logger so the severity prefix is always present
+      log.error('SECURITY ALERT: SCRIPT_INTEGRITY_FAILURE', { auditLog });
     }
   }
 
@@ -142,7 +142,7 @@ class ScriptIntegrityMonitor {
       if (url.includes('.js') || url.includes('/scripts/')) {
         // In a real implementation, you would fetch and verify the script
         // For now, we'll log the request
-        console.log(`Script request: ${url}`);
+        log.debug('Script request', { url });
       }
 
       next();
@@ -177,9 +177,9 @@ const paymentSecurityMiddleware = (req, res, next) => {
  */
 const handleCSPReport = (req, res) => {
   const report = req.body;
-  
-  console.warn('CSP Violation Report:', JSON.stringify(report, null, 2));
-  
+
+  log.warn('CSP Violation Report', { report });
+
   // Log to security audit
   const auditLog = {
     timestamp: new Date().toISOString(),
@@ -191,7 +191,7 @@ const handleCSPReport = (req, res) => {
   // In production, send to security monitoring
   if (process.env.NODE_ENV === 'production') {
     // TODO: Integrate with security monitoring service
-    console.error('CSP VIOLATION:', JSON.stringify(auditLog));
+    log.error('SECURITY ALERT: CSP Violation', { auditLog });
   }
 
   res.status(204).end();
