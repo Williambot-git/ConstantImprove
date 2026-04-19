@@ -93,7 +93,15 @@ jest.mock('../src/utils/totp', () => ({
 
 jest.mock('fs', () => ({}));
 
-// ─── Imports AFTER mocks ──────────────────────────────────────────────────────
+// ─── Mock nodemailer BEFORE emailService loads ──────────────────────────────────
+// emailService instantiates a nodemailer transporter at module load time.
+// Without this mock, it tries to connect to real SMTP_HOST (undefined in test).
+jest.mock('nodemailer', () => ({
+  createTransport: jest.fn(() => ({
+    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-mock-id' }),
+    verify: jest.fn().mockResolvedValue(true)
+  }))
+}));
 // After jest.mock() calls, we can safely require the mocked modules to get
 // the jest.fn() references that the factory functions created.
 const bcrypt = require('bcrypt');

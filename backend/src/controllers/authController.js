@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const db = require('../config/database');
 const { generateCsrfToken, storeCsrfToken } = require('../middleware/authMiddleware_new');
 const { validatePasswordComplexity } = require('../middleware/passwordValidation');
+const emailService = require('../services/emailService');
 
 // Helper to generate temporary token for 2FA verification during login
 const generate2faTempToken = (userId) => {
@@ -253,9 +254,14 @@ const forgotPassword = async (req, res) => {
       [user.id, tokenHash]
     );
     
-    // TODO: Send email with reset link
-    // NOTE: console.log of token removed — security: plaintext tokens must never appear in logs
-    
+    // Construct the password reset link using FRONTEND_URL (canonical base)
+    // We use the email stored in the DB as the identifier in the link.
+    // NOTE: plaintext token appears ONLY as URL query param sent to user's email,
+    // never in server-side logs (console.log removed for security).
+    const baseUrl = process.env.FRONTEND_URL || 'https://ahoyvpn.net';
+    const resetLink = `${baseUrl}/recover?email=${encodeURIComponent(user.email)}&token=${token}`;
+    await emailService.sendPasswordResetEmail(user.email, resetLink);
+
     res.json({
       success: true,
       message: 'If an account exists with this email, you will receive a password reset link shortly.'
