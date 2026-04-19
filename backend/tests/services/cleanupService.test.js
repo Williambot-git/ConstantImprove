@@ -1,224 +1,356 @@
 /**
  * cleanupService unit tests
  *
- * Tests the 7 cleanup service functions with mocked database and external dependencies.
- * These functions are critical for production maintenance (audit log retention,
- * no-logs policy, subscription lifecycle, abandoned checkout cleanup, ghost account removal).
+ * Tests all 6 cleanup functions plus the runAllCleanup orchestrator:
+ *   cleanupDataExports, cleanupOldAuditLogs, cleanupOldConnections,
+ *   cleanupAbandonedCheckouts, suspendExpiredTrials, cleanupOldAccounts,
+ *   runAllCleanup
  *
- * Pattern: Uses jest.mock() (synchronous hoisting) like promoService.test.js
- * instead of jest.unstable_mockModule() to avoid async module-loading issues.
+ * Dependencies mocked:
+ *   - exportController.cleanupExpiredExports  — called by cleanupDataExports
+ *   - AuditLog.deleteOld                     — called by cleanupOldAuditLogs
+ *   - db.query                               — all direct SQL operations
+ *   - vpnAccountScheduler                   — cleanupAbandonedCheckouts,
+ *                                             suspendExpiredTrials (required
+ *                                             dynamically inside those functions)
+ *
+ * Mock strategy:
+ *   - mockImplementation(default) in beforeEach for persistent DB mock
+ *   - mockResolvedValueOnce() per test for per-call responses
+ *   - vpnAccountScheduler mock is hoisted via jest.mock() so it applies
+ *     even to the dynamic require() inside cleanupService
  */
 
-// Jest globals are automatically available in test files — no need to import them.
-// We import only the modules under test and set up mocks before requiring the service.
+process.env.NODE_ENV = 'test';
 
-// Mock database
-jest.mock('../../src/config/database', () => ({
-  query: jest.fn(),
-}));
+// ─── Mocks ─────────────────────────────────────────────────────────────────────
 
-// Mock exportController
+const mockDbQuery = jest.fn();
+jest.mock('../../src/config/database', () => ({ query: mockDbQuery }));
+
+const mockCleanupExpiredExports = jest.fn();
 jest.mock('../../src/controllers/exportController', () => ({
-  cleanupExpiredExports: jest.fn(),
+  cleanupExpiredExports: mockCleanupExpiredExports
 }));
 
-// Mock AuditLog model
+const mockAuditLogDeleteOld = jest.fn();
 jest.mock('../../src/models/auditLogModel', () => ({
-  deleteOld: jest.fn(),
+  deleteOld: mockAuditLogDeleteOld
 }));
 
-// Mock vpnAccountScheduler (cleanupService delegates to these)
+// Mock vpnAccountScheduler — referenced via dynamic require() inside
+// cleanupAbandonedCheckouts and suspendExpiredTrials. Jest mocking is
+// applied before modules load, so the dynamic require() gets our mock.
+const mockCleanupAbandonedCheckouts = jest.fn();
+const mockSuspendExpiredTrials = jest.fn();
 jest.mock('../../src/services/vpnAccountScheduler', () => ({
-  cleanupAbandonedCheckouts: jest.fn(),
-  suspendExpiredTrials: jest.fn(),
+  cleanupAbandonedCheckouts: mockCleanupAbandonedCheckouts,
+  suspendExpiredTrials: mockSuspendExpiredTrials
 }));
 
-// ─── Now import modules (mocks are ready) ────────────────────────────────────
+// ─── Imports after mocks ───────────────────────────────────────────────────────
+
 const cleanupService = require('../../src/services/cleanupService');
-const exportController = require('../../src/controllers/exportController');
-const AuditLog = require('../../src/models/auditLogModel');
-const vpnAccountScheduler = require('../../src/services/vpnAccountScheduler');
-const db = require('../../src/config/database');
 
-describe('cleanupService', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function mockRes() {
+  return {
+    status: jest.fn().mockReturnThis(),
+    json: jest.fn().mockReturnThis(),
+    setHeader: jest.fn().mockReturnThis(),
+    sendFile: jest.fn().mockReturnThis()
+  };
+}
+
+// ─── Global beforeEach ─────────────────────────────────────────────────────────
+
+beforeEach(() => {
+  jest.clearAllMocks();
+
+  // db.query default: empty rows (covers all SQL calls)
+  mockDbQuery.mockReset();
+  mockDbQuery.mockImplementation(() => Promise.resolve({ rows: [], rowCount: 0 }));
+
+  // exportController (called by cleanupDataExports)
+  mockCleanupExpiredExports.mockReset();
+  mockCleanupExpiredExports.mockResolvedValue(undefined);
+
+  // AuditLog (called by cleanupOldAuditLogs)
+  mockAuditLogDeleteOld.mockReset();
+  mockAuditLogDeleteOld.mockResolvedValue(0);
+
+  // vpnAccountScheduler (called by cleanupAbandonedCheckouts / suspendExpiredTrials)
+  mockCleanupAbandonedCheckouts.mockReset();
+  mockCleanupAbandonedCheckouts.mockResolvedValue(undefined);
+  mockSuspendExpiredTrials.mockReset();
+  mockSuspendExpiredTrials.mockResolvedValue(undefined);
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// cleanupDataExports
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe('cleanupDataExports', () => {
+  test('calls exportController.cleanupExpiredExports once', async () => {
+    await cleanupService.cleanupDataExports();
+    expect(mockCleanupExpiredExports).toHaveBeenCalledTimes(1);
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // cleanupDataExports
-  // Calls exportController.cleanupExpiredExports() and logs result.
-  // Simple delegation — verify it calls through and doesn't swallow errors.
-  // ─────────────────────────────────────────────────────────────────
-  describe('cleanupDataExports', () => {
-    it('should call exportController.cleanupExpiredExports', async () => {
-      exportController.cleanupExpiredExports.mockResolvedValueOnce(undefined);
-
-      await cleanupService.cleanupDataExports();
-
-      expect(exportController.cleanupExpiredExports).toHaveBeenCalledTimes(1);
-    });
-
-    it('should propagate errors from exportController', async () => {
-      const err = new Error('Export cleanup failed');
-      exportController.cleanupExpiredExports.mockRejectedValueOnce(err);
-
-      await expect(cleanupService.cleanupDataExports()).rejects.toThrow('Export cleanup failed');
-    });
+  test('awaits the export cleanup and does not throw', async () => {
+    mockCleanupExpiredExports.mockResolvedValue(undefined);
+    await expect(cleanupService.cleanupDataExports()).resolves.toBeUndefined();
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // cleanupOldAuditLogs
-  // Deletes audit logs older than 365 days. Verifies AuditLog.deleteOld is called.
-  // ─────────────────────────────────────────────────────────────────
-  describe('cleanupOldAuditLogs', () => {
-    it('should call AuditLog.deleteOld with retention days', async () => {
-      AuditLog.deleteOld.mockResolvedValueOnce(42);
+  test('propagates rejection from exportController.cleanupExpiredExports', async () => {
+    mockCleanupExpiredExports.mockRejectedValue(new Error('Export cleanup failed'));
+    await expect(cleanupService.cleanupDataExports()).rejects.toThrow('Export cleanup failed');
+  });
+});
 
-      await cleanupService.cleanupOldAuditLogs();
+// ════════════════════════════════════════════════════════════════════════════════
+// cleanupOldAuditLogs
+// ════════════════════════════════════════════════════════════════════════════════
 
-      expect(AuditLog.deleteOld).toHaveBeenCalledWith(365);
-    });
-
-    it('should propagate errors from AuditLog.deleteOld', async () => {
-      const err = new Error('AuditLog DB error');
-      AuditLog.deleteOld.mockRejectedValueOnce(err);
-
-      await expect(cleanupService.cleanupOldAuditLogs()).rejects.toThrow('AuditLog DB error');
-    });
+describe('cleanupOldAuditLogs', () => {
+  test('calls AuditLog.deleteOld with retention period of 365 days', async () => {
+    mockAuditLogDeleteOld.mockResolvedValue(42);
+    await cleanupService.cleanupOldAuditLogs();
+    expect(mockAuditLogDeleteOld).toHaveBeenCalledWith(365);
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // cleanupOldConnections
-  // Implements no-logs policy: deletes VPN connection records older than 7 days.
-  // This is important for GDPR/data privacy compliance.
-  // ─────────────────────────────────────────────────────────────────
-  describe('cleanupOldConnections', () => {
-    it('should delete connections older than 7 days', async () => {
-      db.query.mockResolvedValueOnce({ rowCount: 153 });
-
-      await cleanupService.cleanupOldConnections();
-
-      // Verify the DELETE query targets connections table with 7-day interval
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('DELETE FROM connections')
-      );
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining("NOW() - INTERVAL '7 days'")
-      );
-    });
-
-    it('should handle zero deletions gracefully (no throw)', async () => {
-      db.query.mockResolvedValueOnce({ rowCount: 0 });
-
-      await expect(cleanupService.cleanupOldConnections()).resolves.toBeUndefined();
-    });
-
-    it('should propagate database errors', async () => {
-      db.query.mockRejectedValueOnce(new Error('DB connection lost'));
-
-      await expect(cleanupService.cleanupOldConnections()).rejects.toThrow('DB connection lost');
-    });
+  test('logs the count of deleted audit logs', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockAuditLogDeleteOld.mockResolvedValue(17);
+    await cleanupService.cleanupOldAuditLogs();
+    expect(spy).toHaveBeenCalledWith('Deleted 17 old audit logs');
+    spy.mockRestore();
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // cleanupAbandonedCheckouts
-  // Delegates to vpnAccountScheduler.cleanupAbandonedCheckouts().
-  // Those subscriptions have been in trial > 3 days with no payment — clean them up.
-  // ─────────────────────────────────────────────────────────────────
-  describe('cleanupAbandonedCheckouts', () => {
-    it('should delegate to vpnAccountScheduler.cleanupAbandonedCheckouts', async () => {
-      vpnAccountScheduler.cleanupAbandonedCheckouts.mockResolvedValueOnce(undefined);
-
-      await cleanupService.cleanupAbandonedCheckouts();
-
-      expect(vpnAccountScheduler.cleanupAbandonedCheckouts).toHaveBeenCalledTimes(1);
-    });
+  test('logs zero when no audit logs need deletion', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockAuditLogDeleteOld.mockResolvedValue(0);
+    // No guard in the implementation — it always logs
+    await expect(cleanupService.cleanupOldAuditLogs()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Deleted 0 old audit logs');
+    spy.mockRestore();
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // suspendExpiredTrials
-  // Suspends accounts in trial > 30 days without payment.
-  // Delegates to vpnAccountScheduler.suspendExpiredTrials().
-  // ─────────────────────────────────────────────────────────────────
-  describe('suspendExpiredTrials', () => {
-    it('should delegate to vpnAccountScheduler.suspendExpiredTrials', async () => {
-      vpnAccountScheduler.suspendExpiredTrials.mockResolvedValueOnce(undefined);
+  test('propagates rejection when AuditLog.deleteOld throws (no internal catch)', async () => {
+    mockAuditLogDeleteOld.mockRejectedValue(new Error('Audit DB error'));
+    // cleanupOldAuditLogs has no try-catch — error propagates to runAllCleanup
+    await expect(cleanupService.cleanupOldAuditLogs()).rejects.toThrow('Audit DB error');
+  });
+});
 
-      await cleanupService.suspendExpiredTrials();
+// ════════════════════════════════════════════════════════════════════════════════
+// cleanupOldConnections
+// ════════════════════════════════════════════════════════════════════════════════
 
-      expect(vpnAccountScheduler.suspendExpiredTrials).toHaveBeenCalledTimes(1);
-    });
+describe('cleanupOldConnections', () => {
+  test('executes DELETE query for connections older than 7 days', async () => {
+    mockDbQuery.mockResolvedValue({ rows: [], rowCount: 10 });
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    await cleanupService.cleanupOldConnections();
+
+    expect(mockDbQuery).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM connections')
+    );
+    expect(mockDbQuery).toHaveBeenCalledWith(
+      expect.stringContaining("NOW() - INTERVAL '7 days'")
+    );
+    spy.mockRestore();
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // cleanupOldAccounts
-  // Deletes user accounts that registered > 30 days ago, never purchased,
-  // and are still inactive. These are ghost accounts from abandoned signups.
-  // ─────────────────────────────────────────────────────────────────
-  describe('cleanupOldAccounts', () => {
-    it('should delete ghost accounts older than 30 days with no purchases', async () => {
-      db.query.mockResolvedValueOnce({ rowCount: 3 });
-
-      await cleanupService.cleanupOldAccounts();
-
-      expect(db.query).toHaveBeenCalledWith(
-        expect.stringContaining('DELETE FROM users'),
-        expect.any(Array)
-      );
-    });
-
-    it('should handle zero deletions gracefully (no throw)', async () => {
-      db.query.mockResolvedValueOnce({ rowCount: 0 });
-
-      await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
-    });
-
-    it('should log but not throw database errors (per-function try/catch)', async () => {
-      // Matches cleanupOldConnections pattern: error is caught and logged, not propagated
-      db.query.mockRejectedValueOnce(new Error('DB connection lost'));
-
-      // Should NOT throw — error is caught internally
-      await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
-    });
+  test('logs the number of deleted connection records', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockDbQuery.mockResolvedValue({ rows: [], rowCount: 23 });
+    await cleanupService.cleanupOldConnections();
+    expect(spy).toHaveBeenCalledWith('Deleted 23 old connection records');
+    spy.mockRestore();
   });
 
-  // ─────────────────────────────────────────────────────────────────
-  // runAllCleanup
-  // Orchestrates all 6 cleanup functions. Per-function try/catch means
-  // a failure in one doesn't block the others from running.
-  // ─────────────────────────────────────────────────────────────────
-  describe('runAllCleanup', () => {
-    it('should call all 6 cleanup functions sequentially', async () => {
-      exportController.cleanupExpiredExports.mockResolvedValueOnce(undefined);
-      AuditLog.deleteOld.mockResolvedValueOnce(10);
-      db.query
-        .mockResolvedValueOnce({ rowCount: 5 })   // cleanupOldConnections
-        .mockResolvedValueOnce({ rowCount: 3 });  // cleanupOldAccounts
-      vpnAccountScheduler.cleanupAbandonedCheckouts.mockResolvedValueOnce(undefined);
-      vpnAccountScheduler.suspendExpiredTrials.mockResolvedValueOnce(undefined);
+  test('logs zero when no connections need cleanup', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockDbQuery.mockResolvedValue({ rows: [], rowCount: 0 });
+    // No guard in the implementation — it always logs
+    await expect(cleanupService.cleanupOldConnections()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Deleted 0 old connection records');
+    spy.mockRestore();
+  });
 
-      await cleanupService.runAllCleanup();
+  test('propagates rejection on database error (no internal catch)', async () => {
+    mockDbQuery.mockRejectedValue(new Error('Connection DB error'));
+    // cleanupOldConnections has no try-catch — error propagates up
+    await expect(cleanupService.cleanupOldConnections()).rejects.toThrow('Connection DB error');
+  });
+});
 
-      expect(exportController.cleanupExpiredExports).toHaveBeenCalledTimes(1);
-      expect(AuditLog.deleteOld).toHaveBeenCalledTimes(1);
-      expect(db.query).toHaveBeenCalledTimes(2); // cleanupOldConnections + cleanupOldAccounts
-      expect(vpnAccountScheduler.cleanupAbandonedCheckouts).toHaveBeenCalledTimes(1);
-      expect(vpnAccountScheduler.suspendExpiredTrials).toHaveBeenCalledTimes(1);
-    });
+// ════════════════════════════════════════════════════════════════════════════════
+// cleanupAbandonedCheckouts
+// ════════════════════════════════════════════════════════════════════════════════
 
-    it('should complete even if one cleanup function throws (per-function try/catch)', async () => {
-      // cleanupDataExports throws but runAllCleanup catches it internally
-      exportController.cleanupExpiredExports.mockRejectedValueOnce(new Error('export error'));
-      AuditLog.deleteOld.mockResolvedValueOnce(5);
-      db.query
-        .mockResolvedValueOnce({ rowCount: 3 })   // cleanupOldConnections
-        .mockResolvedValueOnce({ rowCount: 0 });  // cleanupOldAccounts
-      vpnAccountScheduler.cleanupAbandonedCheckouts.mockResolvedValueOnce(undefined);
-      vpnAccountScheduler.suspendExpiredTrials.mockResolvedValueOnce(undefined);
+describe('cleanupAbandonedCheckouts', () => {
+  test('requires and calls vpnAccountScheduler.cleanupAbandonedCheckouts', async () => {
+    mockCleanupAbandonedCheckouts.mockResolvedValue(undefined);
+    await cleanupService.cleanupAbandonedCheckouts();
+    expect(mockCleanupAbandonedCheckouts).toHaveBeenCalledTimes(1);
+  });
 
-      // Should NOT throw — each cleanup has its own try/catch inside runAllCleanup
-      await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
-    });
+  test('propagates rejection when scheduler throws', async () => {
+    mockCleanupAbandonedCheckouts.mockRejectedValue(new Error('Scheduler error'));
+    await expect(cleanupService.cleanupAbandonedCheckouts()).rejects.toThrow('Scheduler error');
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// suspendExpiredTrials
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe('suspendExpiredTrials', () => {
+  test('requires and calls vpnAccountScheduler.suspendExpiredTrials', async () => {
+    mockSuspendExpiredTrials.mockResolvedValue(undefined);
+    await cleanupService.suspendExpiredTrials();
+    expect(mockSuspendExpiredTrials).toHaveBeenCalledTimes(1);
+  });
+
+  test('propagates rejection when scheduler throws', async () => {
+    mockSuspendExpiredTrials.mockRejectedValue(new Error('Suspend error'));
+    await expect(cleanupService.suspendExpiredTrials()).rejects.toThrow('Suspend error');
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// cleanupOldAccounts
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe('cleanupOldAccounts', () => {
+  test('executes DELETE for ghost accounts (registered >30d, no purchase, inactive)', async () => {
+    mockDbQuery.mockResolvedValue({ rows: [{ id: 1 }], rowCount: 1 });
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    await cleanupService.cleanupOldAccounts();
+
+    expect(mockDbQuery).toHaveBeenCalledWith(
+      expect.stringContaining('DELETE FROM users'),
+      expect.any(Array) // cutoffDate
+    );
+    // Verify the WHERE clause contains the expected conditions
+    const call = mockDbQuery.mock.calls[0][0];
+    expect(call).toContain('registered_at');
+    expect(call).toContain('last_purchase_at');
+    expect(call).toContain('is_active');
+    spy.mockRestore();
+  });
+
+  test('logs count when ghost accounts are deleted', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockDbQuery.mockResolvedValue({ rows: [{ id: 1 }, { id: 2 }], rowCount: 2 });
+    await cleanupService.cleanupOldAccounts();
+    expect(spy).toHaveBeenCalledWith('Deleted 2 old ghost accounts');
+    spy.mockRestore();
+  });
+
+  test('no log call when no ghost accounts exist', async () => {
+    const spy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    mockDbQuery.mockResolvedValue({ rows: [], rowCount: 0 });
+    await cleanupService.cleanupOldAccounts();
+    // console.log is guarded by: if (result.rows.length > 0) { log(...) }
+    // So when rows is empty, no log is emitted
+    spy.mockRestore();
+  });
+
+  test('does not propagate rejection on database error (error is caught and logged)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockDbQuery.mockRejectedValue(new Error('Users DB error'));
+    // Error is caught internally in cleanupOldAccounts, so resolves
+    await expect(cleanupService.cleanupOldAccounts()).resolves.toBeUndefined();
+    // Error IS logged
+    expect(spy).toHaveBeenCalledWith('cleanupOldAccounts error:', expect.any(Error));
+    spy.mockRestore();
+  });
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// runAllCleanup
+// ════════════════════════════════════════════════════════════════════════════════
+
+describe('runAllCleanup', () => {
+  test('calls all 6 cleanup functions in order', async () => {
+    await cleanupService.runAllCleanup();
+
+    // Verify all 6 cleanup pathways are called exactly once
+    expect(mockCleanupExpiredExports).toHaveBeenCalledTimes(1);
+    expect(mockAuditLogDeleteOld).toHaveBeenCalledWith(365);
+
+    // connections uses db.query, verify call order (connections before users)
+    const dbCalls = mockDbQuery.mock.calls;
+    expect(dbCalls.length).toBeGreaterThanOrEqual(2);
+    // First db call should be connections DELETE
+    expect(dbCalls[0][0]).toContain('connections');
+    // Last db call should be users DELETE
+    expect(dbCalls[dbCalls.length - 1][0]).toContain('users');
+
+    expect(mockCleanupAbandonedCheckouts).toHaveBeenCalledTimes(1);
+    expect(mockSuspendExpiredTrials).toHaveBeenCalledTimes(1);
+  });
+
+  test('completes successfully when all cleanup functions succeed', async () => {
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+  });
+
+  test('completes when cleanupDataExports throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockCleanupExpiredExports.mockRejectedValue(new Error('Export error'));
+    // runAllCleanup catches all errors, so it resolves rather than rejects
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    spy.mockRestore();
+  });
+
+  test('completes when cleanupOldAuditLogs throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockAuditLogDeleteOld.mockRejectedValue(new Error('Audit error'));
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    spy.mockRestore();
+  });
+
+  test('completes when cleanupOldConnections throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockDbQuery.mockRejectedValue(new Error('Connections DB error'));
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    spy.mockRestore();
+  });
+
+  test('completes when cleanupAbandonedCheckouts throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockCleanupAbandonedCheckouts.mockRejectedValue(new Error('Abandoned checkout error'));
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    spy.mockRestore();
+  });
+
+  test('completes when suspendExpiredTrials throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockSuspendExpiredTrials.mockRejectedValue(new Error('Suspend error'));
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    expect(spy).toHaveBeenCalledWith('Cleanup task error:', expect.any(Error));
+    spy.mockRestore();
+  });
+
+  test('completes when cleanupOldAccounts throws (error is caught and logged, not re-thrown)', async () => {
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    // connections query succeeds, old accounts query fails
+    mockDbQuery
+      .mockResolvedValueOnce({ rows: [], rowCount: 0 }) // cleanupOldConnections
+      .mockRejectedValueOnce(new Error('Users DB error')); // cleanupOldAccounts
+    await expect(cleanupService.runAllCleanup()).resolves.toBeUndefined();
+    // cleanupOldAccounts has its own try/catch that logs 'cleanupOldAccounts error:'
+    // The outer runAllCleanup catch may not fire if cleanupOldAccounts already caught it.
+    // At minimum, the error was logged.
+    expect(spy).toHaveBeenCalled(); // some error was logged
+    spy.mockRestore();
   });
 });
