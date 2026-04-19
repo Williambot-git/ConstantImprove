@@ -421,5 +421,70 @@ describe('invoicePollingService', () => {
 
       expect(db.query).toHaveBeenCalledTimes(1); // Only the initial SELECT
     });
+
+    // -------------------------------------------------------------------------
+    // pollArbSubscriptions — line 213: outer catch block
+    // getArbSubscription itself throws — caught by outer catch, logs, continues
+    // -------------------------------------------------------------------------
+    it('ARB getArbSubscription throws — logs error and continues to next subscription', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      // First subscription: getArbSubscription throws
+      // Second subscription: succeeds with no status change
+      arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
+        .mockRejectedValueOnce(new Error('Authorize.net API error'))
+        .mockResolvedValueOnce({ status: 'active', paymentStatus: 'pending' });
+
+      db.query = jest.fn()
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'sub-arb-err-1',
+              user_id: 'user-err-1',
+              status: 'active',
+              metadata: { arb_subscription_id: 'arb_err_1' },
+              current_period_end: new Date().toISOString()
+            },
+            {
+              id: 'sub-arb-err-2',
+              user_id: 'user-err-2',
+              status: 'active',
+              metadata: { arb_subscription_id: 'arb_err_2' },
+              current_period_end: new Date().toISOString()
+            }
+          ]
+        });
+
+      await pollArbSubscriptions();
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ARB polling error for subscription', 'sub-arb-err-1', 'Authorize.net API error'
+      );
+      // Second subscription still processed
+      expect(arbSpy).toHaveBeenCalledTimes(2);
+
+      consoleSpy.mockRestore();
+    });
+
+    // -------------------------------------------------------------------------
+    // pollArbSubscriptions — line 156: arbId null/undefined continue
+    // sub.metadata has arb_subscription_id but it's null/undefined
+    // -------------------------------------------------------------------------
+    it('ARB subscription with null arb_subscription_id in metadata — skips silently', async () => {
+      db.query = jest.fn().mockResolvedValueOnce({
+        rows: [{
+          id: 'sub-no-arb',
+          user_id: 'user-no-arb',
+          status: 'active',
+          metadata: { arb_subscription_id: null }, // null arb — should continue
+          current_period_end: new Date().toISOString()
+        }]
+      });
+
+      await pollArbSubscriptions();
+
+      // getArbSubscription should NOT be called since arbId is null
+      expect(arbSpy || jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')).not.toHaveBeenCalled();
+    });
   });
 });

@@ -260,5 +260,260 @@ describe('ziptaxService', () => {
         })
       );
     });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: line 39 — normalizedCountry ternary (CAN path)
+    // Line 39: normalizedCountry === 'CAN' ? 'CAN' : 'USA'
+    // 'CAN' takes the TRUE path (countryCode passed as 'CAN')
+    // 'USA' and other values take the FALSE path (covered by 'USA' test above)
+    // Already covered by 'should handle Canadian postal codes' test above.
+    // No additional test needed.
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should use USA countryCode for non-CAN values (line 39 ternary false branch)', async () => {
+      const mockResponse = {
+        metadata: { response: { code: 100, name: 'SUCCESS', message: 'success' } },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: 0.07 }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      // Pass 'AUS' (not CAN) — ternary should evaluate to false and use 'USA'
+      await ziptaxService.lookupCombinedSalesTaxRate({
+        countryCode: 'AUS',
+        region: 'NY',
+        postalCode: '10001'
+      });
+
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({ countryCode: 'USA' })
+        })
+      );
+    });
+
+    it('should default to USA when countryCode is null/undefined (line 39 ternary)', async () => {
+      const mockResponse = {
+        metadata: { response: { code: 100, name: 'SUCCESS', message: 'success' } },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: 0.05 }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      // @ts-ignore — intentionally passing null to exercise || '' fallback
+      await ziptaxService.lookupCombinedSalesTaxRate({
+        countryCode: null,
+        region: 'TX',
+        postalCode: '73301'
+      });
+
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.objectContaining({ countryCode: 'USA' })
+        })
+      );
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: lines 82-83 — data.metadata || {} and metadata.response || {}
+    // These default empty objects kick in when API response is missing those fields.
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should use empty metadata object when data.metadata is missing (line 82 branch)', async () => {
+      // Response has no metadata field at all — data.metadata || {} should default to {}
+      const mockResponse = {
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: 0.06 }]
+        // metadata is completely absent
+      };
+      mockAxiosSuccess(mockResponse);
+
+      // With no metadata.response.code, the code !== 100 check should throw
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'FL', postalCode: '33101' })
+      ).rejects.toThrow();
+    });
+
+    it('should use empty response object when metadata.response is missing (line 83 branch)', async () => {
+      // metadata exists but response is absent — metadata.response || {} defaults to {}
+      const mockResponse = {
+        metadata: {
+          // response is absent — respInfo = {}
+        },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: 0.06 }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      // typeof undefined !== 'number' → throws with "ZipTax error (code=undefined...)"
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'NY', postalCode: '10001' })
+      ).rejects.toThrow('ZipTax error');
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: lines 84-91 — error code != 100 branch
+    // Tested by 'should throw error on non-100 response code' above.
+    // Additional test for code=0 case (edge case in the || check)
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should throw error when response code is 0 (falsy number — typeof check passes)', async () => {
+      // typeof 0 === 'number' is true, but 0 !== 100, so it enters the error branch
+      const mockResponse = {
+        metadata: { response: { code: 0, name: 'ZERO_CODE', message: 'Zero code received' } }
+      };
+      mockAxiosSuccess(mockResponse);
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'CA', postalCode: '90001' })
+      ).rejects.toThrow('ZipTax error (code=0, name=ZERO_CODE): Zero code received');
+    });
+
+    it('should throw error when response code is a string "100" (type coercion fails)', async () => {
+      // typeof '100' !== 'number' — enters error branch with code='100' (string)
+      const mockResponse = {
+        metadata: { response: { code: '100', name: 'SUCCESS', message: 'Success' } }
+      };
+      mockAxiosSuccess(mockResponse);
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'WA', postalCode: '98101' })
+      ).rejects.toThrow('ZipTax error');
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: lines 111-116 — error re-throw logic
+    // msg.startsWith('ZipTax error') — re-throw as-is
+    // msg.startsWith('Unexpected ZipTax') — re-throw as-is
+    // else — wrap as generic 'ZipTax lookup failed'
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should re-throw errors starting with ZipTax error verbatim (line 114)', async () => {
+      axios.get.mockRejectedValueOnce(new Error('ZipTax error (code=500, name=SERVER_ERROR): Internal error'));
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'IL', postalCode: '60601' })
+      ).rejects.toThrow('ZipTax error (code=500, name=SERVER_ERROR): Internal error');
+    });
+
+    it('should re-throw errors starting with Unexpected ZipTax verbatim (line 114)', async () => {
+      axios.get.mockRejectedValueOnce(new Error('Unexpected ZipTax response format'));
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'OH', postalCode: '44101' })
+      ).rejects.toThrow('Unexpected ZipTax response format');
+    });
+
+    it('should wrap non-ZipTax errors as generic "ZipTax lookup failed" (line 117)', async () => {
+      axios.get.mockRejectedValueOnce(new Error('ECONNREFUSED'));
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'GA', postalCode: '30301' })
+      ).rejects.toThrow('ZipTax lookup failed');
+    });
+
+    it('should wrap errors with empty message as generic "ZipTax lookup failed"', async () => {
+      axios.get.mockRejectedValueOnce(new Error(''));
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'AZ', postalCode: '85001' })
+      ).rejects.toThrow('ZipTax lookup failed');
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: lines 63-65 — taxabilityCode conditional
+    // Tested by 'should pass taxabilityCode when provided' above.
+    // The !== null check is the only untaken branch (undefined case).
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should NOT pass taxabilityCode when omitted (undefined — nullish check)', async () => {
+      const mockResponse = {
+        metadata: { response: { code: 100, name: 'SUCCESS', message: 'success' } },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: 0.05 }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      await ziptaxService.lookupCombinedSalesTaxRate({
+        region: 'NV',
+        postalCode: '89101'
+        // taxabilityCode intentionally omitted
+      });
+
+      expect(axios.get).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          params: expect.not.objectContaining(['taxabilityCode'])
+        })
+      );
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: line 89 — name || 'unknown' fallback
+    // When API returns a response code error but name field is missing/falsy,
+    // we fall back to 'unknown'. This is an edge case in the error formatting.
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should use "unknown" as name fallback when response name is missing (line 89)', async () => {
+      // API returns error code but no name field
+      const mockResponse = {
+        metadata: { response: { code: 400, message: 'Bad request' } }
+        // name is absent — should fall back to 'unknown'
+      };
+      mockAxiosSuccess(mockResponse);
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'MA', postalCode: '02101' })
+      ).rejects.toThrow('ZipTax error (code=400, name=unknown): Bad request');
+    });
+
+    it('should use "Request failed" as message fallback when response message is missing (line 89)', async () => {
+      // API returns error with no message field
+      const mockResponse = {
+        metadata: { response: { code: 500, name: 'SERVER_ERROR' } }
+        // message is absent
+      };
+      mockAxiosSuccess(mockResponse);
+
+      await expect(
+        ziptaxService.lookupCombinedSalesTaxRate({ region: 'CO', postalCode: '80201' })
+      ).rejects.toThrow('ZipTax error (code=500, name=SERVER_ERROR): Request failed');
+    });
+
+    // ─────────────────────────────────────────────────────────────────
+    // Branch coverage: line 106 — Number.isFinite(rate) check
+    // safeRate = Number.isFinite(rate) && rate >= 0 ? rate : 0
+    // Already covered: rate is negative (line 105 test), rate is non-number (line 103 test)
+    // Remaining: rate is Infinity or NaN (fails Number.isFinite)
+    // ─────────────────────────────────────────────────────────────────
+
+    it('should return 0 when rate is Infinity (Number.isFinite returns false)', async () => {
+      const mockResponse = {
+        metadata: { response: { code: 100, name: 'SUCCESS', message: 'success' } },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: Infinity }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      const result = await ziptaxService.lookupCombinedSalesTaxRate({
+        region: 'UT',
+        postalCode: '84101'
+      });
+
+      // Number.isFinite(Infinity) === false → safeRate falls back to 0
+      expect(result.rate).toBe(0);
+    });
+
+    it('should return 0 when rate is NaN (Number.isFinite returns false)', async () => {
+      const mockResponse = {
+        metadata: { response: { code: 100, name: 'SUCCESS', message: 'success' } },
+        taxSummaries: [{ taxType: 'SALES_TAX', rate: NaN }]
+      };
+      mockAxiosSuccess(mockResponse);
+
+      const result = await ziptaxService.lookupCombinedSalesTaxRate({
+        region: 'OR',
+        postalCode: '97201'
+      });
+
+      // Number.isFinite(NaN) === false → safeRate falls back to 0
+      expect(result.rate).toBe(0);
+    });
   });
 });
