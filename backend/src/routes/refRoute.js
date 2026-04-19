@@ -1,12 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
-
-const normalizeAffiliateCode = (value) => {
-  if (!value) return null;
-  const normalized = String(value).trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
-  return normalized || null;
-};
+const { normalizeAffiliateCode } = require('../utils/affiliateUtils');
 
 router.get('/ref/:refCode', async (req, res) => {
   try {

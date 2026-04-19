@@ -28,6 +28,7 @@ const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../serv
 const {
   applyAffiliateCommissionIfEligible,
 } = require('../services/affiliateCommissionService');
+const { normalizeAffiliateCode } = require('../utils/affiliateUtils');
 
 
 
@@ -52,18 +53,6 @@ const logAuthorizeRelay = (data) => {
   }
 
 };
-
-
-
-const normalizeAffiliateCode = (value) => {
-
-  const normalized = String(value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
-
-  return normalized || null;
-
-};
-
-
 
 const ALLOWED_CRYPTO_CURRENCIES = new Set([
 
@@ -1239,7 +1228,7 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-    if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
+        if (process.env.DEBUG_AUTHORIZE_NET === 'true') {
 
       console.log('Authorize relay payload', {
 
