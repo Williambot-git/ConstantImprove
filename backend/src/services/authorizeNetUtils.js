@@ -5,6 +5,7 @@
 // This canonical class now contains ALL shared methods. The duplicate has been removed.
 
 const AUTHORIZE_API_URL = process.env.AUTHORIZE_NET_API_URL || 'https://api.authorize.net/xml/v1/request.api';
+const log = require('../utils/logger');
 
 /**
  * Look up full transaction details from Authorize.net by transaction ID.

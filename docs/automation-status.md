@@ -217,4 +217,6 @@
   - Deleted duplicate standalone userService.renew.test.js (mock isolation issues — tests properly in userService.test.js)
   - 1175 backend + 798 frontend = 1973 total tests passing
 
-*Last updated: 2026-04-19T20:21:00Z*
+*Last updated: 2026-04-19T20:35:00Z*
+- **Structured logger utility**: New `backend/src/utils/logger.js` with 4 severity levels (error/warn/info/debug), LOG_LEVEL env var control, NODE_ENV=production defaulting to info-level. affiliateCommissionService migrated: affiliate-not-found → debug (noisy per-referral), commission credited → structured info with metadata (commit 277e3d3)
+- **authorizeNetUtils**: imported logger (commit pending)
