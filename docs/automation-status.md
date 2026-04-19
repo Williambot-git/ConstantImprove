@@ -67,43 +67,45 @@
 | 61 | test(backend): pageController unit tests (18 tests, 100% line coverage — verifyEmailPage, resetPasswordPage, resendVerificationEmail) | **DONE** (commit 546f514) |
 | 62 | fix(authController_csrf): login — add explicit res.status(200) on active-user success path | **DONE** (commit 567d328) |
 | 63 | supportController unit tests (11 cases) + real implementation (replace 501 stubs) | **DONE** (commit cfacecc) |
+| 64 | refactor: extract normalizeAffiliateCode to shared affiliateUtils.js (DRY — was duplicated in paymentController.js + refRoute.js) | **DONE** (commit 7fd7bc3) |
 | 64 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
 | 65 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
 | 66 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
 | 67 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
-| 68 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
-| 69 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
-| 70 | affiliateDashboardController unit tests (38 cases, 100% line coverage) | **DONE** (commit ec373d3) |
-| 71 | backend: Remove dead code from paymentController.js (131 lines) | **DONE** (commit f32d931) |
-| 72 | Remove orphaned debug_bcrypt.test.js | **DONE** (commit f32d931) |
-| 73 | refRoute unit tests + fix webhookController line 452 typo (=' → ===) | **DONE** (commit d2ca19b) |
-| 74 | fix(webhookController): remove dead DEBUG block (=*** typo — was dead code) | **DONE** (commit 36d3a9a) |
-| 75 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
-| 76 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
-| 77 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
-| 78 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
-| 79 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
-| 80 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
-| 81 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
-| 82 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
-| 83 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
-| 84 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
-| 85 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
-| 86 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
-| 87 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
-|| 108 | test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) | **DONE** (commit 24def56) |
-| 121 | test(paymentController): add 3 branch-coverage tests — direct card flow (responseCode=1/success, responseCode!=1/failure, hostedRedirectBridge default formUrl); line 82.93%→85.31%, branch 63.07%→65.14% | **DONE** (commit 9f69dfd) |
-| 98 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
-| 99 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
-| 100 | Frontend cleanup — fix `<a>` → accessible external links (dns-guide, affiliate-agreement, faq, downloads, Layout) | **DONE** (commit 945bc04) |
-| 101 | Delete orphaned `frontend/js/checkout.js` legacy file | **DONE** (no such file existed) |
-| 102 | Consolidate duplicate payment-success page (delete `pages/payment/success.jsx`) | **DONE** (no such file existed — already removed) |
-| 103 | `admin.jsx` unit tests | **DONE** (admin.test.jsx exists) |
-| 104 | `ahoyman.jsx` unit tests | **DONE** (ahoyman.test.jsx exists) |
-| 105 | `authorize-redirect.jsx` unit tests (14 tests — loading, token validation, form POST, array query handling) | **DONE** (commit 3b6dc3c) |
-| 106 | test(paymentProcessingService): add 4 branch-coverage tests (planInterval fallback, postalCode/no-tax/zero-tax branches, invoice chain no-match early return) | **DONE** (commit 8706408) |
-| 107 | fix(frontend): remove nested `<a>` inside `<Link>` in auth pages — login.jsx (2), register.jsx (1), recover.jsx (2), payment-success.jsx (2) — net -8 lines, fixes invalid HTML accessibility issue | **DONE** (commit aa7c9bd) |
-| 108 | fix(frontend): remaining lint cleanup — `<a>`→`<Link>` in index.jsx (pricing note FAQ link), eslint-disable for `<img>` in _app.jsx loading spinner (next/image unsuitable) — frontend lint now 0 errors, 0 warnings | **DONE** (commit 95ad0d0) |
+| 64 | refactor: extract normalizeAffiliateCode to shared affiliateUtils.js (DRY — was duplicated in paymentController.js + refRoute.js) | **DONE** (commit 7fd7bc3) |
+| 65 | userController unit tests (18 cases — getProfile, updateProfile, getDevices, revokeDevice, getActivity, getUsage, deleteAccount) | **DONE** (commit 6905282) |
+| 66 | Remove orphaned TransactionsTab.test.jsx from frontend/components/ | **DONE** (commit 524dec4) |
+| 67 | frontend: CancelModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 68 | frontend: DeleteModal loading state tests (2 tests — confirm disabled + button text while loading) | **DONE** |
+| 69 | errorMiddleware unit tests (9 tests, 100% line/branch/function coverage) | **DONE** (commit 34ce604) |
+| 70 | Move vpnController.test.js into tests/controllers/ (fix stale require paths) | **DONE** (commit 4d9f9ba) |
+| 71 | affiliateDashboardController unit tests (38 cases, 100% line coverage) | **DONE** (commit ec373d3) |
+| 72 | chore(backend): move exportService.test.js to tests/services/ + fix relative paths | **DONE** (commit 9e0dab7) |
+| 73 | affiliateCommissionService extraction — applyAffiliateCommissionIfEligible moved from paymentController.js into dedicated service (fixes cross-layer import: services importing from controllers) | **DONE** |
+| 74 | affiliateCommissionService unit tests (28 tests — getMinimumPayoutCents, calculateCommission, createCustomerHash, applyAffiliateCommissionIfEligible) | **DONE** |
+| 75 | fix(adminController.test.js): remove 2 tests for non-existent functions (getMetrics, exportCustomersCSV) — all 1,018 backend tests pass | **DONE** (commit 2539b48) |
+| 76 | fix(frontend): add "type": "module" to package.json, rename jest.config.js → jest.config.cjs, babel.config.js → babel.config.cjs, update test scripts — eliminates ESLint MODULE_TYPELESS_PACKAGE_JSON warning | **DONE** (commit 73c2a9d) |
+| 77 | docs: add docs/script-inventory.md categorizing all 31 scripts/ files as active/deprecated/uncertain | **DONE** (commit 73c2a9d) |
+| 78 | Delete 11 one-time patch scripts from scripts/ (fix_arb.py, fix_frontend.py, deploy_frontend.py, patch_checkout.py, etc.) | **DONE** (commit 471cded) |
+| 79 | Delete 5 more orphaned scripts (patch_payment_*.py, check_patch.py, create_release.py) — patch artifacts and cross-project scripts | **DONE** (commit bb74790) |
+| 80 | ~~refactor(cleanup): move orphaned deleteOldAccounts from paymentController.js → cleanupService.js, add cleanupOldAccounts tests~~ | **DONE** (commit e8b0d7b) |
+| 81 | Delete 7 obsolete scripts from scripts/ (atom_service_install.iss, openclaw-backup.sh, parse-ical.js, ssh-helper.py, psql-helper.py, check_db.py, deploy.sh) — all confirmed irrelevant per script-inventory | **DONE** (commit 7a076db) |
+| 82 | fix(ahoyvpn-monitor.sh): replace dead /home/krabs/.openclaw/ SSH/psql helper references with direct ssh/psql commands — helpers on wrong machine, all remote checks silently returned SSH_FAILED | **DONE** |
+| 83 | fix(paymentProcessingService.test.js): resolve cross-test mock pollution — all 17 tests pass; found + fixed callIndex sequencing bug in tax-failure test that was masked by the pollution | **DONE** (commit 056f69b) |
+| 84 | test(paymentProcessingService): add 2 tests for error-handling branches — Plisio API throw (line 73) + VPN creation throw (line 184 outer catch), branch coverage 72.72%→74.24% | **DONE** (commit 46b893a) |
+| 85 | test(webhookController): add 5 branch-coverage tests (async catch handlers, txDetails null/found, ARB error) | **DONE** (commit 24def56) |
+| 86 | test(paymentController): add 3 branch-coverage tests — direct card flow (responseCode=1/success, responseCode!=1/failure, hostedRedirectBridge default formUrl); line 82.93%→85.31%, branch 63.07%→65.14% | **DONE** (commit 9f69dfd) |
+| 87 | test(frontend): downloads.jsx unit tests (6 tests — platform cards, buttons, links, details, h3 heading filtering to avoid duplicate text matches) | **DONE** (commit fef64d7) |
+| 88 | fix(tests): correct Button hover + Layout tests to match actual component behavior | **DONE** (commit 1d850db) |
+| 89 | Frontend cleanup — fix `<a>` → accessible external links (dns-guide, affiliate-agreement, faq, downloads, Layout) | **DONE** (commit 945bc04) |
+| 90 | test(frontend): index.jsx landing page tests (21 tests — hero, features, pricing, how-it-works, CTA banner) | **DONE** (commit aeef9f9) |
+| 91 | fix(frontend): affiliates-tab.test.jsx — all import paths used ../../ prefix from tests/ subdir (went to repo root instead of frontend root); also fix 4 failing tests using wrong waitFor/mock patterns | **DONE** (commit 6038395) |
+| 92 | test(frontend): add api/client unit tests (488 lines, 63 tests) + LinksTab unit tests (449 lines, 39 tests) + AffiliatesTab unit tests (604 lines, 41 tests) — all 3 were untracked/new | **DONE** (commit 6038395) |
+| 93 | fix(frontend): downloads.test.jsx — Linux platform added to DOWNLOADS array (6 platforms, not 5); update test assertions + regex filter to include 🐧 Linux | **DONE** (commit 6c62d11) |
+| 94 | fix(authController): remove console.log of plaintext password reset token in forgotPassword — security fix (tokens must never appear in logs) | **DONE** (commit 15d23ab) |
+| 95 | fix(frontend): add eslint-disable for social media img tags in index.jsx footer — consistent with existing pattern in _app.jsx and checkout.jsx | **DONE** (commit e956f0e) |
+| 96 | test(frontend): Form.jsx focus/blur coverage (Input + Select onFocus/onBlur) → 100% line, 96.15% branch; Button.jsx ghost hover coverage (onMouseEnter/onMouseLeave) → 100% line, 95.83% branch | **DONE** (commits a56edf1, feee694) |
+| 97 | feat(userController): getActivity — replace TODO with real subscription event queries; surfaces trial/active/canceled/expired subscription events in activity feed (+3 tests, 21 total) | **DONE** (commit 940cfd0) |
 | 109 | test(subscriptionController): add 13 error-handling branch tests — all 8 catch blocks now covered (userService throws ×6, db query throws ×6, createSubscription throws) | **DONE** (commit 83b2bcf) |
 | 110 | test(vpnResellersService): add 6 request() wrapper branch-coverage tests — vpnResellersService now 100% line/branch/function (was 100% / 55.55%) | **DONE** (commit f7cfb84) |
 | 111 | chore(frontend): delete orphaned `pages/management/dashboard.jsx` (499-line duplicate of `admin.jsx` with different import paths — confirmed no importers) | **DONE** (commit f7de9be) |
