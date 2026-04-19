@@ -208,3 +208,13 @@
 - **Architectural fix: affiliateCommissionService** — extracted commission logic from paymentController.js (controller) into a dedicated service. Services (paymentProcessingService) and other controllers (webhookController) now import from the correct layer. paymentController re-exports for backward compatibility with any remaining importers.
 
 *Last updated: 2026-04-19T19:30:00Z*
+- **ARB VPN renewal credential orphaning: FIXED & COMMITTED** (commit 5ffcdd5)
+  - Root cause: webhookController called createVpnAccount() unconditionally on every ARB webhook, regenerating new VPN Resellers credentials each month and orphaning the old ones
+  - Fix: createVpnAccount() now accepts `{ renew: true }` — skips VPN Resellers credential generation, uses SQL GREATEST(expiry, new_expiry) to extend existing account
+  - Fix: VPN provisioning block moved BEFORE active-status guard so ARB charge webhooks (already-active subscriptions) also extend VPN instead of returning early
+  - Fix: Uses inline require() inside VPN block to avoid Jest mock resolution issues with top-level import
+  - 7 new tests (6 in userService.test.js for renew:true, 1 in webhookController.test.js for ARB renewal path)
+  - Deleted duplicate standalone userService.renew.test.js (mock isolation issues — tests properly in userService.test.js)
+  - 1175 backend + 798 frontend = 1973 total tests passing
+
+*Last updated: 2026-04-19T20:21:00Z*
