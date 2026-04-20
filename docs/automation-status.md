@@ -435,3 +435,30 @@
 **Files modified:** `pages/admin.jsx` (rewritten using extracted components)
 **Root cause of test failure during refactor:** New components used `require()` (CommonJS) which under babel's `runtime: 'automatic'` resolves to namespace object `{ default: fn }` instead of `fn` directly. Converted all new components to ESM `import`/`export default`.
 **Test result:** 15/15 admin tests pass. Full suite: backend 1214 + frontend 884 = 2098 tests passing.
+
+## Session: 2026-04-20T20:00 Fix Empty Catch Blocks + Admin Decomposition Bug
+
+|| # | Task | Status |
+|---|------|--------|
+| 28 | Find all empty catch blocks in frontend components | **DONE** |
+| 29 | Fix 7 empty catch blocks (add error state + user-facing error message) | **DONE** |
+| 30 | Update tests that relied on silent failure behavior | **DONE** |
+| 31 | Fix AhoyManDashboard test missing getSettings mock | **DONE** |
+| 32 | Run full test suite | **DONE** |
+
+**Components fixed (silent catch → user-facing error):**
+- `components/affiliate-dashboard/ReferralsTab.jsx` — `loadReferrals` catch: now shows "Failed to load referrals."
+- `components/affiliate-dashboard/TransactionsTab.jsx` — `loadTransactions` catch: now shows "Failed to load transactions."
+- `components/ahoyman-dashboard/PayoutsTab.jsx` — `loadPayouts` catch: now shows "Failed to load payouts."
+- `components/ahoyman-dashboard/SettingsTab.jsx` — `loadSettings` catch: now shows "Failed to load settings."
+- `components/ahoyman-dashboard/AffiliatesTab.jsx` — `loadAffiliates` catch: now shows "Failed to load affiliates."
+- `components/ahoyman-dashboard/CodesTab.jsx` — `loadCodes` + `loadAffiliatesList` catches: now shows "Failed to load codes." / "Failed to load affiliates."
+
+**Tests updated:**
+- `TransactionsTab.test.jsx`: error test now expects error message (was silent fallback to "No transactions yet." — misleading UX)
+- `SettingsTab.test.jsx`: error test now expects "Failed to load settings." (same issue)
+- `ahoyman-dashboard.test.jsx`: added `getSettings` mock to api/client mock — Settings tab navigation test was failing because getSettings returned undefined → TypeError → my error message surfaced instead of form
+
+**Test result:** 2,099 tests passing (1,214 backend + 885 frontend). No regressions.
+
+*Last updated: 2026-04-20T20:00:00Z*
