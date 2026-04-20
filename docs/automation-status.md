@@ -477,3 +477,15 @@
   - `CustomersTab.test.jsx`: 10 tests covering render, empty input guard, loading state, success path, null/missing subscription fields, error handling (line 35 catch), and sanitize integration → **CustomersTab: 100% line/branch/function coverage**
   - `AffiliatesTab.test.jsx`: 11 tests covering render, empty state, status display, disable confirm-cancel (line 30), disable success, adjust isNaN guard (lines 50-51), adjust success, adjust catch (line 59), CSV export blob, refresh button → **AffiliatesTab: 97.36% line, 84.21% branch** (line 35 catch for disable throw is structurally unreachable — no observable UI state change on error)
 - **2,122 tests passing** (1,217 backend + 905 frontend). All 53 frontend suites green. No regressions.
+
+## 2026-04-20T21:32:00Z
+- **test(backend): add branch-coverage tests for error-handling paths** (commit 6aa4a39)
+  - `paymentProcessingService.test.js` (2 new tests — lines 999-1049):
+    - `createVpnAccount throws → outer catch handles it` — triggers line 282 catch block
+    - `UPDATE subscription query throws → outer catch handles it` — also catches line 282
+  - `webhookController.test.js` (2 new tests — lines 1067-1171):
+    - `authorizeNetWebhook outer catch` → returns 500 when db.query throws during subscription lookup (line 582)
+    - `authorizeNetWebhook txDetails null branch` — getAuthorizeTransactionDetails returns null, inner block (lines 379-381) skipped
+  - `paymentProcessingService.js`: 100% stmt / **87.09% branch** (up from 74.24%)
+  - `webhookController.js`: 86.86% stmt / 63.71% branch (line 582-585 catch now tested; lines 404-417/503-529/542-560 still represent inner catch blocks that are structurally similar to already-tested patterns)
+  - **1,221 backend + 905 frontend = 2,126 tests passing.** All 40 backend suites, 53 frontend suites — green. Pushed to GitHub.
