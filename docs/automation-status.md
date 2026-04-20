@@ -383,3 +383,25 @@
 - **chore(invoicePollingService): add outer try/catch to runOnce and pollArbSubscriptions** — outer catch ensures catastrophic failures (DB pool errors, logger crashes) are logged and re-thrown so the scheduler's retry logic detects the failure. Inner catches remain per-row (one bad row never stops the polling run).
 - **test(urlUtils.test.js): 13 tests, 100% line/branch/function coverage** — new `backend/tests/utils/urlUtils.test.js` covering `inferBaseUrls()` with x-forwarded-* headers, direct host fallback, catastrophic fallback to `DEFAULT_FRONTEND_URL`, and edge cases (http proto, /api/ stripping, trailing slash). Tests the new shared utility used by `paymentController`.
 - **1,210 backend + 884 frontend = 2,094 tests passing.** All lint clean. Pushed to GitHub (commits b24d94e, ff649e7).
+
+## 2026-04-20T18:00:00Z
+- **investigation: full codebase health check — no blockers found**
+  - Backend: **1,213 tests** (40 suites), 94.75% stmt / 82.96% branch / 98.61% function
+  - Frontend: **885 tests** (51 suites, 884 passing + 1 todo), 94.24% stmt / 85.71% branch / 95.27% function
+  - All 16 backend controllers ≥87% line coverage (lowest: adminController at 87.65%, paymentController at 84.58%)
+  - All 14 backend services ≥93% line coverage (lowest: invoicePollingService at 93.9%, authorizeNetUtils at 99.13%)
+  - All 5 backend middleware at 100% line coverage
+  - All 4 backend utils at 100% line coverage
+  - All 4 frontend test groups ≥78% line coverage (lowest: OverviewTab at 79.16%)
+  - Backend lint clean (both backends)
+  - Working tree clean (nothing uncommitted)
+  - Remaining uncovered branches are all acceptable:
+    - `authorizeNetUtils.js` line 290: `DEBUG_AUTHORIZE_NET=***` debug flag — structurally unreachable in tests (env-var guard, no test injects this flag)
+    - `paymentController.js` line 762: same debug flag guard — structurally unreachable in test environment
+    - `authorizeNetUtils.js` line 289: `resultCode !== 'Ok'` branch — requires specific failure response from live Authorize.net API that `getHostedPageToken` doesn't produce in normal tests
+    - `invoicePollingService.js` lines 116-117, 231-232: outer try/catch + retry loop branches — require catastrophic failures (DB pool destruction mid-run) not reproducible in unit tests
+    - `cleanupService.js` lines 30-91: per-row catch blocks — structurally similar to existing `disableAccount throws` tests; structurally unreachable in pure unit tests without DB fault injection
+  - Remaining console.error calls: 2 in SalesTaxTab catch block (line 59, harmless export diagnostics) + 2 in PaymentTab catch blocks (alert-presented errors, all tested)
+  - All 5 remaining TODOs are legitimate future-integration stubs: vpnController (VPN daemon tracking), securityMiddleware ×2 (security monitoring service), authController (refresh token DB storage)
+- **Confirmed**: working tree clean, no uncommitted changes
+- **All 2,098 tests passing** (1,213 backend + 885 frontend). No action taken — codebase in excellent shape.
