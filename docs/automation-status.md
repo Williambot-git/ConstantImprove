@@ -320,3 +320,12 @@
   - **privacy.test.jsx** (NEW): comprehensive 69-test suite covering all 15 sections, h1/title, Section component behavior, and DNS guide CTA Link.
   - **Removed debug-tos.test.jsx**: wrong require path (`./pages/tos.jsx` instead of `../pages/tos.jsx`) + debugging artifact.
   - **2,076 tests passing** (1,192 backend + 884 frontend). No regressions.
+
+## 2026-04-20T07:30:00Z
+- **test(purewlService): add 2 branch-coverage tests** (commit 5952d7a)
+  - `_request POST/else branch`: verify `client.post` called when method is neither GET nor PUT (covers the `else` branch in `_request`'s method routing — line 164-166)
+  - `getAccessToken resellerId absent`: verify `resellerId` is NOT overwritten when auth response omits `resellerId` field (line 120 `if (resellerId)` branch when false)
+  - purewlService branch: 81.08% → **83.78%**
+- **Note**: Coverage report shows stale line refs (56-63, 172-176, 298-300) for purewlService — those lines don't exist in current source (file was refactored since coverage was last aggregated). Actual conditional branches are in `_request` method routing and `resellerId` conditional assignment.
+- **Confirmed**: vpnAccountScheduler 95.34% line / 70% branch — branch gap is per-row loop iterations (UPDATE+disableAccount in same loop; structurally similar to UPDATE-throw test already in test suite); vpnResellersService has 100% line/branch coverage.
+- **1,194 backend + 884 frontend = 2,078 tests passing.** All 39 backend suites, 51 frontend suites — green.
