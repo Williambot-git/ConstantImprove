@@ -7,7 +7,9 @@ import { inputStyle, thStyle, tdStyle } from './styles';
 export default function CodesTab() {
   const [codes, setCodes] = useState([]);
   const [affiliates, setAffiliates] = useState([]);
+  const [affiliatesError, setAffiliatesError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [codesError, setCodesError] = useState('');
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ affiliateId: '', code: '', discountCents: '0' });
   const [msg, setMsg] = useState('');
@@ -18,17 +20,23 @@ export default function CodesTab() {
 
   const loadCodes = async () => {
     setLoading(true);
+    setCodesError('');
     try {
       const res = await api.getAffiliateCodes();
       setCodes(res.data.data || []);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setCodesError(err.response?.data?.error || 'Failed to load codes.');
+      setCodes([]);
+    } finally { setLoading(false); }
   };
 
   const loadAffiliatesList = async () => {
     try {
       const res = await api.getAffiliates();
       setAffiliates(res.data.data || []);
-    } catch {}
+    } catch (err) {
+      setAffiliatesError(err.response?.data?.error || 'Failed to load affiliates list.');
+    }
   };
 
   const handleCreate = async (e) => {
@@ -70,6 +78,7 @@ export default function CodesTab() {
               <option value="">Select affiliate...</option>
               {affiliates.map(a => <option key={a.id} value={a.id}>{a.username}</option>)}
             </select>
+            {affiliatesError && <p style={{ color: '#FF6B6B', fontSize: '0.8rem', marginTop: '0.3rem' }}>{affiliatesError}</p>}
           </div>
           <div>
             <label style={{ color: '#A0AEC0', fontSize: '0.8rem', display: 'block', marginBottom: '0.3rem' }}>Code</label>
@@ -89,7 +98,9 @@ export default function CodesTab() {
       </div>
 
       {/* Codes table */}
-      {loading ? <p style={{ color: '#A0AEC0', textAlign: 'center' }}>Loading...</p> : (
+      {loading ? <p style={{ color: '#A0AEC0', textAlign: 'center' }}>Loading...</p> : codesError ? (
+        <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{codesError}</p>
+      ) : (
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>

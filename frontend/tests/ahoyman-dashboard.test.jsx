@@ -44,6 +44,18 @@ jest.mock('../api/client', () => ({
       },
     }),
     ahoymanLogout: jest.fn().mockResolvedValue({ data: { success: true } }),
+    getSettings: jest.fn().mockResolvedValue({
+      data: {
+        data: {
+          minimumPayout: '25.00',
+          commissionRateMonthly: '0.30',
+          commissionRateQuarterly: '0.35',
+          commissionRateSemiannual: '0.40',
+          commissionRateAnnual: '0.50',
+          holdPeriodDays: '7',
+        },
+      },
+    }),
   },
 }));
 

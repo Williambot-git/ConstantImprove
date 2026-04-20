@@ -162,8 +162,9 @@ describe('SettingsTab', () => {
 
     render(<SettingsTab />);
 
+    // Error is caught and loadError is set — component renders error message
     await waitFor(() => {
-      expect(screen.getByText('System Settings')).toBeInTheDocument();
+      expect(screen.getByText('Failed to load settings.')).toBeInTheDocument();
     });
   });
 });

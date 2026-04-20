@@ -100,7 +100,7 @@ describe('TransactionsTab', () => {
       new Error('Network error')
     );
     render(<TransactionsTab />);
-    // Error is caught and setLoading(false), falling through to "No transactions yet."
-    await screen.findByText('No transactions yet.');
+    // Error is caught and loadError is set — component renders error message
+    await screen.findByText('Failed to load transactions.');
   });
 });

@@ -7,6 +7,7 @@ import { inputStyle, thStyle, tdStyle } from './styles';
 export default function AffiliatesTab({ onAction }) {
   const [affiliates, setAffiliates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [actionLoading, setActionLoading] = useState({});
   const [pagination, setPagination] = useState({});
@@ -23,13 +24,17 @@ export default function AffiliatesTab({ onAction }) {
 
   const loadAffiliates = async (p, s) => {
     setLoading(true);
+    setLoadError('');
     try {
       const params = { page: p, limit: 20 };
       if (s) params.search = s;
       const res = await api.getAffiliates(params);
       setAffiliates(res.data.data || []);
       setPagination(res.data.pagination || {});
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setLoadError(err.response?.data?.error || 'Failed to load affiliates.');
+      setAffiliates([]);
+    } finally { setLoading(false); }
   };
 
   const handleSearch = (e) => {
@@ -149,7 +154,9 @@ export default function AffiliatesTab({ onAction }) {
 
       <Card>
         <h3 style={{ color: '#8B5CF6', marginBottom: '1.5rem' }}>All Affiliates</h3>
-        {loading ? <p style={{ color: '#A0AEC0' }}>Loading...</p> : affiliates.length === 0 ? (
+        {loading ? <p style={{ color: '#A0AEC0' }}>Loading...</p> : loadError ? (
+          <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{loadError}</p>
+        ) : affiliates.length === 0 ? (
           <p style={{ color: '#A0AEC0', textAlign: 'center' }}>No affiliates found.</p>
         ) : (
           <>

@@ -10,11 +10,13 @@ export default function SettingsTab() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [form, setForm] = useState({});
+  const [loadError, setLoadError] = useState('');
 
   useEffect(() => { loadSettings(); }, []);
 
   const loadSettings = async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const res = await api.getSettings();
       const s = res.data.data;
@@ -27,7 +29,9 @@ export default function SettingsTab() {
         commissionRateAnnual: s.commissionRateAnnual,
         holdPeriodDays: s.holdPeriodDays,
       });
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setLoadError(err.response?.data?.error || 'Failed to load settings.');
+    } finally { setLoading(false); }
   };
 
   const handleSave = async (e) => {
@@ -49,6 +53,7 @@ export default function SettingsTab() {
   };
 
   if (loading) return <p style={{ color: '#A0AEC0', textAlign: 'center' }}>Loading...</p>;
+  if (loadError) return <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{loadError}</p>;
 
   const field = (key, label, type = 'number', step) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>

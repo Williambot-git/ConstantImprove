@@ -12,6 +12,7 @@ import api from '../../api/client';
 export default function ReferralsTab() {
   const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
 
@@ -19,14 +20,19 @@ export default function ReferralsTab() {
 
   const loadReferrals = async (p) => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.getAffiliateReferrals(p);
       setReferrals(res.data.data || []);
       setPagination(res.data.pagination || {});
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load referrals.');
+      setReferrals([]);
+    } finally { setLoading(false); }
   };
 
   if (loading) return <p style={{ color: '#A0AEC0' }}>Loading...</p>;
+  if (error) return <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{error}</p>;
   if (referrals.length === 0) return <p style={{ color: '#A0AEC0', textAlign: 'center' }}>No referrals yet.</p>;
 
   return (

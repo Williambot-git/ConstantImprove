@@ -12,18 +12,24 @@ import api from '../../api/client';
 export default function TransactionsTab() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => { loadTransactions(); }, []);
 
   const loadTransactions = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.getAffiliateTransactions();
       setTransactions(res.data.data || []);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load transactions.');
+      setTransactions([]);
+    } finally { setLoading(false); }
   };
 
   if (loading) return <p style={{ color: '#A0AEC0' }}>Loading...</p>;
+  if (error) return <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{error}</p>;
   if (transactions.length === 0) return <p style={{ color: '#A0AEC0', textAlign: 'center' }}>No transactions yet.</p>;
 
   return (

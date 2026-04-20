@@ -7,6 +7,7 @@ import { inputStyle, thStyle, tdStyle } from './styles';
 export default function PayoutsTab({ onAction }) {
   const [payouts, setPayouts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [manualAffiliate, setManualAffiliate] = useState('');
   const [manualAmount, setManualAmount] = useState('');
@@ -19,12 +20,16 @@ export default function PayoutsTab({ onAction }) {
 
   const loadPayouts = async (status) => {
     setLoading(true);
+    setError('');
     try {
       const params = {};
       if (status) params.status = status;
       const res = await api.getPayoutRequests(params);
       setPayouts(res.data.data || []);
-    } catch {} finally { setLoading(false); }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to load payouts.');
+      setPayouts([]);
+    } finally { setLoading(false); }
   };
 
   const handleApprove = async (id) => {
@@ -90,7 +95,9 @@ export default function PayoutsTab({ onAction }) {
             <option value="rejected">Rejected</option>
           </select>
         </div>
-        {loading ? <p style={{ color: '#A0AEC0' }}>Loading...</p> : payouts.length === 0 ? (
+        {loading ? <p style={{ color: '#A0AEC0' }}>Loading...</p> : error ? (
+          <p style={{ color: '#FF6B6B', textAlign: 'center' }}>{error}</p>
+        ) : payouts.length === 0 ? (
           <p style={{ color: '#A0AEC0', textAlign: 'center' }}>No payout requests.</p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
