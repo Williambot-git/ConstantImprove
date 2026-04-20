@@ -329,3 +329,12 @@
 - **Note**: Coverage report shows stale line refs (56-63, 172-176, 298-300) for purewlService — those lines don't exist in current source (file was refactored since coverage was last aggregated). Actual conditional branches are in `_request` method routing and `resellerId` conditional assignment.
 - **Confirmed**: vpnAccountScheduler 95.34% line / 70% branch — branch gap is per-row loop iterations (UPDATE+disableAccount in same loop; structurally similar to UPDATE-throw test already in test suite); vpnResellersService has 100% line/branch coverage.
 - **1,194 backend + 884 frontend = 2,078 tests passing.** All 39 backend suites, 51 frontend suites — green.
+
+## 2026-04-20T08:30:00Z
+- **refactor(vpnResellersService): use Node 22 native fetch instead of node-fetch package** (commit 4b968fa)
+  - Removed `const fetch = require('node-fetch')` — service now uses global `fetch` (Node 22 built-in)
+  - Renamed `request()` → `_request()` (private method, not used externally)
+  - Added class-level JSDoc explaining: why this service exists (VPN Resellers API credential provisioning), the `vpnresellers_*` DB column naming confusion vs PureWL, why native fetch is used (lean deps)
+  - Added `_request()` JSDoc with @param/@returns/@throws annotations
+  - Tests updated: removed `jest.mock('node-fetch')` (no longer needed), set `global.fetch = jest.fn()` in beforeEach, deleted in afterEach — works because `fetch` resolves through globalThis at call time, not as static module binding
+  - All 22 vpnResellersService tests pass; 1,194 backend + 884 frontend = **2,078 tests passing**
