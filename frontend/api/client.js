@@ -75,7 +75,7 @@ export const api = {
   get: (path) => getAdmin(path),
   post: (path, data) => postAdmin(path, data),
 
-  // ===== AFFILIATE AUTH =====
+  // ===== Affiliate Authentication =====
   affiliateLogin: async (username, password) => {
     const res = await apiClient.post('/auth/affiliate/login', { username, password });
     if (res.data?.data?.token) {
@@ -119,7 +119,7 @@ export const api = {
   getAffiliatePayoutRequests: async () => apiClient.get('/affiliate/payout-requests'),
   requestAffiliatePayout: async (amount) => apiClient.post('/affiliate/request-payout', { amount }),
 
-  // ===== ADMIN / AHOYMAN AUTH =====
+  // ===== Admin / Ahoyman Authentication =====
   ahoymanLogin: async (username, password) => {
     const res = await apiClient.post('/auth/ahoyman/login', { username, password });
     if (res.data?.data?.token) {
