@@ -152,4 +152,43 @@ describe('PayoutsTab', () => {
       expect(screen.getByText('No payout requests.')).toBeTruthy();
     });
   });
+
+  // ── Error path coverage: catch blocks call window.alert instead of setState ──
+  it('handleApprove: calls alert on API failure', async () => {
+    global.alert = jest.fn();
+    api.getPayoutRequests.mockResolvedValue({
+      data: { data: [{ id: 1, affiliate_username: 'user1', amount: 100, status: 'pending' }] },
+    });
+    api.approvePayout.mockRejectedValue(new Error('Network error'));
+
+    render(<PayoutsTab onAction={mockOnAction} />);
+
+    await waitFor(() => { expect(screen.getByText('Approve')).toBeTruthy(); });
+    fireEvent.click(screen.getByText('Approve'));
+
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith('Failed to approve.');
+    });
+    delete global.alert;
+  });
+
+  it('handleReject: calls alert on API failure', async () => {
+    global.prompt = jest.fn().mockReturnValue('Test reason');
+    global.alert = jest.fn();
+    api.getPayoutRequests.mockResolvedValue({
+      data: { data: [{ id: 1, affiliate_username: 'user1', amount: 100, status: 'pending' }] },
+    });
+    api.rejectPayout.mockRejectedValue(new Error('Network error'));
+
+    render(<PayoutsTab onAction={mockOnAction} />);
+
+    await waitFor(() => { expect(screen.getByText('Reject')).toBeTruthy(); });
+    fireEvent.click(screen.getByText('Reject'));
+
+    await waitFor(() => {
+      expect(global.alert).toHaveBeenCalledWith('Failed to reject.');
+    });
+    delete global.prompt;
+    delete global.alert;
+  });
 });
