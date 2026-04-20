@@ -103,6 +103,39 @@ describe('vpnAccountScheduler', () => {
     });
   });
 
+  // -------------------------------------------------------------------------
+  // cleanupExpiredAccounts — line 30: outer catch fires when UPDATE query throws.
+  // The error is caught, logged, and the loop continues to process remaining rows.
+  // -------------------------------------------------------------------------
+  describe('cleanupExpiredAccounts — outer catch when UPDATE throws', () => {
+    it('UPDATE query throws in cleanupExpiredAccounts outer catch — error logged, loop continues', async () => {
+      const { warn } = require('../../src/utils/logger');
+      warn.mockImplementation(() => {});
+
+      const expiredRows = {
+        rows: [
+          { id: 100, purewl_uuid: 'uuid-upd-fail', user_id: 601 }
+        ]
+      };
+
+      // SELECT succeeds, UPDATE throws → triggers outer catch at line 30
+      mockQuery
+        .mockResolvedValueOnce(expiredRows)  // SELECT expired accounts
+        .mockRejectedValueOnce(new Error('DB write failure on UPDATE')); // UPDATE throws
+
+      mockDisableAccount.mockResolvedValue({});
+
+      await expect(cleanupExpiredAccounts()).resolves.not.toThrow();
+
+      expect(mockDisableAccount).toHaveBeenCalledWith('uuid-upd-fail');
+      expect(warn).toHaveBeenCalledWith(
+        'Failed to update vpn_accounts status',
+        expect.objectContaining({ vpnAccountId: 100, error: 'DB write failure on UPDATE' })
+      );
+      warn.mockReset();
+    });
+  });
+
   // ============================================================
   // cleanupCanceledSubscriptions
   // ============================================================
