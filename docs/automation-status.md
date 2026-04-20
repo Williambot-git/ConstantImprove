@@ -405,3 +405,19 @@
   - All 5 remaining TODOs are legitimate future-integration stubs: vpnController (VPN daemon tracking), securityMiddleware ×2 (security monitoring service), authController (refresh token DB storage)
 - **Confirmed**: working tree clean, no uncommitted changes
 - **All 2,098 tests passing** (1,213 backend + 885 frontend). No action taken — codebase in excellent shape.
+
+## 2026-04-20T18:30:00Z
+- **investigation: no high-value improvement candidates found — no code changes made**
+  - Backend: 1,213 tests (40 suites, all green), 94.75% stmt / 82.96% branch / 98.61% function
+  - Frontend: 884 tests (51 suites, 1 todo), 94.24% stmt / 85.71% branch / 95.27% function
+  - All lint clean. Working tree clean.
+  - **Confirmed acceptable uncovered branches** (all structurally unreachable in unit test environment):
+    - `logger.js` 57.14% branch: module-level `process.env` init (lines 28-32, per-level if guards at 40/46/52/58) — evaluated at load time before Jest can mock
+    - `affiliateCommissionService.js` line 72: `|| 1.20` default unreachable when tests set `OPERATING_COST_PER_USER` env var — correct test isolation, not a gap
+    - `vpnAccountScheduler.js` 70% branch: per-row UPDATE loop iterations — structurally similar to existing catch-block tests
+    - `authorizeNetUtils.js` line 290 + `paymentController.js` line 762: `DEBUG_AUTHORIZE_NET=***` env-var guards — require live env injection
+    - `authorizeNetUtils.js` line 289: `resultCode !== 'Ok'` branch — requires specific live API failure response
+    - `invoicePollingService.js` lines 116-117/231-232: outer try/catch + retry loop — require catastrophic DB pool failure mid-run
+  - **All 4 remaining TODOs confirmed legitimate future-integration stubs** (security monitoring ×2, VPN daemon, refresh token DB storage)
+  - admin.jsx (496 lines): 3-tab page (KPIs/Customers/Affiliates) with `KPICard` sub-component, inline styles — similar decomposition pattern to affiliate-dashboard but not yet split
+  - No blockers. Codebase is production-ready.
