@@ -282,7 +282,8 @@
 - **chore: remove orphaned verify_mock_priority.test.js** — debugging artifact with no assertions (created during VPN-renewal mock isolation investigation), confirmed mockReset behavior. Deleted; 40 backend suites all green.
 - **test(affiliateController): add null-pending_payout-cent edge case test** — `requestPayout` line 451 `parseInt(null) || 0` branch covered by new test (pending_payout_cents = null → amount $10 < $50 minimum → 400). affiliateController now 100% line/stmt coverage. **1,210 backend + 884 frontend = 2,094 tests passing.** Pushed to GitHub (commits 565089a, bb29e65).
 
-*Last updated: 2026-04-20T17:00:00Z*
+*Last updated: 2026-04-20T19:00:00Z*
+- **test(vpnAccountScheduler): add outer UPDATE-catch branch test** — cleanupExpiredAccounts outer catch (line 30) fires when the `UPDATE vpn_accounts SET status` SQL throws during the per-row loop. Test verifies: error is logged with `{vpnAccountId, error}`, loop continues to next row, and no exception propagates. Added `mockRejectedValueOnce` on SELECT → UPDATE sequence; mock logger `warn` stubbed inline. **1,214 backend + 884 frontend = 2,098 tests passing.** Pushed (commit 0d3d0a0).
 
 ## 2026-04-20T05:30:00Z
 - **refactor(frontend): extract US_STATES + wire CryptoSelector into checkout**
