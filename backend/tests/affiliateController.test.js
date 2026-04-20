@@ -42,6 +42,11 @@ jest.mock('../src/middleware/authMiddleware_new', () => ({
   setCsrfTokenCookie: jest.fn()
 }));
 
+// affiliateCommissionService — getMinimumPayoutCents called by getMetrics
+jest.mock('../src/services/affiliateCommissionService', () => ({
+  getMinimumPayoutCents: jest.fn()
+}));
+
 // crypto for regenerateRecoveryKit's crypto.randomBytes
 // IMPORTANT: affiliateController.js uses the Node.js GLOBAL crypto object (no require statement).
 // global.crypto is the Web Crypto API (randomBytes = undefined), NOT require('crypto').
@@ -52,6 +57,7 @@ const mockGlobalRandomBytes = jest.fn((n) => Buffer.alloc(n));
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const { setCsrfTokenCookie } = require('../src/middleware/authMiddleware_new');
+const { getMinimumPayoutCents } = require('../src/services/affiliateCommissionService');
 
 const {
   login,
@@ -120,6 +126,10 @@ beforeEach(() => {
   // setCsrfTokenCookie default: no-op
   setCsrfTokenCookie.mockReset();
   setCsrfTokenCookie.mockImplementation(() => {});
+
+  // getMinimumPayoutCents default: $10 minimum (1000 cents)
+  getMinimumPayoutCents.mockReset();
+  getMinimumPayoutCents.mockImplementation(() => Promise.resolve(1000));
 
   // Mock global.crypto.randomBytes (used by affiliateController, not require('crypto'))
   mockGlobalRandomBytes.mockReset();
@@ -482,6 +492,8 @@ describe('getMetrics', () => {
     mockDbQuery.mockResolvedValueOnce({ rows: [{ signups: '10', active_referrals: '3' }] });
     // SELECT transactions (earnings)
     mockDbQuery.mockResolvedValueOnce({ rows: [{ paid_cents: '5000', pending_cents: '1500' }] });
+    // SELECT payout_config (minimum_payout_cents)
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ amount: '1000' }] });
 
     const req = mockReq();
     const res = mockRes();
@@ -498,7 +510,9 @@ describe('getMetrics', () => {
           pending: '15.00',
           paid: '50.00'
         },
-        conversionRate: 30 // 3/10 * 100 rounded
+        conversionRate: 30, // 3/10 * 100 rounded
+        minimumPayoutCents: 1000,
+        availableToCashOut: '15.00'
       })
     }));
   });
@@ -507,6 +521,8 @@ describe('getMetrics', () => {
     mockDbQuery.mockResolvedValueOnce({ rows: [{ username: 'newaffiliate' }] });
     mockDbQuery.mockResolvedValueOnce({ rows: [{ signups: '0', active_referrals: '0' }] });
     mockDbQuery.mockResolvedValueOnce({ rows: [{ paid_cents: '0', pending_cents: '0' }] });
+    // SELECT payout_config (minimum_payout_cents)
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ amount: '1000' }] });
 
     const req = mockReq();
     const res = mockRes();
@@ -515,7 +531,28 @@ describe('getMetrics', () => {
     expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
       data: expect.objectContaining({
         signups: 0,
-        conversionRate: 0
+        conversionRate: 0,
+        minimumPayoutCents: 1000,
+        availableToCashOut: '0.00'
+      })
+    }));
+  });
+
+  test('200 — defaults to $10 minimum when payout_config not set', async () => {
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ username: 'testaffiliate' }] });
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ signups: '5', active_referrals: '2' }] });
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ paid_cents: '2000', pending_cents: '500' }] });
+    // payout_config returns empty — should default to 1000 cents ($10)
+    mockDbQuery.mockResolvedValueOnce({ rows: [] });
+
+    const req = mockReq();
+    const res = mockRes();
+    await getMetrics(req, res);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        minimumPayoutCents: 1000,
+        availableToCashOut: '5.00'
       })
     }));
   });

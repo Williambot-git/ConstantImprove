@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/database');
 const { setCsrfTokenCookie } = require('../middleware/authMiddleware_new');
 const log = require('../utils/logger');
+const { getMinimumPayoutCents } = require('../services/affiliateCommissionService');
 
 // Login endpoint for affiliates
 const login = async (req, res) => {
@@ -286,7 +287,14 @@ const getMetrics = async (req, res) => {
     const activeReferrals = parseInt(metrics.active_referrals) || 0;
     const paidCents = parseInt(earningsResult.rows[0]?.paid_cents) || 0;
     const pendingCents = parseInt(earningsResult.rows[0]?.pending_cents) || 0;
-    
+    const availableCents = pendingCents; // unpaid earnings available for payout
+    const availableToCashOut = (availableCents / 100).toFixed(2);
+
+    // Look up the minimum payout threshold from DB (defaults to 1000 = $10)
+    // Having the frontend read this from the API rather than hardcoding $10
+    // means William can change the minimum without a code deploy.
+    const minimumPayoutCents = await getMinimumPayoutCents();
+
     // Build shareable link using affiliate username
     const links = [{
       code: affiliateUsername,
@@ -313,7 +321,11 @@ const getMetrics = async (req, res) => {
         totalReferrals: signups,
         referralsByStatus: [],
         referralsByDay: [],
-        conversionRate: signups > 0 ? Math.round((activeReferrals / signups) * 100) : 0
+        conversionRate: signups > 0 ? Math.round((activeReferrals / signups) * 100) : 0,
+        // Payout minimum and available balance — sourced from DB so William can change
+        // the minimum without a code deploy (defaults to $10 if payout_config not set).
+        minimumPayoutCents,
+        availableToCashOut,
       }
     });
   } catch (error) {
