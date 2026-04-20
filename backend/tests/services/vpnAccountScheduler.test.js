@@ -133,6 +133,32 @@ describe('vpnAccountScheduler', () => {
       expect(mockDisableAccount).not.toHaveBeenCalled();
       expect(mockQuery).toHaveBeenCalledTimes(1);
     });
+
+    // -------------------------------------------------------------------------
+    // cleanupCanceledSubscriptions — line 53: disableAccount throws.
+    // The error is caught, logged, and the loop continues to UPDATE the status.
+    // -------------------------------------------------------------------------
+    it('disableAccount throws during cleanupCanceledSubscriptions — error logged, status still updated', async () => {
+      const canceledRows = {
+        rows: [
+          { id: 11, purewl_uuid: 'uuid-disable-fail' }
+        ]
+      };
+
+      mockQuery
+        .mockResolvedValueOnce(canceledRows)  // SELECT canceled subscriptions
+        .mockResolvedValueOnce({});            // UPDATE vpn_accounts status
+
+      // disableAccount throws — triggers the catch at line 53
+      mockDisableAccount.mockRejectedValue(new Error('VPN Resellers API unavailable'));
+
+      await expect(cleanupCanceledSubscriptions()).resolves.not.toThrow();
+
+      // disableAccount was called (we entered the try block at line 49)
+      expect(mockDisableAccount).toHaveBeenCalledWith('uuid-disable-fail');
+      // UPDATE still fired (the catch at line 53 doesn't re-throw)
+      expect(mockQuery).toHaveBeenCalledTimes(2);
+    });
   });
 
   // ============================================================
