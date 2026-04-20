@@ -49,15 +49,15 @@ export default function TermsOfService() {
           </ul>
         </Section>
 
-        <Section title="6. Limitation of Liability">
+        <Section title="7. Limitation of Liability">
           AHOY VPN is provided "AS IS" without warranties of any kind, express or implied. In no event shall AHOY VPN be liable for any damages arising from the use of this service.
         </Section>
 
-        <Section title="7. Changes to Terms">
+        <Section title="8. Changes to Terms">
           AHOY VPN reserves the right to modify these terms at any time. Changes will be effective immediately upon posting. Your continued use of AHOY VPN constitutes acceptance of the new terms.
         </Section>
 
-        <Section title="8. Contact Us">
+        <Section title="9. Contact Us">
           If you have questions about these terms, please contact us at ahoyvpn@ahoyvpn.net
         </Section>
       </div>

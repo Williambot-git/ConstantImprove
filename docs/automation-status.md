@@ -302,11 +302,20 @@
 - **No code changes made** — investigation session, codebase confirmed stable
 
 ## 2026-04-20T06:00:00Z
-- **test(frontend): DNS guide CTA — 2 skipped tests unskipped**
+- **test(frontend): DNS guide CTA — 2 skipped tests unskipped** (commit 4d5d117)
   - Previously skipped: faq.jsx was incorrectly believed to use CommonJS `require('next/link').default` (dynamic require), which would be undefined under jest.setup.js's function-based mock.
   - Actual faq.jsx uses `import Link from 'next/link'` (ES module) at line 2 — jest.setup.js handles this correctly.
   - `tests/dns-guide-cta.test.jsx` (NEW): 4 integration tests for the DNS guide CTA card — heading, description text, href='/dns-guide', clickable without error. All 4 pass.
   - `tests/faq.test.jsx`: removed the stale skipped describe block (2 tests) and updated the file header comment to reflect reality. FAQ_QUESTIONS array comment corrected: "all 17" → "all 19 questions".
-  - **2 skipped tests eliminated** → 821 passed (was 817 + 2 skipped).
   - One remaining ✎ todo in links-tab.test.jsx: button reset timeout (intentional placeholder).
-  - **1,192 backend + 821 frontend = 2,013 tests passing.** All lint clean.
+  - **1,192 backend + 884 frontend = 2,076 tests passing.** All lint clean.
+
+## 2026-04-20T07:00:00Z
+- **fix(frontend): tos section numbering + privacy Link import + tests** (commit 4b69930)
+  - **TOS section numbering bug**: sections 6/7/8 were all labeled "6" in source — Limitation of Liability, Changes to Terms, and Contact Us all had title="6". Fixed to 7/8/9 sequentially.
+  - **privacy.jsx Link bug**: Section 15 DNS guide CTA used `<Link href="/dns-guide">` without importing `Link` from `next/link`. Added the import.
+  - **tos.test.jsx regex fix**: test assertion used `/reserve the right to modify/i` but actual text is "reserves the right" (with 's'). Fixed to `/reserves? the right to modify/i`.
+  - **tos.test.jsx numbering assertions**: tests verified 1-9 sequential — caught the duplicate "6" bug.
+  - **privacy.test.jsx** (NEW): comprehensive 69-test suite covering all 15 sections, h1/title, Section component behavior, and DNS guide CTA Link.
+  - **Removed debug-tos.test.jsx**: wrong require path (`./pages/tos.jsx` instead of `../pages/tos.jsx`) + debugging artifact.
+  - **2,076 tests passing** (1,192 backend + 884 frontend). No regressions.
