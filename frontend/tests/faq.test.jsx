@@ -1,17 +1,14 @@
 /**
  * AhoyVPN Frontend — FAQ Page Unit Tests
  * ======================================
- * Tests the FAQ page: expand/collapse accordion behavior, all 17 questions
- * rendered, email link, DNS guide CTA card.
+ * Tests the FAQ page: expand/collapse accordion behavior, all 19 questions
+ * rendered, email link, and the DNS guide CTA card.
  *
  * The page is a static data-driven component with a simple toggle state machine.
+ * The accordion (FAQItem) is tested in isolation using an inline component.
+ * The DNS guide CTA is tested via a dedicated integration test file.
  *
- * NOTE: faq.jsx uses `const Link = require('next/link').default` (CommonJS dynamic require).
- * The next/link module mock in tests/setup.js returns a function directly, not an object
- * with a .default property. This causes require('next/link').default to be undefined.
- * Workaround: we test the accordion (the core logic) in isolation — the FAQItem component
- * uses a button + conditional render, which we can test by checking for answer visibility.
- * The DNS guide CTA card requires Link mocking — we test it with a minimal integration approach.
+ * DNS Guide CTA coverage: see tests/dns-guide-cta.test.jsx
  */
 import '@testing-library/jest-dom';
 const React = require('react');
@@ -203,22 +200,4 @@ describe('FAQ Page', () => {
     });
   });
 
-  // ---- DNS Guide CTA Card (integration test with fixed faq.jsx) ----
-  describe('DNS Guide CTA card', () => {
-    // This test documents the expected behavior of the DNS guide CTA.
-    // It requires faq.jsx to use `import Link from 'next/link'` (not dynamic require)
-    // or the test's local mock to properly handle require('next/link').default.
-    // Skipped for now — see todo item below.
-
-    it.skip('renders the DNS guide CTA card at the bottom', () => {
-      // TODO: When faq.jsx is updated to use ES module import for Link,
-      // unskip this test and verify the card renders with the correct heading.
-      // Expected: screen.getByText('Want to enhance your privacy further?')
-    });
-
-    it.skip('renders DNS guide link with correct href', () => {
-      // TODO: When faq.jsx is updated to use ES module import for Link,
-      // unskip this test and verify the link href is '/dns-guide'.
-    });
-  });
 });
