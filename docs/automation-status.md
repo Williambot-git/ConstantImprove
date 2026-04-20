@@ -353,3 +353,8 @@
   - `PayoutTab.jsx`: reads `minimumPayoutCents` from API (from DB), computes `minimumPayoutDollars` for display, wires `min=` and `placeholder=` to the dynamic value instead of hardcoded `10`
   - `affiliateController.test.js`: mocks `affiliateCommissionService`, adds 4th `mockDbQuery` call for `payout_config` lookup in all 3 existing `getMetrics` tests, asserts `minimumPayoutCents` and `availableToCashOut` in response, adds new test for empty `payout_config` row fallback (defaults to 1000 cents = \$10)
 - **1,195 backend + 884 frontend = 2,079 tests passing.** 39 backend suites, 51 frontend suites — all green.
+
+## 2026-04-20T14:30:00Z
+- **fix(backend): delete 9 orphaned webhook_diag*.test.js debugging artifacts** — `tests/webhook_diag6-15.test.js` and `tests/webhookController_diag2-3.test.js` were local debugging artifacts (never committed) that were causing 10 test failures in the suite. These are the same class of orphaned debug test files as the 6 `debug_*.test.js` files cleaned in task 55. Deleted all 9 at once; all 40 backend test suites (1,196 tests) now green.
+- **commit: verify_mock_priority.test.js** — confirms `mockReset()` clears both implementation and call history while `clearAllMocks()` preserves both; closure variables survive both. Useful reference for future mock isolation debugging.
+- **All 2,080 tests passing** (1,196 backend + 884 frontend). All lint clean. No regressions.
