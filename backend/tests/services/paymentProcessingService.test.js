@@ -994,4 +994,56 @@ describe('processPaymentsCloudPaymentAsync', () => {
     // args: [userId, subId, amountCents, currency, status, method, txId]
     expect(paymentInsert[1][3]).toBe('usd');
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 20: Branch coverage — createVpnAccount throws → outer catch handles
+  //          it, no exception propagates (line 282 catch block).
+  // ─────────────────────────────────────────────────────────────────────────
+  it('createVpnAccount throws — outer catch handles it, no exception propagates', async () => {
+    let callIndex = 0;
+    _origDbQuery.mockImplementation(() => {
+      const sequence = [
+        { rows: [{ id: 'user_pc_err' }] },    // 1: SELECT user
+        { rows: [{ id: 'sub_pc_err', user_id: 'user_pc_err', status: 'trialing',
+          current_period_end: new Date(Date.now() + 30*24*60*60*1000).toISOString() }] }, // 2: SELECT subscription
+        { rows: [] },                           // 3: UPDATE subscription (succeeds so execution reaches createVpnAccount)
+      ];
+      return Promise.resolve(sequence[callIndex++] || { rows: [] });
+    });
+
+    _origCreateVpnAccount.mockRejectedValueOnce(new Error('PureWL API error'));
+
+    // Must NOT throw — outer catch (line 282) handles it and logs gracefully
+    await expect(processPaymentsCloudPaymentAsync({
+      id: 'pc_vpn_err',
+      amount: '29.99',
+      metadata: { account_number: '12345678', plan_key: 'month' }
+    })).resolves.not.toThrow();
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 21: Branch coverage — UPDATE subscription query throws → outer catch
+  //          handles it, no exception propagates (line 282 catch block).
+  // ─────────────────────────────────────────────────────────────────────────
+  it('UPDATE subscription query throws — outer catch handles it, no exception propagates', async () => {
+    let callCount = 0;
+    _origDbQuery.mockImplementation(() => {
+      callCount++;
+      if (callCount === 1) return Promise.resolve({ rows: [{ id: 'user_pc_upd_err' }] });
+      if (callCount === 2) return Promise.resolve({ rows: [{
+        id: 'sub_pc_upd', user_id: 'user_pc_upd_err', status: 'trialing',
+        current_period_end: new Date(Date.now() + 30*24*60*60*1000).toISOString()
+      }] });
+      if (callCount === 3) return Promise.reject(new Error('DB pool exhausted'));
+      return Promise.resolve({ rows: [] });
+    });
+
+    _origCreateVpnAccount.mockResolvedValue({ username: 'vpn', password: 'pw' });
+
+    await expect(processPaymentsCloudPaymentAsync({
+      id: 'pc_upd_err',
+      amount: '29.99',
+      metadata: { account_number: '12345678', plan_key: 'month' }
+    })).resolves.not.toThrow();
+  });
 });

@@ -1064,6 +1064,108 @@ describe('authorizeNetWebhook ARB creation error handler (lines 551-553)', () =>
   });
 });
 
+describe('authorizeNetWebhook outer catch (line 582)', () => {
+  let authorizeNetUtils;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    process.env.AUTHORIZE_SIGNATURE_KEY='***'.repeat(64);
+    authorizeNetUtils = require('../src/services/authorizeNetUtils');
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockReset();
+    authorizeNetUtils.AuthorizeNetService.mockImplementation(() => ({
+      createArbSubscriptionFromProfile: jest.fn().mockResolvedValue({ subscriptionId: 'arb_test' })
+    }));
+  });
+
+  afterEach(() => {
+    delete process.env.AUTHORIZE_SIGNATURE_KEY;
+  });
+
+  test('returns 500 when an error is thrown during processing', async () => {
+    // Trigger the outer catch (line 582) by making the first db.query call throw.
+    // The outer try-catch wraps the entire authorizeNetWebhook function body, so any
+    // unhandled error from isReplayAttack → recordWebhook → subscription lookup
+    // (and beyond) is caught and returns 500.
+    // We use responseCode='1' and invoiceNumber='A0000001' to exercise the full
+    // subscription-processing path before the error would be thrown.
+    const body = {
+      eventType: 'authcapture.created',
+      payload: {
+        id: 'tx_outer_catch',
+        invoiceNumber: 'A0000001',
+        responseCode: '1',
+        authAmount: '49.99'
+      }
+    };
+    const req = buildAuthorizeReq(body, 'valid_hex');
+
+    // getAuthorizeTransactionDetails returns null → txDetails block skipped
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockResolvedValueOnce(null);
+
+    // Override db.query entirely for this test so we have precise control.
+    // isReplayAttack throws → outer catch is triggered before any other query runs.
+    mockDbQuery.mockImplementation(() => Promise.reject(new Error('DB connection lost')));
+
+    const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+    await authorizeNetWebhook(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Internal server error' });
+  }, 10000);
+});
+
+describe('authorizeNetWebhook txDetails null branch (lines 377-381)', () => {
+  let authorizeNetUtils;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDbQuery.mockReset();
+    process.env.AUTHORIZE_SIGNATURE_KEY='***'.repeat(64);
+    authorizeNetUtils = require('../src/services/authorizeNetUtils');
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockReset();
+    authorizeNetUtils.AuthorizeNetService.mockImplementation(() => ({
+      createArbSubscriptionFromProfile: jest.fn().mockResolvedValue({ subscriptionId: 'arb_test' })
+    }));
+  });
+
+  afterEach(() => {
+    delete process.env.AUTHORIZE_SIGNATURE_KEY;
+  });
+
+  test('skips txDetails population when getAuthorizeTransactionDetails returns null (line 378)', async () => {
+    // When txDetails is null the inner if-block (line 378-382) is fully skipped,
+    // and the code falls through to the responseCode !== '1' check at line 385.
+    const body = {
+      eventType: 'authcapture.created',
+      payload: {
+        id: 'txn_null_details',
+        invoiceNumber: '',   // forces entry into getAuthorizeTransactionDetails block
+        responseCode: ''     // forces entry into getAuthorizeTransactionDetails block
+      }
+    };
+    const req = buildAuthorizeReq(body, 'valid_hex');
+
+    // txDetails is null → line 378 condition false → inner block skipped
+    authorizeNetUtils.getAuthorizeTransactionDetails.mockResolvedValueOnce(null);
+
+    // isReplayAttack passes
+    mockDbQuery.mockResolvedValueOnce({ rows: [] });
+    // recordWebhook passes
+    mockDbQuery.mockResolvedValueOnce({ rows: [] });
+    // Subscription not found (null txDetails means no responseCode override → '' !== '1')
+    mockDbQuery.mockResolvedValueOnce({ rows: [] });
+
+    const res = { json: jest.fn() };
+    await authorizeNetWebhook(req, res);
+
+    // getAuthorizeTransactionDetails was called with the transaction ID
+    expect(authorizeNetUtils.getAuthorizeTransactionDetails).toHaveBeenCalledWith('txn_null_details');
+    // Handler returns success (early return at line 387 because responseCode still '')
+    expect(res.json).toHaveBeenCalledWith({ received: true, signatureValid: true });
+  });
+});
+
 // ══════════════════════════════════════════════════════════════════════════════
 // logAuthorizeEvent utility
 // Sync function that appends JSON to logs/authorize-webhook.log
