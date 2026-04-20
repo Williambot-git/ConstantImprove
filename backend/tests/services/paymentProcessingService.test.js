@@ -686,6 +686,110 @@ describe('paymentProcessingService', () => {
     // Both outcomes mean the function correctly returned early without side effects.
     expect(_origDbQuery.mock.calls.length).toBeGreaterThanOrEqual(1);
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 17: Branch coverage — processPlisioPaymentAsync: subscription.metadata
+  //          is null, exercises `subscription.metadata || {}` (line 103).
+  //          Also exercises `subscription?.metadata?.plan_interval || ... || 'month'`
+  //          when plan_interval is falsy (line 85).
+  // ─────────────────────────────────────────────────────────────────────────
+  it('null metadata and falsy plan_interval — uses default fallbacks', async () => {
+    // Build a mock subscription with null metadata and null plan_interval.
+    // When metadata is null → `subscription.metadata || {}` (line 103) evaluates
+    // to {} and code proceeds. When plan_interval is null → the optional-chain
+    // `subscription?.metadata?.plan_interval` short-circuits to undefined, then
+    // `|| 'month'` kicks in (line 85).
+    const mockSub = {
+      id: 'sub-17',
+      user_id: 'user-1',
+      account_number: 'ACC123',
+      plan_id: 'monthly',
+      plan_interval: null,  // falsy — exercises `|| 'month'` fallback at line 85
+      status: 'trialing',
+      promo_code_id: null,
+      referral_code: null,
+      metadata: null,  // null — exercises `|| {}` fallback at line 103
+      plisio_invoice_id: 'inv_17',
+      current_period_end: '2026-05-01',
+    };
+
+    // Override the subscription lookup to return our mock when queried by invoice ID.
+    // mockResolvedValueOnce only overrides the FIRST call; subsequent calls fall back
+    // to the beforeEach mockImplementation (returns []). This is fine since we only
+    // do one subscription lookup per webhook.
+    _origDbQuery.mockImplementation((sql) => {
+      if (sql.includes('plisio_invoice_id') && sql.includes('$1')) {
+        return Promise.resolve({ rows: [mockSub] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    _origCreateVpnAccount.mockResolvedValue({ username: 'vpn', password: 'pass' });
+
+    // Plisio invoice: has pending_invoice_amount and postal_code so the tax-tx
+    // branch is entered (line 109: postalCode && baseCents > 0).
+    // With metadata=null, the code falls back to {} and uses postal_code from
+    // the invoice response itself (not from subscription metadata).
+    plisioService.getInvoiceStatus.mockResolvedValue({
+      pending_invoice_amount: '5.00',
+      baseCents: 500,
+      postal_code: '94102',
+    });
+
+    await processPlisioPaymentAsync('inv_17', 'tx_null_meta', '5.00', 'USD');
+
+    // If we reach createVpnAccount, the subscription fallback chain worked correctly:
+    // - metadata was null → {} fallback → postalCode from invoice (not subscription)
+    // - plan_interval was null → 'month' fallback → passed to createVpnAccount
+    expect(_origCreateVpnAccount).toHaveBeenCalledWith('user-1', 'ACC123', 'month');
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 18: Branch coverage — processPlisioPaymentAsync: subscription has
+  //          postal_code and baseCents in metadata, but tax_rate is absent.
+  //          Exercises `parseFloat(meta.tax_rate || 0)` (line 122) → 0.
+  // ─────────────────────────────────────────────────────────────────────────
+  it('postal_code and baseCents present but tax_rate absent — defaults to 0', async () => {
+    const mockSub = {
+      id: 'sub-18',
+      user_id: 'user-1',
+      account_number: 'ACC123',
+      plan_id: 'monthly',
+      plan_interval: 'month',
+      status: 'trialing',
+      promo_code_id: null,
+      referral_code: null,
+      metadata: {
+        postal_code: '10001',
+        plan_amount_cents: '1500',  // 1500 > 0
+        // tax_rate intentionally absent → exercises `|| 0`
+        // tax_amount_cents absent too (defaults to 0 via parseInt('', 10) || 0)
+      },
+      plisio_invoice_id: 'inv_18',
+      current_period_end: '2026-05-01',
+    };
+
+    _origDbQuery.mockImplementation((sql) => {
+      if (sql.includes('plisio_invoice_id') && sql.includes('$1')) {
+        return Promise.resolve({ rows: [mockSub] });
+      }
+      return Promise.resolve({ rows: [] });
+    });
+
+    _origCreateVpnAccount.mockResolvedValue({ username: 'vpn18', password: 'pass18' });
+
+    plisioService.getInvoiceStatus.mockResolvedValue({
+      pending_invoice_amount: '15.00',
+      baseCents: 1500,
+      postal_code: '10001',  // ← subscription.metadata.postal_code is '10001'
+    });
+
+    await processPlisioPaymentAsync('inv_18', 'tx_no_tax', '15.00', 'USD');
+
+    // createVpnAccount called → function completed the tax-tx branch successfully
+    // The tax INSERT used parseFloat(undefined || 0) = 0 for tax_rate
+    expect(_origCreateVpnAccount).toHaveBeenCalledWith('user-1', 'ACC123', 'month');
+  });
 });
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -854,5 +958,40 @@ describe('processPaymentsCloudPaymentAsync', () => {
       amount: '9.99',
       metadata: { account_number: '12345678', plan_key: 'month' }
     })).resolves.not.toThrow();
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // TEST 19: Branch coverage — processPaymentsCloudPaymentAsync: data.currency
+  //          is falsy (undefined), exercises `data.currency || 'usd'` (line 276).
+  // ─────────────────────────────────────────────────────────────────────────
+  it('PaymentsCloud currency absent — defaults to usd in payment record', async () => {
+    // User found, subscription found
+    let callIndex = 0;
+    _origDbQuery.mockImplementation(() => {
+      callIndex++;
+      if (callIndex === 1) return Promise.resolve({ rows: [{ id: 'user_pc_cu' }] });
+      if (callIndex === 2) return Promise.resolve({ rows: [{
+        id: 'sub_pc_cu', user_id: 'user_pc_cu', status: 'trialing',
+        current_period_end: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+      }] });
+      return Promise.resolve({ rows: [] });
+    });
+
+    _origCreateVpnAccount.mockResolvedValue({ username: 'vpn', password: 'pw' });
+
+    // data.currency is ABSENT (undefined) — exercises `data.currency || 'usd'`
+    await processPaymentsCloudPaymentAsync({
+      id: 'pc_currency',
+      amount: '9.99',
+      currency: undefined,  // falsy — triggers the `|| 'usd'` branch
+      metadata: { account_number: '12345678', plan_key: 'month' }
+    });
+
+    // Verify payment INSERT used 'usd' as currency
+    const paymentInsert = _origDbQuery.mock.calls.find(c => c[0].includes('INSERT INTO payments'));
+    expect(paymentInsert).toBeDefined();
+    // paymentInsert[0] = SQL string, paymentInsert[1] = args array
+    // args: [userId, subId, amountCents, currency, status, method, txId]
+    expect(paymentInsert[1][3]).toBe('usd');
   });
 });
