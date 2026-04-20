@@ -6,6 +6,7 @@ module.exports = {
     'src/services/**/*.js',
     'src/controllers/**/*.js',
     'src/middleware/**/*.js',
+    'src/utils/**/*.js',
     '!**/node_modules/**',
   ],
   testMatch: ['**/tests/**/*.test.js'],
