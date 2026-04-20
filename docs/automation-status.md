@@ -265,4 +265,16 @@
 - **confirmed: 4 remaining TODOs are all legitimate future-integration stubs** — securityMiddleware (×2: security monitoring service integration), vpnController (VPN daemon tracking), authController (refresh token DB storage). All are optional/architectural decisions, not bugs.
 - **No blockers found.** Codebase is in excellent shape. Routes, controllers, services, middleware, and frontend components all have full test coverage.
 
-*Last updated: 2026-04-20T04:00:00Z*
+## 2026-04-20T04:30:00Z
+- **fix: align 7-day trial references with canonical 30-day grace window** (commit d1d2411)
+  - **adminController.js: `createAffiliate` default `commissionRate = 0.25 → 0.10`** — canonical rate confirmed as 10% per William; `payout_config` table stores 0.10 for all plan intervals; `affiliateCommissionService.js` uses 0.10 hardcoded. The 0.25 was a stale default never reflected in production data.
+  - **authController.js: `trialEndsAt +7 days → +30 days`** — aligns legacy email-based registration path with the canonical numeric-account path (`authController_csrf.js`) which already used 30 days. Both now use the same grace window.
+  - **docs corrected** (all references to "7-day trial" that were incorrect):
+    - `PROJECT_MAP.md` — 6 occurrences updated to "30-day grace window" language
+    - `CHECK_EVERYTHING.md` — trialing subscription description corrected
+    - `backend/README.md` — payment flow step 2 corrected
+    - `VPNRESELLERS_INTEGRATION.md` — "7-day activation" → "Instant activation"
+  - Remaining "7 day" references are correct: refresh token expiry, session sliding window, connection log retention
+- **1,192 backend + 817 frontend = 2,009 tests passing.** No regressions.
+
+*Last updated: 2026-04-20T04:30:00Z*
