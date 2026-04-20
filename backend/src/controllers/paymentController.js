@@ -28,6 +28,7 @@ const {
   applyAffiliateCommissionIfEligible,
 } = require('../services/affiliateCommissionService');
 const { normalizeAffiliateCode } = require('../utils/affiliateUtils');
+const { inferBaseUrls } = require('../utils/urlUtils');
 
 
 
@@ -649,28 +650,7 @@ const createCheckout = async (req, res) => {
 
       if (useHostedRedirect) {
 
-        const forwardedProto = req.headers['x-forwarded-proto'];
-
-        const forwardedHost = req.headers['x-forwarded-host'];
-
-        const directHost = req.headers.host;
-
-
-
-        const inferredBaseUrl = (forwardedHost || directHost)
-
-          ? `${forwardedProto || 'https'}://${forwardedHost || directHost}`
-
-          : null;
-
-
-
-        const configuredBaseUrl = process.env.FRONTEND_URL || process.env.API_BASE_URL || 'https://ahoyvpn.net';
-
-        const appBaseUrl = (inferredBaseUrl || configuredBaseUrl).replace(/\/api\/?$/, '').replace(/\/$/, '');
-
-
-
+                const { appBaseUrl } = inferBaseUrls(req);
         const relayUrl = `${appBaseUrl}/api/payment/authorize/relay`;
 
         const hostedReturnUrl = relayUrl;
@@ -1267,29 +1247,7 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-    const forwardedProto = req.headers['x-forwarded-proto'];
-
-    const forwardedHost = req.headers['x-forwarded-host'];
-
-    const directHost = req.headers.host;
-
-
-
-    const inferredBaseUrl = (forwardedHost || directHost)
-
-      ? `${forwardedProto || 'https'}://${forwardedHost || directHost}`
-
-      : null;
-
-
-
-    const appBaseUrl = (inferredBaseUrl || process.env.FRONTEND_URL || 'https://ahoyvpn.net')
-
-      .replace(/\/api\/?$/, '')
-
-      .replace(/\/$/, '');
-
-
+    const { appBaseUrl } = inferBaseUrls(req);
 
     if (!invoiceNumber) {
 
@@ -1715,25 +1673,7 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-    const forwardedProto = req.headers['x-forwarded-proto'];
-
-    const forwardedHost = req.headers['x-forwarded-host'];
-
-    const directHost = req.headers.host;
-
-    const inferredBaseUrl = (forwardedHost || directHost)
-
-      ? `${forwardedProto || 'https'}://${forwardedHost || directHost}`
-
-      : null;
-
-    const appBaseUrl = (inferredBaseUrl || process.env.FRONTEND_URL || 'https://ahoyvpn.net')
-
-      .replace(/\/api\/?$/, '')
-
-      .replace(/\/$/, '');
-
-
+    const { appBaseUrl } = inferBaseUrls(req);
 
     return res.redirect(`${appBaseUrl}/checkout?payment=cancel&reason=processing_error`);
 
