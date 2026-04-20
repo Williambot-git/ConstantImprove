@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const { normalizeAffiliateCode } = require('../utils/affiliateUtils');
+const log = require('../utils/logger');
 
 router.get('/ref/:refCode', async (req, res) => {
   try {
@@ -33,7 +34,7 @@ router.get('/ref/:refCode', async (req, res) => {
     return res.redirect(redirectUrl);
 
   } catch (error) {
-    console.error('Ref click error:', error);
+    log.error('Ref click error', { error: error.message });
     return res.redirect('/');
   }
 });

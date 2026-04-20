@@ -7,6 +7,8 @@ const rateLimit = require('express-rate-limit');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 
+const log = require('./utils/logger');
+
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const { protect, csrfProtection } = require('./middleware/authMiddleware_new');
 const { cspConfig, ScriptIntegrityMonitor, paymentSecurityMiddleware, handleCSPReport } = require('./middleware/securityMiddleware');
@@ -232,22 +234,22 @@ if (process.env.DISABLE_PLISIO_POLLING !== 'true') {
 
   setInterval(() => {
     invoicePollingService.runOnce().catch((error) => {
-      console.error('Invoice polling run failed:', error);
+      log.error('Invoice polling run failed', { error: error.message });
     });
     // Also poll ARB subscriptions for Authorize.net fiat payments
     invoicePollingService.pollArbSubscriptions().catch((error) => {
-      console.error('ARB polling run failed:', error);
+      log.error('ARB polling run failed', { error: error.message });
     });
   }, 5 * 60 * 1000); // every 5 minutes
 
   // First run shortly after startup
   setTimeout(() => {
     invoicePollingService.runOnce().catch((error) => {
-      console.error('Initial invoice polling run failed:', error);
+      log.error('Initial invoice polling run failed', { error: error.message });
     });
     setTimeout(() => {
       invoicePollingService.pollArbSubscriptions().catch((error) => {
-        console.error('Initial ARB polling run failed:', error);
+        log.error('Initial ARB polling run failed', { error: error.message });
       });
     }, 30 * 1000);
   }, 45 * 1000);

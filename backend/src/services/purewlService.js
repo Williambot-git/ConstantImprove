@@ -1,4 +1,5 @@
 const axios = require('axios');
+const log = require('../utils/logger');
 
 class PureWLService {
   constructor() {
@@ -40,7 +41,7 @@ class PureWLService {
       
       return accessToken;
     } catch (error) {
-      console.error('Failed to get PureWL access token:', error.response?.data || error.message);
+      log.error('Failed to get PureWL access token', { error: error.response?.data || error.message });
       throw new Error(`PureWL authentication failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -64,7 +65,7 @@ class PureWLService {
       const { vpnUsername, vpnPassword, expiryDate } = response.data.body;
       return { vpnUsername, vpnPassword, expiryDate };
     } catch (error) {
-      console.error('Failed to create PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to create PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account creation failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -88,7 +89,7 @@ class PureWLService {
       const { vpnUsername, vpnPassword, expiryDate } = response.data.body;
       return { vpnUsername, vpnPassword, expiryDate };
     } catch (error) {
-      console.error('Failed to generate PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to generate PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account generation failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -110,7 +111,7 @@ class PureWLService {
       
       return response.data.body;
     } catch (error) {
-      console.error('Failed to extend PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to extend PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account extension failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -132,7 +133,7 @@ class PureWLService {
       
       return response.data.body;
     } catch (error) {
-      console.error('Failed to renew PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to renew PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account renewal failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -151,7 +152,7 @@ class PureWLService {
       
       return response.data.body;
     } catch (error) {
-      console.error('Failed to disable PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to disable PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account disable failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -170,7 +171,7 @@ class PureWLService {
       
       return response.data.body;
     } catch (error) {
-      console.error('Failed to enable PureWL VPN account:', error.response?.data || error.message);
+      log.error('Failed to enable PureWL VPN account', { error: error.response?.data || error.message });
       throw new Error(`PureWL account enable failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -182,7 +183,7 @@ class PureWLService {
       const response = await this.client.get(`/vam/v2/status?X-AccessToken=${accessToken}&vpnUsername=${vpnUsername}`);
       return response.data.body;
     } catch (error) {
-      console.error('Failed to get PureWL VPN account status:', error.response?.data || error.message);
+      log.error('Failed to get PureWL VPN account status', { error: error.response?.data || error.message });
       throw new Error(`PureWL account status check failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -199,7 +200,7 @@ class PureWLService {
       
       return response.data.body.countries;
     } catch (error) {
-      console.error('Failed to get PureWL countries:', error.response?.data || error.message);
+      log.error('Failed to get PureWL countries', { error: error.response?.data || error.message });
       throw new Error(`PureWL countries fetch failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }
@@ -224,7 +225,7 @@ class PureWLService {
       
       return response.data.body.servers[0];
     } catch (error) {
-      console.error('Failed to get PureWL optimized server:', error.response?.data || error.message);
+      log.error('Failed to get PureWL optimized server', { error: error.response?.data || error.message });
       throw new Error(`PureWL server optimization failed: ${error.response?.data?.header?.message || error.message}`);
     }
   }

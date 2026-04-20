@@ -1,4 +1,5 @@
 const axios = require('axios');
+const log = require('../utils/logger');
 
 /**
  * ZipTax v6.0 client
@@ -108,7 +109,7 @@ class ZipTaxService {
       return { rate: safeRate, raw: data };
     } catch (error) {
       // Avoid leaking secrets; only log high-level details.
-      console.error('ZipTax lookup error:', error.message || error);
+      log.error('ZipTax lookup error', { error: error.message || error });
       // Re-throw API errors with their original messages; wrap network errors generically
       const msg = error.message || '';
       if (msg.startsWith('ZipTax error') || msg.startsWith('Unexpected ZipTax')) {

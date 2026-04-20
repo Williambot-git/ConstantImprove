@@ -4,6 +4,7 @@ const promoService = require('./promoService');
 const emailService = require('./emailService');
 const { createVpnAccount } = require('./userService');
 const { applyAffiliateCommissionIfEligible } = require('./affiliateCommissionService');
+const log = require('../utils/logger');
 
 /**
  * Process a completed Plisio payment asynchronously.
@@ -70,12 +71,12 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
         amount = amount || invoiceData?.amount || invoiceData?.invoice_total_sum || null;
         currency = currency || invoiceData?.currency || invoiceData?.psys_cid || null;
       } catch (error) {
-        console.error(`Failed resolving switched invoice chain for ${invoice_id}:`, error.message || error);
+        log.error('Failed resolving switched invoice chain', { invoiceId: invoice_id, error: error.message });
       }
     }
 
     if (subResult.rows.length === 0) {
-      console.error(`Subscription not found for invoice ${invoice_id}`);
+      log.error('Subscription not found', { invoiceId: invoice_id });
       return;
     }
 
@@ -128,7 +129,7 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
         );
       }
     } catch (taxErr) {
-      console.error('Failed to record tax_transaction (Plisio):', taxErr.message);
+      log.error('Failed to record tax_transaction (Plisio)', { error: taxErr.message });
     }
 
     // Create VPN account via VPN Resellers
@@ -175,7 +176,7 @@ async function processPlisioPaymentAsync(invoice_id, tx_id, amount, currency) {
     ]);
 
   } catch (error) {
-    console.error('Async Plisio payment processing error:', error);
+    log.error('Async Plisio payment processing error', { error: error.message });
   }
 }
 
@@ -200,7 +201,7 @@ async function processPaymentsCloudPaymentAsync(data) {
     const { account_number, plan_key } = data.metadata || {};
 
     if (!account_number || !plan_key) {
-      console.error('Missing account_number or plan_key in webhook metadata');
+      log.error('Missing account_number or plan_key in webhook metadata');
       return;
     }
 
@@ -211,7 +212,7 @@ async function processPaymentsCloudPaymentAsync(data) {
     );
 
     if (userResult.rows.length === 0) {
-      console.error(`User not found for account ${account_number}`);
+      log.error('User not found', { accountNumber: account_number });
       return;
     }
 
@@ -229,7 +230,7 @@ async function processPaymentsCloudPaymentAsync(data) {
     const subResult = await db.query(subQuery, [userId]);
 
     if (subResult.rows.length === 0) {
-      console.error(`No trialing subscription found for user ${userId}`);
+      log.error('No trialing subscription found', { userId });
       return;
     }
 
@@ -279,7 +280,7 @@ async function processPaymentsCloudPaymentAsync(data) {
     ]);
 
   } catch (error) {
-    console.error('Async PaymentsCloud payment processing error:', error);
+    log.error('Async PaymentsCloud payment processing error', { error: error.message });
   }
 }
 

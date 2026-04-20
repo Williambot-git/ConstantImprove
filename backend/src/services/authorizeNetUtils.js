@@ -66,7 +66,7 @@ async function getAuthorizeTransactionDetails(transactionId) {
       customerPaymentProfileId: String(tx?.profile?.customerPaymentProfileId || '').trim() || null
     };
   } catch (error) {
-    console.error('Authorize transaction details lookup failed:', error.message || error);
+    log.error('Authorize transaction details lookup failed', { error: error.message || error });
     return null;
   }
 }
@@ -108,7 +108,7 @@ async function cancelArbSubscription(subscriptionId) {
     const msg = data?.messages?.message?.[0]?.text || 'ARB cancellation failed';
     return { success: false, message: msg };
   } catch (error) {
-    console.error('ARB cancellation error:', error.message || error);
+    log.error('ARB cancellation error', { error: error.message || error });
     throw error;
   }
 }
@@ -167,7 +167,7 @@ class AuthorizeNetService {
         lastPaymentId: null
       };
     } catch (error) {
-      console.error('ARB subscription lookup error:', error.message || error);
+      log.error('ARB subscription lookup error', { error: error.message || error });
       return null;
     }
   }
@@ -192,7 +192,7 @@ class AuthorizeNetService {
         responseCode: tx?.responseCode || ''
       };
     } catch (error) {
-      console.error('Transaction details lookup error:', error.message || error);
+      log.error('Transaction details lookup error', { error: error.message || error });
       return null;
     }
   }
@@ -280,7 +280,7 @@ class AuthorizeNetService {
     try {
       data = JSON.parse(raw.replace(/^\uFEFF/, ''));
     } catch (err) {
-      console.error('Authorize.net hosted page JSON parse error:', err.message, 'body=', raw.slice(0, 200));
+      log.error('Authorize.net hosted page JSON parse error', { error: err.message, body: raw.slice(0, 200) });
       throw new Error('Authorize.net hosted page returned invalid JSON');
     }
 
@@ -353,7 +353,7 @@ class AuthorizeNetService {
 
       return await response.json();
     } catch (error) {
-      console.error('Authorize.net API error:', error);
+      log.error('Authorize.net API error', { error: error });
       throw error;
     }
   }
@@ -430,7 +430,7 @@ class AuthorizeNetService {
         status: result.messages?.resultCode
       };
     } catch (error) {
-      console.error('ARB subscription creation error:', error.message || error);
+      log.error('ARB subscription creation error', { error: error.message || error });
       throw error;
     }
   }
@@ -495,7 +495,7 @@ class AuthorizeNetService {
         status: result.messages?.resultCode
       };
     } catch (error) {
-      console.error('ARB subscription from profile error:', error.message || error);
+      log.error('ARB subscription from profile error', { error: error.message || error });
       throw error;
     }
   }

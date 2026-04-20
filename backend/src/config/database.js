@@ -1,4 +1,5 @@
 const { Pool } = require('pg');
+const log = require('../utils/logger');
 
 // Primary pool for normal app operations
 const pool = new Pool({
@@ -24,7 +25,7 @@ const setupPool = (pool, label) => {
     console.log(`📦 Connected to PostgreSQL as ${label}`);
   });
   pool.on('error', (err) => {
-    console.error(`❌ PostgreSQL ${label} pool error:`, err);
+    log.error(`PostgreSQL ${label} pool error`, { error: err });
   });
 };
 

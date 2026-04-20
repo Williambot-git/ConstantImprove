@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 const SALT_ROUNDS = 12;
 
@@ -82,7 +83,7 @@ async function isPasswordReused(userId, password) {
 
     return false;
   } catch (error) {
-    console.error('Error checking password history:', error);
+      log.error('Error checking password history', { error: error.message });
     return false;
   }
 }
@@ -109,7 +110,7 @@ async function isPasswordExpired(userId) {
 
     return daysSinceChange > 90;
   } catch (error) {
-    console.error('Error checking password expiration:', error);
+      log.error('Error checking password expiration', { error: error.message });
     return false;
   }
 }
@@ -148,7 +149,7 @@ async function addToPasswordHistory(userId, passwordHash) {
       [userId]
     );
   } catch (error) {
-    console.error('Error adding to password history:', error);
+      log.error('Error adding to password history', { error: error.message });
   }
 }
 
@@ -212,7 +213,7 @@ const requirePasswordChange = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Error checking password change requirement:', error);
+      log.error('Error checking password change requirement', { error: error.message });
     next();
   }
 };

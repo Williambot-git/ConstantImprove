@@ -1,4 +1,5 @@
 const axios = require('axios');
+const log = require('../utils/logger');
 
 class PlisioService {
   constructor() {
@@ -44,7 +45,7 @@ class PlisioService {
         throw new Error(response.data.message || 'Plisio invoice creation failed');
       }
     } catch (error) {
-      console.error('Plisio invoice creation error:', error.response?.data || error.message);
+      log.error('Plisio invoice creation error', { error: error.response?.data || error.message });
       throw new Error('Failed to create crypto invoice');
     }
   }
@@ -61,7 +62,7 @@ class PlisioService {
         throw new Error(response.data.message || 'Failed to get invoice status');
       }
     } catch (error) {
-      console.error('Plisio invoice status error:', error.response?.data || error.message);
+      log.error('Plisio invoice status error', { error: error.response?.data || error.message });
       throw new Error('Failed to fetch invoice status');
     }
   }

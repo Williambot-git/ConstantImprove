@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const log = require('../utils/logger');
 
 class PromoService {
   /**
@@ -77,7 +78,7 @@ class PromoService {
       };
       
     } catch (error) {
-      console.error('Promo validation error:', error);
+      log.error('Promo validation error', { error: error.message });
       return { valid: false, error: 'Internal error validating promo code' };
     }
   }
@@ -96,7 +97,7 @@ class PromoService {
       `;
       await db.query(query, [promoId]);
     } catch (error) {
-      console.error('Error marking promo code used:', error);
+      log.error('Error marking promo code used', { error: error.message });
       // Non-fatal error
     }
   }
