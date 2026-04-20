@@ -253,3 +253,6 @@
 - **Verified frontend lib tests**: `cookies.test.js` (47 tests), `sanitize.test.js` (63 tests), `seo.test.js` (11 tests) — all 121 passing
 - **test(backend): add logger.js unit tests** (20 cases, 100% coverage)
 - **test(backend): add jwt utils unit tests** (17 cases, 100% coverage)
+
+## 2026-04-20T03:45:00Z
+- **refactor(purewlService): DRY — extract _request() engine** — every VPN operation (create/generate/extend/renew/disable/enable/status/countries/optimizedServer) repeated the same 5-line pattern: token fetch → headers → API call → catch/log/throw → return body. Extracted into private `_request(method, path, payload)` method with `actionLabel()` helper for human-readable errors. All 11 public methods now delegate to `_request()`. Added extensive JSDoc explaining PureWL API quirks (token-in-URL for status endpoint, nested error body.header.message, shared payload schemas). purewlService: 97.87% stmt / 93.1% branch / 100% function coverage. **1,192 backend tests passing.**
