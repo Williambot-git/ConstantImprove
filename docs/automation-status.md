@@ -347,6 +347,9 @@
 - **improve.sh audit**: All 5 cleanup steps (stale backup files, orphaned migrations dir, orphaned image backups) are idempotent/safe — no false-positive removals possible. Script is well-designed.
 - **All 2,078 tests passing** (1,194 backend + 884 frontend). No regressions. No blockers.
 
-## 2026-04-20T10:00:00Z
-- **refactor(paymentController): remove dead `require('node-fetch')`** — file had unused `node-fetch` import at line 1, confirmed via grep that no `fetch(` calls exist anywhere in the 1,767-line controller. Similar to the vpnResellersService refactor at 08:30 (which migrated to Node 22 native fetch). The `node-fetch` package remains in node_modules as other projects may use it, but this controller no longer references it.
-- **2,078 tests passing** (1,194 backend + 884 frontend). 39 backend suites, 51 frontend suites — all green.
+## 2026-04-20T11:30:00Z
+- **feat(affiliateController): source minimum payout threshold from DB** — `getMetrics` now calls `getMinimumPayoutCents()` (from affiliateCommissionService) to look up the minimum payout from `payout_config` table at request time. Previously the frontend hardcoded \$10 and the backend had no minimum enforcement in this endpoint — William had to do a code deploy to change it. Now the minimum is driven by the DB row so only a SQL update is needed.
+  - `affiliateController.js`: imports `getMinimumPayoutCents`, calls it in `getMetrics`, includes `minimumPayoutCents` and `availableToCashOut` in the API response
+  - `PayoutTab.jsx`: reads `minimumPayoutCents` from API (from DB), computes `minimumPayoutDollars` for display, wires `min=` and `placeholder=` to the dynamic value instead of hardcoded `10`
+  - `affiliateController.test.js`: mocks `affiliateCommissionService`, adds 4th `mockDbQuery` call for `payout_config` lookup in all 3 existing `getMetrics` tests, asserts `minimumPayoutCents` and `availableToCashOut` in response, adds new test for empty `payout_config` row fallback (defaults to 1000 cents = \$10)
+- **1,195 backend + 884 frontend = 2,079 tests passing.** 39 backend suites, 51 frontend suites — all green.
