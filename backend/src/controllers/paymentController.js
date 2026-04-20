@@ -1,5 +1,3 @@
-const fetch = require('node-fetch');
-
 const db = require('../config/database');
 
 const { v4: uuidv4 } = require('uuid');
