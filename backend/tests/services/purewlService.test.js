@@ -484,6 +484,58 @@ describe('getOptimizedServer', () => {
 });
 
 // =============================================================================
+// _request — POST (default) branch coverage
+// =============================================================================
+
+describe('_request POST (default) branch', () => {
+  it('calls client.post when method is not GET or PUT (POST/DELETE)', async () => {
+    queueAuthSuccess('tok', 3600);
+    axios.__mockInstance__.post.mockResolvedValueOnce({
+      data: { body: { vpnUsername: 'post_user', vpnPassword: 'pass', expiryDate: '2027-01-01' } }
+    });
+
+    // createVPNAccount uses POST → hits the `else` branch in _request
+    await purewlService.createVPNAccount('user999', 30);
+
+    // call[1] is the VPN operation (call[0] was auth)
+    const postCall = axios.__mockInstance__.post.mock.calls[1];
+    expect(postCall[0]).toBe('/vam/v3/create');
+    expect(axios.__mockInstance__.get).not.toHaveBeenCalled();
+    expect(axios.__mockInstance__.put).not.toHaveBeenCalled();
+  });
+});
+
+// =============================================================================
+// getAccessToken — resellerId absent from auth response
+// =============================================================================
+
+describe('getAccessToken — resellerId absent', () => {
+  it('does not overwrite resellerId when response does not include it', async () => {
+    // Pre-set resellerId to a known value
+    purewlService.resellerId = 'originalReseller';
+    purewlService.accessToken = null;
+    purewlService.tokenExpiry = null;
+
+    // Auth response WITHOUT resellerId field
+    axios.__mockInstance__.post.mockResolvedValueOnce({
+      data: {
+        body: {
+          accessToken: 'newTokenNoReseller',
+          expiry: 3600
+          // NO resellerId
+        }
+      }
+    });
+
+    await purewlService.getAccessToken();
+
+    // resellerId should remain unchanged ('originalReseller')
+    expect(purewlService.resellerId).toBe('originalReseller');
+    expect(purewlService.accessToken).toBe('newTokenNoReseller');
+  });
+});
+
+// =============================================================================
 // PureWLService constructor — throws when PUREWL_SECRET_KEY is missing
 // =============================================================================
 describe('PureWLService constructor', () => {
