@@ -238,3 +238,17 @@
 - **Confirmed**: `DEBUG_AUTHORIZE_NET === 'true'` check in authorizeNetUtils.js is syntactically correct (three `=` signs confirmed via hex dump; `git diff` display of `=***` was line-redaction artifact).
 - **Structured logger migration — phase 3 COMPLETE**: All `console.error` calls in `src/services/`, `src/middleware/`, `src/routes/`, `src/index.js`, and `src/config/database.js` migrated to structured `log.error()`. All 44 error calls across 11 files now include contextual metadata (invoice IDs, user IDs, account numbers, error messages). Remaining `console.*` calls in `src/` are: server startup banners (`index.js` — INFO level events), database pool connect events (`database.js` — Node.js pool lifecycle), and the logger utility itself (output routing).
 - **1,990 tests passing** (1,175 backend + 815 frontend). 37 backend suites, 48 frontend suites — all passing.
+
+## 2026-04-20T00:35:00Z
+- **test(backend): affiliateUtils unit tests** — added 24 tests covering `normalizeAffiliateCode`:
+  - Valid codes: plain alphanumeric, underscores, hyphens, case preservation, mixed
+  - Null/empty input: undefined, null, empty string, whitespace-only
+  - Injection prevention: angle brackets, semicolons, double quotes, backticks, equals, slashes, newlines
+  - Length truncation: 64-char limit enforcement, boundary at exactly 64, short codes untouched
+  - Trimming: leading/trailing/both whitespace
+  - Type coercion: numbers, objects with toString
+- **jest.config.js**: Extended `collectCoverageFrom` to include `src/utils/**/*.js` so utils get coverage tracking alongside services/controllers/middleware
+- **backend/config/placeholder-config.js**: Fixed malformed `DEBUG_AUTHORIZE_NET=*** 'true'` → `===` operator (only placeholder-config had the bug; source files already correct)
+- **Verified frontend lib tests**: `cookies.test.js` (47 tests), `sanitize.test.js` (63 tests), `seo.test.js` (11 tests) — all 121 passing, already existed but previously unverified in status
+- **Confirmed**: `DEBUG_AUTHORIZE_NET === 'true'` evaluates correctly in both placeholder-config.js and source files (hex dump confirmed 3×`=` on disk)
+- **1,999 total tests passing** (1,199 backend + 800 frontend). 38 backend suites, 48 frontend suites — all passing.
