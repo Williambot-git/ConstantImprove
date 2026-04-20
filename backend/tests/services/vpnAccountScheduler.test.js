@@ -294,6 +294,101 @@ describe('vpnAccountScheduler', () => {
   });
 
   // ============================================================
+  // purewl_uuid falsy branches — all 3 cleanup functions skip disableAccount
+  // when purewl_uuid is null/undefined, but still update DB and continue loop.
+  // ============================================================
+
+  // -------------------------------------------------------------------------
+  // cleanupExpiredAccounts — line 16: `if (row.purewl_uuid)` branch when falsy
+  // Row has purewl_uuid=null — disableAccount NOT called, UPDATE still runs.
+  // -------------------------------------------------------------------------
+  describe('cleanupExpiredAccounts — purewl_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when row.purewl_uuid is null — UPDATE still runs', async () => {
+      const rows = [
+        { id: 55, purewl_uuid: null, user_id: 505 }
+      ];
+
+      mockQuery
+        .mockResolvedValueOnce({ rows })
+        .mockResolvedValueOnce({}); // UPDATE vpn_accounts -> expired
+
+      mockDisableAccount.mockResolvedValue({});
+
+      await expect(cleanupExpiredAccounts()).resolves.not.toThrow();
+
+      expect(mockDisableAccount).not.toHaveBeenCalled();
+      // UPDATE still fired (purewl_uuid falsy guard skipped disableAccount but not UPDATE)
+      const updateCalls = mockQuery.mock.calls.filter(
+        c => c[0] && c[0].includes('UPDATE vpn_accounts')
+      );
+      expect(updateCalls.length).toBe(1);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // cleanupCanceledSubscriptions — line 50: `if (row.purewl_uuid)` branch when falsy
+  // Row has purewl_uuid=undefined — disableAccount NOT called, UPDATE to expired runs.
+  // -------------------------------------------------------------------------
+  describe('cleanupCanceledSubscriptions — purewl_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when row.purewl_uuid is undefined — UPDATE still runs', async () => {
+      const rows = [
+        { id: 65, purewl_uuid: undefined, user_id: 605 }
+      ];
+
+      mockQuery
+        .mockResolvedValueOnce({ rows })
+        .mockResolvedValueOnce({}); // UPDATE vpn_accounts -> expired
+
+      mockDisableAccount.mockResolvedValue({});
+
+      await expect(cleanupCanceledSubscriptions()).resolves.not.toThrow();
+
+      expect(mockDisableAccount).not.toHaveBeenCalled();
+      const updateCalls = mockQuery.mock.calls.filter(
+        c => c[0] && c[0].includes('UPDATE vpn_accounts')
+      );
+      expect(updateCalls.length).toBe(1);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // suspendExpiredTrials — line 99: `if (va.purewl_uuid)` inner branch when falsy
+  // VPN account exists (rows.length > 0) but purewl_uuid is null —
+  // disableAccount NOT called, but UPDATE vpn_accounts -> suspended still runs.
+  // -------------------------------------------------------------------------
+  describe('suspendExpiredTrials — vpnAccount.rows[0].purewl_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when va.purewl_uuid is null — subscription canceled, user deactivated, VPN suspended', async () => {
+      const expiredTrialRows = {
+        rows: [
+          { id: 26, user_id: 206, status: 'trialing', plisio_invoice_id: 'inv-26' }
+        ]
+      };
+
+      const vpnAccountRows = {
+        rows: [
+          { id: 32, purewl_uuid: null }  // VPN account exists but purewl_uuid is null
+        ]
+      };
+
+      mockQuery
+        .mockResolvedValueOnce(expiredTrialRows)  // SELECT expired trials
+        .mockResolvedValueOnce({})                 // UPDATE subscription -> canceled
+        .mockResolvedValueOnce(vpnAccountRows)     // SELECT vpn_account by user_id
+        .mockResolvedValueOnce({})                 // UPDATE vpn_account -> suspended
+        .mockResolvedValueOnce({});                // UPDATE users -> is_active = false
+
+      mockDisableAccount.mockResolvedValue({});
+
+      await expect(suspendExpiredTrials()).resolves.not.toThrow();
+
+      // disableAccount never called because va.purewl_uuid is falsy
+      expect(mockDisableAccount).not.toHaveBeenCalled();
+      // All 5 DB operations still fired (subscription canceled, user deactivated, VPN suspended)
+      expect(mockQuery).toHaveBeenCalledTimes(5);
+    });
+  });
+
+  // ============================================================
   // cleanupAbandonedCheckouts
   // ============================================================
 
