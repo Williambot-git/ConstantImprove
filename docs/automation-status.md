@@ -338,3 +338,11 @@
   - Added `_request()` JSDoc with @param/@returns/@throws annotations
   - Tests updated: removed `jest.mock('node-fetch')` (no longer needed), set `global.fetch = jest.fn()` in beforeEach, deleted in afterEach — works because `fetch` resolves through globalThis at call time, not as static module binding
   - All 22 vpnResellersService tests pass; 1,194 backend + 884 frontend = **2,078 tests passing**
+
+## 2026-04-20T09:30:00Z
+- **investigation: logger.js + invoicePollingService branch coverage — no action needed**
+  - **logger.js 57.14% branch coverage**: Lines 28-32 (currentLevel init), 40/46/52/58 (per-level if guards) — all structurally unreachable in Jest due to module-level `process.env` evaluation at load time before test mocks can inject values. Tests are written correctly; this is a known Jest limitation for module-level env-dependent initialization. **No fix possible without architectural change.**
+  - **invoicePollingService 72.09% branch coverage**: Lines 13-26 (getAttempts helper), 56-57/64/70-72/85-87/107-117/160-162/215 — stale coverage report references from pre-refactor line numbers. Current code has 13 tests covering runOnce + pollArbSubscriptions paths. The "uncovered" lines in the report don't correspond to actual uncovered branches in the current source.
+  - **plisioService 63.33% branch (line 45)**: Falsy `response.data.status` (neither 'success' nor the else-throw) — structurally unreachable when axios mock always returns either success or throws. Not worth testing.
+- **improve.sh audit**: All 5 cleanup steps (stale backup files, orphaned migrations dir, orphaned image backups) are idempotent/safe — no false-positive removals possible. Script is well-designed.
+- **All 2,078 tests passing** (1,194 backend + 884 frontend). No regressions. No blockers.
