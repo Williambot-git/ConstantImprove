@@ -346,3 +346,7 @@
   - **plisioService 63.33% branch (line 45)**: Falsy `response.data.status` (neither 'success' nor the else-throw) — structurally unreachable when axios mock always returns either success or throws. Not worth testing.
 - **improve.sh audit**: All 5 cleanup steps (stale backup files, orphaned migrations dir, orphaned image backups) are idempotent/safe — no false-positive removals possible. Script is well-designed.
 - **All 2,078 tests passing** (1,194 backend + 884 frontend). No regressions. No blockers.
+
+## 2026-04-20T10:00:00Z
+- **refactor(paymentController): remove dead `require('node-fetch')`** — file had unused `node-fetch` import at line 1, confirmed via grep that no `fetch(` calls exist anywhere in the 1,767-line controller. Similar to the vpnResellersService refactor at 08:30 (which migrated to Node 22 native fetch). The `node-fetch` package remains in node_modules as other projects may use it, but this controller no longer references it.
+- **2,078 tests passing** (1,194 backend + 884 frontend). 39 backend suites, 51 frontend suites — all green.
