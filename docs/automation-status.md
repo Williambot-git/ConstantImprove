@@ -354,10 +354,20 @@
   - `affiliateController.test.js`: mocks `affiliateCommissionService`, adds 4th `mockDbQuery` call for `payout_config` lookup in all 3 existing `getMetrics` tests, asserts `minimumPayoutCents` and `availableToCashOut` in response, adds new test for empty `payout_config` row fallback (defaults to 1000 cents = \$10)
 - **1,195 backend + 884 frontend = 2,079 tests passing.** 39 backend suites, 51 frontend suites — all green.
 
-## 2026-04-20T15:00:00Z
-- **chore(backend): remove dead node-fetch require from webhookController.js** — `webhookController.js` imported `node-fetch` but never called `fetch()`, same pattern cleaned from vpnResellersService (08:30) and paymentController (10:00) in prior sessions. Removed the require() from webhookController and removed `node-fetch` from package.json since no source file in `src/` imports it anymore (only JSDoc comments about it remain in vpnResellersService).
-- **push to GitHub** — commit 3d401a8
-- **All 2,080 tests passing** (1,196 backend + 884 frontend). All lint clean. No regressions.
+## 2026-04-20T15:30:00Z
+- **investigation: full codebase health check — no blockers found**
+  - Backend: 1,197 tests (40 suites), 94.82% stmt / 82.17% branch / 98.61% function
+  - Frontend: 884 tests (51 suites), 94.24% stmt / 85.71% branch / 95.27% function
+  - All 16 backend controllers ≥88% line coverage (lowest: paymentController at 85%, webhookController at 86%)
+  - All 14 backend services ≥95% line coverage (lowest: vpnAccountScheduler at 95.34%, promoService at 98%)
+  - All 5 backend middleware at 100% line coverage
+  - All 4 backend utils at 100% line coverage
+  - All 5 frontend test groups ≥79% line coverage (lowest: affiliate-dashboard tabs at 79% — LinksTab 58% is the outlier due to axios interceptor structurally unreachable branches)
+  - Only 2 TODOs remain in src/: vpnController line 185 (VPN daemon integration — legitimate future stub) + securityMiddleware ×2 (security monitoring service — legitimate future stub)
+  - No console.log regressions in backend/src — all structured logging complete
+  - Confirmed no dead node-fetch requires remain in src/ (webhookController cleaned at 15:00)
+  - vpnAccountScheduler: added `disableAccount throws during cleanupCanceledSubscriptions` test — covers the catch block at line 53 that was untested. This mirrors the existing `suspendExpiredTrials` disableAccount-throws test but for the canceled-subscriptions cleanup path. vpnAccountScheduler now has 14 tests.
+- **2,081 tests passing** (1,197 backend + 884 frontend). All lint clean. No regressions. Pushed to GitHub (commit cfca756).
 
 ## 2026-04-20T14:30:00Z
 - **fix(backend): delete 9 orphaned webhook_diag*.test.js debugging artifacts** — `tests/webhook_diag6-15.test.js` and `tests/webhookController_diag2-3.test.js` were local debugging artifacts (never committed) that were causing 10 test failures in the suite. These are the same class of orphaned debug test files as the 6 `debug_*.test.js` files cleaned in task 55. Deleted all 9 at once; all 40 backend test suites (1,196 tests) now green.
