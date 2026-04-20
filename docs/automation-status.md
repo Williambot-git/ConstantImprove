@@ -278,7 +278,11 @@
   - Remaining "7 day" references are correct: refresh token expiry, session sliding window, connection log retention
 - **1,192 backend + 817 frontend = 2,009 tests passing.** No regressions.
 
-*Last updated: 2026-04-20T05:00:00Z*
+## 2026-04-20T17:00:00Z
+- **chore: remove orphaned verify_mock_priority.test.js** — debugging artifact with no assertions (created during VPN-renewal mock isolation investigation), confirmed mockReset behavior. Deleted; 40 backend suites all green.
+- **test(affiliateController): add null-pending_payout-cent edge case test** — `requestPayout` line 451 `parseInt(null) || 0` branch covered by new test (pending_payout_cents = null → amount $10 < $50 minimum → 400). affiliateController now 100% line/stmt coverage. **1,210 backend + 884 frontend = 2,094 tests passing.** Pushed to GitHub (commits 565089a, bb29e65).
+
+*Last updated: 2026-04-20T17:00:00Z*
 
 ## 2026-04-20T05:30:00Z
 - **refactor(frontend): extract US_STATES + wire CryptoSelector into checkout**
