@@ -735,6 +735,18 @@ describe('requestPayout', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'Amount exceeds available balance' });
   });
 
+  // Line 451: parseInt(null) || 0 — pending_payout_cents can be null (COALESCE in SQL, but edge case if row is null)
+  test('400 — zero balance (parseInt null-or-zero fallback)', async () => {
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ pending_payout_cents: null }] }); // null — COALESCE would catch this but guard anyway
+
+    const req = mockReq({ body: { amount: 10 } }); // $10
+    const res = mockRes();
+    await requestPayout(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ error: 'Minimum payout is $50' });
+  });
+
   test('500 — database error', async () => {
     mockDbQuery.mockRejectedValue(new Error('db error'));
 
