@@ -362,7 +362,7 @@ VPNRESELLERS_RESELLER_ID=<your_reseller_id>
 - Powered by VPNresellers (zero-log provider)
 - 50+ countries, 200+ server locations
 - OpenVPN, WireGuard, IKEv2 protocols
-- 7-day activation (no email required)"
+- Instant activation (no email required)"
 
 ### Dashboard
 "Your VPN Account

@@ -329,7 +329,11 @@ const deleteCustomer = async (req, res) => {
 // Create affiliate endpoint
 const createAffiliate = async (req, res) => {
   try {
-    const { userId, email, code, commissionRate = 0.25, isApproved = true, payoutMethod = 'crypto', walletAddress = null } = req.body;
+    // NOTE: Canonical commission rate is 10% (0.10). The payout_config table stores 0.10 for all plan
+    // intervals. Using 0.10 here as the default ensures new affiliates get the correct rate unless
+    // explicitly overridden. The 0.25 default was a historical mismatch that caused affiliates to be
+    // created with an incorrect (higher-than-canonical) commission rate.
+    const { userId, email, code, commissionRate = 0.10, isApproved = true, payoutMethod = 'crypto', walletAddress = null } = req.body;
     
     if (!userId && !email) {
       return res.status(400).json({ error: 'Either userId or email is required' });

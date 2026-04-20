@@ -25,7 +25,7 @@ Every checkable item in every priority has been mapped and verified. See below f
 ### 🔴 Priority 1 — Core Flows ✅ COMPLETE
 
 **Auth System** ✅
-- [x] Customer registration — `POST /auth/register`, 12+ char password, 7-day trial, no email verification
+- [x] Customer registration — `POST /auth/register`, 12+ char password, no trial (subscriptions start in 'trialing' status with 30-day grace before first charge), no email verification
 - [x] Customer login — `POST /auth/login`, account_number + password, argon2 hash
 - [x] Affiliate login — `POST /auth/affiliate/login`, `affiliates` table, argon2
 - [x] Admin login — `POST /auth/ahoyman/login`, `admin_users` table, argon2
@@ -53,7 +53,7 @@ Every checkable item in every priority has been mapped and verified. See below f
 - [x] `payout_config` table — key=`minimum_payout_cents`=1000, `commission_rate`=0.25, `hold_period_days`=30, `default_discount_cents`
 
 **User/Subscription System** ✅
-- [x] Subscription states — trialing (7 days), active, cancelled, expired
+- [x] Subscription states — trialing (30-day grace window), active, cancelled, expired
 - [x] VPN credentials generation — VPNResellers API on payment webhook; account created, enabled, expiry set
 - [x] VPN server access — ALL 501 ❌ — controller (`vpnController.js`) has 6 stub functions returning `{error: 'Not implemented'}`; VPNResellersService (`vpnResellersService.js`) has account management methods but NO server list/config methods
 
@@ -403,7 +403,7 @@ Applied pre-tax in checkout → `discountedBaseCents = plan.amount_cents - disco
 ### ✅ Auth System — What We Found
 
 **Registration:** `POST /api/auth/register`
-- Creates user + trialing subscription (7 days)
+- Creates user + subscription in 'trialing' status (30-day grace window before first charge)
 - No email verification sent (email_verified always false)
 - No welcome email sent
 - Password: bcrypt hashed, 12+ chars enforced
@@ -805,7 +805,7 @@ ORDER BY al.created_at DESC
 ### Priority 1 — COMPLETE ✅
 
 **Auth System:**
-- [x] Customer registration — `POST /auth/register`, 12+ char password, 7-day trial, no email verification
+- [x] Customer registration — `POST /auth/register`, 12+ char password, no trial (subscriptions start in 'trialing' status with 30-day grace before first charge), no email verification
 - [x] Customer login — `POST /auth/login`, account_number + password, argon2 hash
 - [x] Affiliate login — `POST /auth/affiliate/login`, `affiliates` table, argon2
 - [x] Admin login — `POST /auth/ahoyman/login`, `admin_users` table, argon2, last_login tracked
@@ -834,7 +834,7 @@ ORDER BY al.created_at DESC
 - [x] payout_config table — min_payout_cents=1000, commission_rate={rate:0.25}, hold_period_days=30
 
 **User/Subscription System:**
-- [x] Subscription states — trialing (7 days), active, cancelled, expired
+- [x] Subscription states — trialing (30-day grace window), active, cancelled, expired
 - [x] VPN credentials generation — VPNResellers API on payment webhook, stored in `vpn_accounts`
 - [x] VPN server access — VPNResellers API for server list + config — ALL 501 ❌
 - [x] Recovery kit — 8 codes, argon2 hashed, 1-hour expiry, used for account recovery

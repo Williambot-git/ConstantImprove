@@ -32,7 +32,7 @@ PHASE 10 → Commission Math Verification
 - [ ] **Customer registration** → `POST /api/auth/register` with valid payload → 201, returns `{token, user}`
   - Test: 12+ char password accepted, shorter rejected with 400
   - Test: Duplicate email → 400 `{error: 'User already exists'}`
-  - Test: Creates trialing subscription (7 days) in DB
+  - Test: Creates subscription in 'trialing' status (30-day grace window before first charge, not a time-limited trial)
   - Test: No welcome email sent (by design — no email verification)
 
 - [ ] **Customer login** → `POST /api/auth/login` with `{account_number, password}` → 200, sets JWT cookie

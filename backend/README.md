@@ -57,7 +57,7 @@ Node.js/Express backend for AhoyVPN, integrating with PureWL (Atom VPN) for VPN 
 
 ### Payment Flow
 1. User selects plan and provides numeric account number
-2. Backend creates subscription with `trialing` status
+2. Backend creates subscription with `trialing` status (30-day grace window — not a time-limited trial)
 3. User completes payment via Plisio/PaymentsCloud
 4. Webhook confirms payment
 5. Backend activates subscription and creates VPN account

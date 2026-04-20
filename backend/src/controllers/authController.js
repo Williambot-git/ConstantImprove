@@ -51,9 +51,12 @@ const register = async (req, res) => {
       return res.status(400).json({ error: 'User already exists' });
     }
     
-    // Set trial ends at 7 days from now
+    // Set trial ends at 30 days from now (grace window before first charge)
+    // NOTE: This matches the canonical grace window used by authController_csrf.js (the live numeric-account
+    // registration path). The 'trialing' status is not a time-limited free trial — it is a billing grace
+    // period during which the customer has access to the service until their first payment is processed.
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    trialEndsAt.setDate(trialEndsAt.getDate() + 30);
     
     const user = await User.create({ email, password, trialEndsAt });
     
