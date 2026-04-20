@@ -422,3 +422,16 @@
   - **All 4 remaining TODOs confirmed legitimate future-integration stubs** (security monitoring ×2, VPN daemon, refresh token DB storage)
   - admin.jsx (496 lines): 3-tab page (KPIs/Customers/Affiliates) with `KPICard` sub-component, inline styles — similar decomposition pattern to affiliate-dashboard but not yet split
   - No blockers. Codebase is production-ready.
+
+## Session: 2026-04-20 T19:50 Admin Dashboard Decomposition
+
+| # | Task | Status |
+|---|------|--------|
+| 25 | Decompose admin.jsx (496→~160 lines): extract KPITab, CustomersTab, AffiliatesTab, KPICard, styles | **DONE** |
+| 26 | Fix CommonJS `require()` vs ESM `import` babel runtime incompatibility in new admin components | **DONE** |
+| 27 | Run full test suite (backend 1214 + frontend 884) | **DONE** |
+
+**Components created:** `components/admin/{styles.js,KPICard.jsx,KPITab.jsx,CustomersTab.jsx,AffiliatesTab.jsx}`
+**Files modified:** `pages/admin.jsx` (rewritten using extracted components)
+**Root cause of test failure during refactor:** New components used `require()` (CommonJS) which under babel's `runtime: 'automatic'` resolves to namespace object `{ default: fn }` instead of `fn` directly. Converted all new components to ESM `import`/`export default`.
+**Test result:** 15/15 admin tests pass. Full suite: backend 1214 + frontend 884 = 2098 tests passing.
