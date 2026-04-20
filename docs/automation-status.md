@@ -462,3 +462,12 @@
 **Test result:** 2,099 tests passing (1,214 backend + 885 frontend). No regressions.
 
 *Last updated: 2026-04-20T20:00:00Z*
+
+## 2026-04-20T21:00:00Z
+- **test(vpnAccountScheduler): purewl_uuid falsy branch coverage — 100% branch** (commit a121668)
+  - Added 3 tests covering the `if (row.purewl_uuid)` / `if (va.purewl_uuid)` falsy branches in all 3 cleanup functions:
+    - `cleanupExpiredAccounts`: row with `purewl_uuid=null` — disableAccount skipped, UPDATE still runs
+    - `cleanupCanceledSubscriptions`: row with `purewl_uuid=undefined` — same pattern
+    - `suspendExpiredTrials`: VPN account exists but `purewl_uuid=null` — subscription canceled, user deactivated, VPN suspended, but disableAccount never called
+  - All prior tests used rows with purewl_uuid set, leaving these branches untested. vpnAccountScheduler: branch 70% → **100%**
+  - **1,217 backend + 884 frontend = 2,101 tests passing.** All 40 backend suites green. No regressions.
