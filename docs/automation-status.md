@@ -279,6 +279,13 @@
 
 *Last updated: 2026-04-20T05:00:00Z*
 
+## 2026-04-20T05:30:00Z
+- **refactor(frontend): extract US_STATES + wire CryptoSelector into checkout**
+  - `frontend/lib/us-states.js` — new shared ES module with all 50 US states (was inlined in checkout.jsx as 55-entry array including DC/territories; canonical list is 50 states per Wikipedia). Well-commented explaining WHY it exists.
+  - `checkout.jsx` — wired `CryptoSelector` component into the payment step (lines 419-426). The component existed with full tests but was never integrated. Replaces a static `<p>` help-text div with an actual dropdown wired to `cryptoCurrency` state (already connected to the API at line 195). Checkout: 1139 → 1087 lines (-52).
+  - **2,009 tests passing** (1,192 backend + 817 frontend). All 4 checkout test suites (29 tests) green.
+- **docs: add** `docs/plans/2026-04-20-checkout-wiring-us-states-extraction.md` — full implementation plan
+
 ## 2026-04-20T05:00:00Z
 - **investigation: codebase health assessment — no action needed**
   - All 2,009 tests confirmed green: 1,192 backend (39 suites) + 817 frontend (48 suites)
