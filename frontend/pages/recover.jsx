@@ -31,8 +31,13 @@ export default function Recover() {
     const sanitizedUserId = sanitizeText(userId);
     const sanitizedKit = sanitizeText(recoveryKit);
 
-    if (!sanitizedUserId.trim() || !sanitizedKit.trim()) {
-      setError('Account number and recovery kit are required');
+    if (!sanitizedUserId.trim()) {
+      setError('User ID is required');
+      return;
+    }
+
+    if (!sanitizedKit.trim()) {
+      setError('Recovery kit is required');
       return;
     }
 
@@ -50,6 +55,12 @@ export default function Recover() {
 
     if (!newPassword.trim()) {
       setError('Password is required');
+      setLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 digits');
       setLoading(false);
       return;
     }
@@ -214,7 +225,7 @@ export default function Recover() {
       {/* Step 3: Success - New Recovery Kit */}
       {step === 'success' && (
         <div style={styles.formWrapper}>
-          <Card style={{ backgroundColor: '#1A2A1A', borderColor: '#00CED1' }}>
+          <Card data-testid="success-card" style={{ backgroundColor: '#1A2A1A', borderColor: '#00CED1' }}>
             <h2 style={{ color: '#00CED1', marginBottom: '1rem' }}>
               ✓ Account Recovered Successfully
             </h2>
