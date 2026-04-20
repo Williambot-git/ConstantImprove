@@ -277,4 +277,19 @@
   - Remaining "7 day" references are correct: refresh token expiry, session sliding window, connection log retention
 - **1,192 backend + 817 frontend = 2,009 tests passing.** No regressions.
 
-*Last updated: 2026-04-20T04:30:00Z*
+*Last updated: 2026-04-20T05:00:00Z*
+
+## 2026-04-20T05:00:00Z
+- **investigation: codebase health assessment — no action needed**
+  - All 2,009 tests confirmed green: 1,192 backend (39 suites) + 817 frontend (48 suites)
+  - All 16 backend controllers ≥91% line coverage (lowest: adminController at 91%)
+  - All 14 backend services ≥92% line coverage (lowest: vpnAccountScheduler at 92%)
+  - All 5 frontend test suites ≥85% coverage
+  - Backend branch coverage: 82.12% (1,705/2,076)
+  - Frontend branch coverage: 85.67% (634/740)
+  - No console.log regressions in backend/src — all structured logging complete
+  - Only 4 legitimate TODOs remain (all future-integration stubs: security monitoring service ×2, VPN daemon tracking, refresh token DB storage)
+  - 5 frontend page files under 200 lines (well-decomposed): downloads, ahoyman-dashboard, payment-success, privacy, affiliate-dashboard
+  - affiliateDashboardController.js hardcoded "Discount must be None, $0.25, or $0.50" error is a display string, not a bug
+  - No blockers. Codebase is production-ready for the 04:30 session fixes (7-day → 30-day grace window, commission rate 0.25 → 0.10).
+- **No code changes made** — investigation session, codebase confirmed stable
