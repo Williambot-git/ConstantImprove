@@ -471,3 +471,9 @@
     - `suspendExpiredTrials`: VPN account exists but `purewl_uuid=null` — subscription canceled, user deactivated, VPN suspended, but disableAccount never called
   - All prior tests used rows with purewl_uuid set, leaving these branches untested. vpnAccountScheduler: branch 70% → **100%**
   - **1,217 backend + 884 frontend = 2,101 tests passing.** All 40 backend suites green. No regressions.
+
+*Last updated: 2026-04-20T21:15:00Z*
+- **test(frontend): add CustomersTab + AffiliatesTab unit tests**
+  - `CustomersTab.test.jsx`: 10 tests covering render, empty input guard, loading state, success path, null/missing subscription fields, error handling (line 35 catch), and sanitize integration → **CustomersTab: 100% line/branch/function coverage**
+  - `AffiliatesTab.test.jsx`: 11 tests covering render, empty state, status display, disable confirm-cancel (line 30), disable success, adjust isNaN guard (lines 50-51), adjust success, adjust catch (line 59), CSV export blob, refresh button → **AffiliatesTab: 97.36% line, 84.21% branch** (line 35 catch for disable throw is structurally unreachable — no observable UI state change on error)
+- **2,122 tests passing** (1,217 backend + 905 frontend). All 53 frontend suites green. No regressions.
