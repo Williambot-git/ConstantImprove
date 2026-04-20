@@ -373,3 +373,9 @@
 - **fix(backend): delete 9 orphaned webhook_diag*.test.js debugging artifacts** — `tests/webhook_diag6-15.test.js` and `tests/webhookController_diag2-3.test.js` were local debugging artifacts (never committed) that were causing 10 test failures in the suite. These are the same class of orphaned debug test files as the 6 `debug_*.test.js` files cleaned in task 55. Deleted all 9 at once; all 40 backend test suites (1,196 tests) now green.
 - **commit: verify_mock_priority.test.js** — confirms `mockReset()` clears both implementation and call history while `clearAllMocks()` preserves both; closure variables survive both. Useful reference for future mock isolation debugging.
 - **All 2,080 tests passing** (1,196 backend + 884 frontend). All lint clean. No regressions.
+
+## 2026-04-20T16:30:00Z
+- **fix(paymentController): remove duplicate `relayUrl` declaration** — previous session's `inferBaseUrls()` refactor accidentally duplicated the `const relayUrl = \`${appBaseUrl}/api/payment/authorize/relay\`;` line at line 654 (JavaScript syntax error). Fixed: removed duplicate, also removed unused `apiBaseUrl` from destructuring at all 3 call sites.
+- **chore(invoicePollingService): add outer try/catch to runOnce and pollArbSubscriptions** — outer catch ensures catastrophic failures (DB pool errors, logger crashes) are logged and re-thrown so the scheduler's retry logic detects the failure. Inner catches remain per-row (one bad row never stops the polling run).
+- **test(urlUtils.test.js): 13 tests, 100% line/branch/function coverage** — new `backend/tests/utils/urlUtils.test.js` covering `inferBaseUrls()` with x-forwarded-* headers, direct host fallback, catastrophic fallback to `DEFAULT_FRONTEND_URL`, and edge cases (http proto, /api/ stripping, trailing slash). Tests the new shared utility used by `paymentController`.
+- **1,210 backend + 884 frontend = 2,094 tests passing.** All lint clean. Pushed to GitHub (commits b24d94e, ff649e7).
