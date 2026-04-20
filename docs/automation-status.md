@@ -256,3 +256,13 @@
 
 ## 2026-04-20T03:45:00Z
 - **refactor(purewlService): DRY — extract _request() engine** — every VPN operation (create/generate/extend/renew/disable/enable/status/countries/optimizedServer) repeated the same 5-line pattern: token fetch → headers → API call → catch/log/throw → return body. Extracted into private `_request(method, path, payload)` method with `actionLabel()` helper for human-readable errors. All 11 public methods now delegate to `_request()`. Added extensive JSDoc explaining PureWL API quirks (token-in-URL for status endpoint, nested error body.header.message, shared payload schemas). purewlService: 97.87% stmt / 93.1% branch / 100% function coverage. **1,192 backend tests passing.**
+
+## 2026-04-20T04:00:00Z
+- **investigation: debugAuthorizeNet =*** **FAKE** — the terminal display showed `DEBUG_AUTHORIZE_NET=*** 'true'` as malformed syntax, but byte-level analysis confirms the actual file bytes are `DEBUG_AUTHORIZE_NET === 'true'` (3 equals signs = proper JavaScript strict equality operator). The `=***` was a display-redaction artifact, not actual content. placeholder-config.js is correct as-is.
+- **chore(frontend): clean comment section headers** — `frontend/api/client.js` had comment lines `// ===== AFFILIATE AUTH=***` and `// ===== ADMIN / AHOYMAN AUTH=***` that displayed confusingly due to terminal redaction of repeated `=` runs. Replaced with `// ===== Affiliate Authentication =====` and `// ===== Admin / Ahoyman Authentication =====`.
+- **confirmed: all tests green** — 1,192 backend + 817 frontend = 2,009 tests passing. No regressions.
+- **confirmed: no runtime console.log regressions** — backend/src/ has only 3 console.log calls: database pool connect (one-time startup event), and two server startup banners in index.js. All use logger.js for actual error logging.
+- **confirmed: 4 remaining TODOs are all legitimate future-integration stubs** — securityMiddleware (×2: security monitoring service integration), vpnController (VPN daemon tracking), authController (refresh token DB storage). All are optional/architectural decisions, not bugs.
+- **No blockers found.** Codebase is in excellent shape. Routes, controllers, services, middleware, and frontend components all have full test coverage.
+
+*Last updated: 2026-04-20T04:00:00Z*
