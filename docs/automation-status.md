@@ -717,3 +717,10 @@ All `console.error` calls removed from frontend components — replaced with use
   - Removed the unused import and updated the test mock comment
   - Test suite: 1,235 backend + 1,014 frontend = **2,249 tests passing** — unchanged
   - All lint clean. Pushed to GitHub.
+
+## 2026-04-21T13:30:00Z
+- **fix(webhookController): use __dirname instead of process.cwd() for log path** (commit 70e70ee)
+  - `logAuthorizeEvent()` at line 17 used `process.cwd()` to build the logs/ directory — same class of bug as `paymentController.js` fixed at 05:30 UTC (commit e7d230d)
+  - **Root cause**: `process.cwd()` varies by launch context (PM2 starts from `/`, `npm start` from project root, tests from `backend/`) — log writes could silently fail or land in wrong locations depending on how the server was started
+  - **Fix**: `path.resolve(__dirname, '..', '..', 'logs')` is deterministic regardless of launch context — resolves to `backend/logs/` from wherever Node is invoked
+  - All 1,235 backend + 1,014 frontend = **2,249 tests passing.** Pushed to GitHub.
