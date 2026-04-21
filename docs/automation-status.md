@@ -678,3 +678,17 @@ All `console.error` calls removed from frontend components — replaced with use
   - scripts/: 8 active scripts confirmed, no orphaned/patch artifacts remaining
   - No dead code, no backup files, no stale temp files
 - **2,238 tests passing** (1,224 backend + 1,014 frontend). All lint clean. No regressions. Pushed to GitHub (commit ce264fe).
+
+## 2026-04-21T09:30:00Z
+- **fix(logger): serialize Error instances properly instead of {} from JSON.stringify** (commit c801cd9)
+  - **Root cause**: `formatMessage` called `JSON.stringify(meta)` where `meta.error` was an `Error` instance. `JSON.stringify` on an `Error` produces `{}` — losing the error name, message, and stack.
+  - This caused the test output to show `console.error` with `{"error":"Unexpected token error"}` instead of the full Error object during expected error-path test cases.
+  - **Fix**: Added `serializeForLog()` helper that detects `Error` instances and serializes them as `{ name, message, stack }`. Handles nested objects and arrays recursively.
+  - Before: `{"error":{"error":"Unexpected token error"}}` (Error→{})
+  - After: `{"error":{"name":"TokenError","message":"Unexpected token error","stack":"TokenError: Unexpected token error\n    at..."}}`
+- **investigation: confirmed test suite health**
+  - `frontend/tests/recover.test.jsx`: 21 tests, all green ✓ (was thought missing, actually exists)
+  - `recover.jsx` page validated by tests, no coverage gaps ✓
+  - All 5 TODOs confirmed legitimate (vpnController daemon stub ×1, securityMiddleware ×2, authController refresh token DB store ×1)
+  - No backup files, orphaned scripts, or stale temp artifacts found
+- **1,224 backend + 1,014 frontend = 2,238 tests passing.** All 40 backend suites, 59 frontend suites — green. Lint clean. Pushed to GitHub (commit c801cd9).
