@@ -545,3 +545,16 @@
   - **Alert.jsx line 36**: `toBeInTheDocument()` assertion in a test — coverage tool misattributes statement coverage to the library file.
   - **Remaining structurally unreachable**: logger.js (env-init), DEBUG_AUTHORIZE_NET guards, purewlService _request else branch, authorizeNetUtils resultCode!='Ok'.
 - **Test baseline: 1,222 backend + 1,006 frontend = 2,228 tests passing.** All 40 backend suites, 58 frontend suites — green. Pushed to GitHub (commit 055b197).
+
+## 2026-04-21T02:00:00Z
+- **refactor(frontend): add ui barrel export** (commit 2f4064f)
+  - New `frontend/components/ui/index.js` — barrel export for all 6 UI primitives:
+    `Card`, `Button`, `Alert`, `Modal`, `Spinner`, `Form/FormGroup/Input/Select`
+  - Updated all 16 page files to use barrel imports (`import { Card, Button } from '../components/ui'`)
+  - Why: eliminates per-component import boilerplate; adding a new UI primitive only requires updating this one file
+  - Note: SkeletonText/SkeletonCard excluded from barrel (used only in specific loading-state contexts, exported directly from Spinner.jsx)
+- **fix(frontend): remove _document.jsx <title> lint warning** (commit 2f4064f)
+  - `_document.jsx` had `<title>AHOY VPN - Privacy-First VPN Service</title>` causing ESLint `@next/next/no-title-in-document-head` warning
+  - Next.js disallows `<title>` in `_document.jsx`; per-page `<Head>` in next/head is the correct pattern
+  - ESLint now clean: 0 errors, 0 warnings
+- **Test baseline: 1,222 backend + 1,006 frontend = 2,228 tests passing.** All 40 backend suites, 58 frontend suites — green. Pushed to GitHub (commit 2f4064f).
