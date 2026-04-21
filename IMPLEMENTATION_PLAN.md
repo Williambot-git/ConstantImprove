@@ -29,7 +29,7 @@
 
 ## Current Coverage (2026-04-21)
 
-**Total backend tests: 1,224 | Total frontend tests: 1,014 | Combined: 2,238**
+**Total backend tests: 1,235 | Total frontend tests: 1,014 | Combined: 2,249**
 
 ### Backend — Overall: ~95% statements | ~83% branches | ~99% functions
 
@@ -100,7 +100,7 @@ All 59 suites green. 1,014 tests passing. No regressions.
 
 | Date | Achievement |
 |------|-------------|
-| 2026-04-21 | 2,238 total tests (1,224 backend + 1,014 frontend) |
+| 2026-04-21 | 2,249 total tests (1,235 backend + 1,014 frontend) |
 | 2026-04-21 | plisioService getInvoiceStatus non-success branch test added |
 | 2026-04-21 | IMPLEMENTATION_PLAN.md stale coverage table updated |
 | 2026-04-21 | recover.jsx client-side validation added |

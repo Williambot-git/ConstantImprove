@@ -55,7 +55,7 @@ Every checkable item in every priority has been mapped and verified. See below f
 **User/Subscription System** ✅
 - [x] Subscription states — trialing (30-day grace window), active, cancelled, expired
 - [x] VPN credentials generation — VPNResellers API on payment webhook; account created, enabled, expiry set
-- [x] VPN server access — ALL 501 ❌ — controller (`vpnController.js`) has 6 stub functions returning `{error: 'Not implemented'}`; VPNResellersService (`vpnResellersService.js`) has account management methods but NO server list/config methods
+- [x] VPN server access — `getServers` returns static MOCK_SERVERS list (not live API); `getWireGuardConfig` and `getOpenVPNConfig` look up real VPN account from `vpn_accounts` table, call `vpnResellersService.getAccount()` for live credentials, then return a config — VPNResellersService (`vpnResellersService.js`) has account management methods; `connect`/`disconnect`/`getConnections` are legitimate 501 stubs (require daemon integration)
 
 **Frontend Pages** ✅ (all mapped — see Priority 1 Checklist for details)
 
