@@ -764,3 +764,17 @@ All `console.error` calls removed from frontend components — replaced with use
 - **investigation: one it.todo confirmed intentional** — `links-tab.test.jsx:195` (setTimeout clipboard reset, requires integration test environment)
 - **All 1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. No regressions. Pushed to GitHub (commit 3e405dd).
 
+## 2026-04-21T16:00:00Z
+- **docs: correct VPN server access entry in PROJECT_MAP.md**
+  - Previous entry claimed ALL 6 vpnController endpoints were 501 stubs — incorrect
+  - `getServers` returns static MOCK_SERVERS (returns data, not a stub)
+  - `getWireGuardConfig` and `getOpenVPNConfig` are fully functional — look up user's VPN account in DB, call `vpnResellersService.getAccount()` for live credentials, return real WireGuard/OpenVPN config text
+  - Only `connect`/`disconnect`/`getConnections` are legitimate 501 stubs (require WireGuard/OpenVPN daemon integration — noted at code line 185)
+- **docs: update IMPLEMENTATION_PLAN.md coverage numbers**
+  - Total: 2,249 tests (1,235 backend + 1,014 frontend)
+  - vpnResellersService.js: 100/100/100 (updated from ~55% branch in table)
+- **Scope decision: no new implementation this session**
+  - Remaining coverage gaps are all legitimate (outer catch requiring DB fault injection, env-var guards needing live env, interceptor structurally unreachable in Jest)
+  - All 5 TODO stubs confirmed intentional (daemon integration, refresh token storage, security monitoring)
+  - No orphaned files, stale scripts, dead code, or lint errors
+- **Commit:** 0a33db6. Pushed to GitHub.
