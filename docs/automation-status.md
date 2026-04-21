@@ -518,3 +518,10 @@
   - `exportController.js:228`: `log.error("Cleaned up ${expired.rows.length}...")` — `${}` syntax inside a double-quoted string is NOT interpolated in JavaScript. This was a silent no-op logging bug. Fixed to proper template literal + changed level from `error` to `info` (cleanup success is INFO, not ERROR).
   - Updated `IMPLEMENTATION_PLAN.md`: refreshed stale coverage section — old data showed 413 backend tests and 0% ahoymanController coverage; current reality is 1,221 backend / 957 frontend / 2,178 total with 94.8% overall backend coverage. Added per-controller coverage table, remaining opportunities, and updated milestone history.
 - **Test baseline: 1,221 backend + 957 frontend = 2,178 tests passing.** All 40 backend suites, 56 frontend suites — green. No regressions. Pushed to GitHub.
+
+## 2026-04-21T01:00:00Z
+- **test(frontend): dns-guide.jsx 28 tests** — dns-guide was the last remaining page component without a test file. 28 tests covering: all 6 platform cards (expand/collapse toggle, multiple simultaneous open), router-level encryption steps (Brume 2 bridge-mode setup), DNS provider table (Cloudflare/Quad9 DoH/DoT entries), Cloudflare/DNSLeakTest external links with noreferrer, email support link. **2,206 tests passing** (1,221 backend + 985 frontend). Pushed to GitHub (commit 093b989).
+- **fix(affiliate.jsx): add missing Link import** — `pages/affiliate.jsx` used `<Link href="/login">` at line 200 without importing `Link` from `next/link`. This would have caused a runtime `ReferenceError` on any visit to the affiliate login page. Added the import. All 2,206 tests green.
+- **fix(_document.jsx): add default `<title>` for SEO** — `_document.jsx` had no `<title>` tag, so any page without per-page `next/head` overrides would display a blank browser tab title. Added `<title>AHOY VPN - Privacy-First VPN Service</title>` with a comment noting per-page overrides are the intended pattern.
+
+*Last updated: 2026-04-21T01:00:00Z*
