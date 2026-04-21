@@ -125,6 +125,7 @@ export default function AffiliateLogin() {
                   const data = await res.json();
                   if (!res.ok) throw new Error(data.error || 'Invalid recovery code or username.');
                   setResetToken(data.resetToken);
+                  setError(''); // clear any stale error before transitioning
                   setForgotStep(2);
                 } catch (err) {
                   setError(err.message);
@@ -165,6 +166,7 @@ export default function AffiliateLogin() {
                   const data = await res.json();
                   if (!res.ok) throw new Error(data.error || 'Reset failed.');
                   setSuccess('Password reset successful! You can now log in.');
+                  setError(''); // clear stale error before transitioning
                   setForgotStep(3);
                 } catch (err) {
                   setError(err.message);
