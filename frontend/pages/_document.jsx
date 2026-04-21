@@ -37,6 +37,9 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
+        {/* Default title — individual pages override this via next/head */}
+        <title>AHOY VPN - Privacy-First VPN Service</title>
+
         {/* Security Headers */}
         <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
         <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />

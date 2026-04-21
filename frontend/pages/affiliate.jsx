@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
