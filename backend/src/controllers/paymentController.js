@@ -34,17 +34,22 @@ const { inferBaseUrls } = require('../utils/urlUtils');
 
 
 
+// Authorize relay log file path — resolved relative to THIS FILE's directory,
+// NOT process.cwd() (which varies depending on where `node` was launched from).
+// This ensures logs are always written to backend/logs/ regardless of working directory.
+const AUTHORIZE_RELAY_LOG = path.join(__dirname, '..', '..', 'logs', 'authorize-relay.log');
+
 const logAuthorizeRelay = (data) => {
 
   try {
 
-    const dir = path.join(process.cwd(), 'logs');
+    const dir = path.dirname(AUTHORIZE_RELAY_LOG);
 
     fs.mkdirSync(dir, { recursive: true });
 
     const line = JSON.stringify({ ts: new Date().toISOString(), ...data });
 
-    fs.appendFileSync(path.join(dir, 'authorize-relay.log'), line + '\n');
+    fs.appendFileSync(AUTHORIZE_RELAY_LOG, line + '\n');
 
   } catch (error) {
 
