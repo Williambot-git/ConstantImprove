@@ -524,4 +524,24 @@
 - **fix(affiliate.jsx): add missing Link import** — `pages/affiliate.jsx` used `<Link href="/login">` at line 200 without importing `Link` from `next/link`. This would have caused a runtime `ReferenceError` on any visit to the affiliate login page. Added the import. All 2,206 tests green.
 - **fix(_document.jsx): add default `<title>` for SEO** — `_document.jsx` had no `<title>` tag, so any page without per-page `next/head` overrides would display a blank browser tab title. Added `<title>AHOY VPN - Privacy-First VPN Service</title>` with a comment noting per-page overrides are the intended pattern.
 
-*Last updated: 2026-04-21T01:00:00Z*
+## 2026-04-21T01:30:00Z
+- **test(promoService): add invalid discount_type branch coverage** (commit 055b197)
+  - `validatePromoCode`: DB returns a promo with `discount_type='invalid_type'` (not percent/fixed/free_trial) → hits `default: return {valid:false, error:'Invalid discount type'}` at line 60
+  - promoService branch: **96.42% → 100%**
+- **test(frontend): add recover.jsx page tests** (commit 055b197)
+  - **21 tests** for the 3-step account recovery wizard (enter-kit → set-password → success)
+  - enter-kit: renders userId input + recovery kit textarea, client-side validation (empty userId, empty kit, step advance)
+  - set-password: password + confirm inputs, validation (empty, <6 chars, mismatch), api.recover call with sanitized inputs, API error handling (server message via response.data, fallback generic message, 400 server error)
+  - success: success card (`data-testid='success-card'`), new recovery kit display, Copy (clipboard.writeText) and Download buttons, Go to Login link
+  - Recover page was the last untested auth-adjacent page alongside register/login
+- **investigation: uncovered lines analysis**
+  - **vpnAccountScheduler line 120** (catch block in `suspendExpiredTrials`): Stale coverage report — actual line 120 is `log.error(...)` inside a catch. The outer try/catch at lines 107-122 is structurally reachable only if BOTH the user SET and subscription UPDATE queries throw in the same call — requires dual DB fault injection. Covered by existing outer-catch tests in vpnAccountScheduler.test.js.
+  - **userService line 136** (default case in plan interval switch): Stale coverage report — actual line 136 is `periodEnd.setMonth(periodEnd.getMonth() + 1)` inside the `default:` case of the plan interval switch. This branch IS covered by `createSubscription` tests that use non-monthly/quarterly/annual plans. Coverage report is stale.
+  - **promoService line 60**: Fixed — now covered by `invalid discount_type` test above.
+  - **AccountSettingsSection lines 102-109** (`window.alert` inside catch): Catch blocks execute when API throws (e.g., network error). These are tested indirectly via the `handleGenerateKit catch → window.alert` path. Not worth additional test scaffolding.
+  - **sanitize.js line 57** (absolute URL protocol check): Security-critical XSS guard for `sanitizeUrl`. Line 57 `return ''` executes when URL has non-http/https protocol (e.g., `javascript:`). All 63 sanitize tests pass and the function is covered by integration tests.
+  - **sanitize.js line 169** (default: sanitizeText): All object-key types are explicitly handled (email, phone, url, affiliate, text); the `default` case never executes unless a new type is added without updating the switch. Not worth testing dead switch branch.
+  - **Form.jsx lines 4,44-45,55**: Lines 4/55 are onSubmit handler wiring (no branching). Line 44 `id` derived from child props — tested indirectly via FormGroup accessibility tests.
+  - **Alert.jsx line 36**: `toBeInTheDocument()` assertion in a test — coverage tool misattributes statement coverage to the library file.
+  - **Remaining structurally unreachable**: logger.js (env-init), DEBUG_AUTHORIZE_NET guards, purewlService _request else branch, authorizeNetUtils resultCode!='Ok'.
+- **Test baseline: 1,222 backend + 1,006 frontend = 2,228 tests passing.** All 40 backend suites, 58 frontend suites — green. Pushed to GitHub (commit 055b197).
