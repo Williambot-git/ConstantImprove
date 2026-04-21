@@ -267,13 +267,13 @@ describe('Head Component', () => {
 
       render(
         <Head>
-          <link rel="stylesheet" href="/custom.css" />
+          <meta name="custom" content="test" />
         </Head>
       );
 
       // Children should be rendered (our mock just passes them through)
-      const linkEl = document.querySelector('link[href="/custom.css"]');
-      expect(linkEl).toBeInTheDocument();
+      const metaEl = document.querySelector('meta[name="custom"]');
+      expect(metaEl).toBeInTheDocument();
     });
   });
 });

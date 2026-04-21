@@ -4,7 +4,7 @@ import reactPlugin from "eslint-plugin-react";
 export default [
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
-    ignores: [".next/", "node_modules/", ".git/", "public/"],
+    ignores: [".next/", "node_modules/", ".git/", "public/", "coverage/"],
     languageOptions: {
       parserOptions: {
         ecmaFeatures: {
