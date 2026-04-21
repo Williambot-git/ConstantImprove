@@ -225,7 +225,7 @@ const cleanupExpiredExports = async () => {
         [record.id]
       );
     }
-    log.error("Cleaned up ${expired.rows.length} expired exports");
+    log.info(`Cleaned up ${expired.rows.length} expired exports`);
   } catch (error) {
     log.error('Cleanup error:', { error: error.message });
   }
