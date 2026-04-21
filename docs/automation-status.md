@@ -709,4 +709,4 @@ All `console.error` calls removed from frontend components — replaced with use
     - Rejects amount below DB-returned threshold (e.g., $10 < $25 when `payout_config` returns $25)
     - Returns 500 when `getMinimumPayoutCents` throws (DB error reading `payout_config`)
   - affiliateDashboardController.test.js: added `jest.mock` for `affiliateCommissionService` + `mockGetMinimumPayoutCents` in beforeEach
-  - **1,226 backend + 1,014 frontend = 2,240 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 8ef89c0).
+  - **1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 02f65bd).
