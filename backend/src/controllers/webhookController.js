@@ -10,7 +10,6 @@ const promoService = require('../services/promoService');
 const plisioService = require('../services/plisioService');
 const { processPlisioPaymentAsync, processPaymentsCloudPaymentAsync } = require('../services/paymentProcessingService');
 const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
-const { applyAffiliateCommissionIfEligible } = require('./paymentController');
 
 // Webhook verification interface
 const logAuthorizeEvent = (label, data) => {

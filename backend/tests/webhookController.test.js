@@ -80,7 +80,9 @@ jest.mock('../src/services/userService', () => ({
   createVpnAccount: jest.fn().mockResolvedValue({ username: 'testuser', password: 'testpass' })
 }));
 
-// Mock paymentController — applyAffiliateCommissionIfEligible imported but not used in handlers
+// Mock paymentController — historically included applyAffiliateCommissionIfEligible
+// re-export (now removed). Mock kept to prevent require() failures if any test
+// directly accesses the mock.
 jest.mock('../src/controllers/paymentController', () => ({
   applyAffiliateCommissionIfEligible: jest.fn().mockResolvedValue(true)
 }));
