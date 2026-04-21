@@ -747,3 +747,20 @@ All `console.error` calls removed from frontend components — replaced with use
   - **Evidence**: `promoService.test.js` (line 147) calls `markPromoCodeUsed` with a DB rejection to verify non-fatal error handling. Without `setupFilesAfterEnv`, `global.console.error` remained the native function, which logged the error to stderr during the test run.
 - **All 1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. No regressions. Pushed to GitHub (commit f6c1c19).
 
+## 2026-04-21T15:30:00Z
+- **fix(emailService): add explicit radix 10 to parseInt for SMTP port** (commit 3e405dd)
+  - Best-practice fix: `parseInt(process.env.SMTP_PORT)` → `parseInt(process.env.SMTP_PORT, 10)`
+  - Always specifying radix 10 avoids future compatibility issues if Node ever changes its default behavior for strings with only decimal digits
+  - No functional change — SMTP_PORT is always a decimal number (587/465/25)
+- **investigation: DEBUG_AUTHORIZE_NET `=***` display artifact confirmed benign**
+  - grep/search tools displayed `===` as `=***` due to terminal redaction of repeated `=` characters
+  - Byte-level verification confirmed actual file bytes ARE `===` (triple equals), not `=***`
+  - `authorizeNetUtils.js:289`, `paymentController.js:765/1215`, `placeholder-config.js:82` — all correctly use `===`
+  - Node.js confirms: `const x = (process.env.DEBUG_AUTHORIZE_NET === 'true')` is valid syntax
+- **investigation: all 3 legitimate TODO stubs confirmed**
+  - `authController.js:67` — refresh token DB storage (future enhancement)
+  - `securityMiddleware.js:125,193` — security monitoring service integration (future enhancement)
+  - No new TODOs introduced
+- **investigation: one it.todo confirmed intentional** — `links-tab.test.jsx:195` (setTimeout clipboard reset, requires integration test environment)
+- **All 1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. No regressions. Pushed to GitHub (commit 3e405dd).
+
