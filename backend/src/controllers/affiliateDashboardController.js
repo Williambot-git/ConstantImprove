@@ -2,6 +2,7 @@ const argon2 = require('argon2');
 const crypto = require('crypto');
 const db = require('../config/database');
 const log = require('../utils/logger');
+const { getMinimumPayoutCents } = require('../services/affiliateCommissionService');
 
 // Get affiliate dashboard metrics
 const getMetrics = async (req, res) => {
@@ -287,10 +288,15 @@ const requestPayout = async (req, res) => {
     }
     
     const amountCents = Math.round(amount * 100);
-    const minimumPayout = parseInt(process.env.MIN_PAYOUT_CENTS) || 1000; // default $10 from DB
-    
-    if (amountCents < minimumPayout) {
-      return res.status(400).json({ error: `Minimum payout is $${minimumPayout / 100}` });
+
+    // Read minimum payout from DB (defaults to $10 if payout_config not set).
+    // Previously this read MIN_PAYOUT_CENTS env var directly, which meant William
+    // had to do a code deploy to change the minimum. Now it's driven by the DB row
+    // alongside getMetrics — consistent behaviour across the affiliate dashboard.
+    const minimumPayoutCents = await getMinimumPayoutCents();
+
+    if (amountCents < minimumPayoutCents) {
+      return res.status(400).json({ error: `Minimum payout is $${(minimumPayoutCents / 100).toFixed(2)}` });
     }
     
     // Check available balance

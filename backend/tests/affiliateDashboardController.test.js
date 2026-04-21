@@ -40,6 +40,13 @@ const {
   deleteCode
 } = require('../src/controllers/affiliateDashboardController');
 
+// Mock affiliateCommissionService.getMinimumPayoutCents (called by requestPayout)
+// Must be mocked BEFORE the controller module loads since it requires the service.
+const mockGetMinimumPayoutCents = jest.fn();
+jest.mock('../src/services/affiliateCommissionService', () => ({
+  getMinimumPayoutCents: (...args) => mockGetMinimumPayoutCents(...args)
+}));
+
 // ─── Shared mock req/res helpers ───────────────────────
 const mockReq = (overrides = {}) => ({
   affiliateId: 1,
@@ -64,6 +71,8 @@ beforeEach(() => {
   jest.clearAllMocks();
   // Default db query: return empty rows
   mockDbQuery.mockImplementation(() => Promise.resolve({ rows: [] }));
+  // Default minimum payout: $10 (1000 cents) — DB-backed via affiliateCommissionService
+  mockGetMinimumPayoutCents.mockResolvedValue(1000);
   // Reset global crypto mock to predictable auto-generated code
   global.crypto.randomBytes.mockImplementation((n) => Buffer.alloc(n));
 });
@@ -416,15 +425,27 @@ describe('requestPayout', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'Amount must be greater than 0' });
   });
 
-  test('rejects amount below minimum payout ($10 default)', async () => {
+  test('rejects amount below minimum payout ($10 default via DB lookup)', async () => {
     const res = mockRes();
+    // minimumPayoutCents = 1000 from beforeEach default mockGetMinimumPayoutCents
     await requestPayout(mockReq({ affiliateId: 1, body: { amount: 5 } }), res); // $5 < $10
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json.mock.calls[0][0].error).toContain('Minimum payout');
   });
 
+  test('rejects amount below minimum payout when DB returns higher threshold', async () => {
+    // Override beforeEach default: DB says minimum is $25
+    mockGetMinimumPayoutCents.mockResolvedValueOnce(2500);
+    const res = mockRes();
+    await requestPayout(mockReq({ affiliateId: 1, body: { amount: 10 } }), res); // $10 < $25
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json.mock.calls[0][0].error).toContain('Minimum payout');
+  });
+
   test('rejects amount exceeding available balance', async () => {
+    // mockGetMinimumPayoutCents uses beforeEach default (1000 cents = $10)
     mockDbQuery.mockResolvedValueOnce(mockAffiliateBalance(1500)); // $15 available
 
     const res = mockRes();
@@ -435,6 +456,7 @@ describe('requestPayout', () => {
   });
 
   test('creates payout request when all validations pass', async () => {
+    // mockGetMinimumPayoutCents uses beforeEach default (1000 cents = $10)
     mockDbQuery
       .mockResolvedValueOnce(mockAffiliateBalance(5000)) // $50 available
       .mockResolvedValueOnce({
@@ -452,7 +474,17 @@ describe('requestPayout', () => {
     );
   });
 
+  test('returns 500 when getMinimumPayoutCents throws', async () => {
+    mockGetMinimumPayoutCents.mockRejectedValueOnce(new Error('DB error reading payout_config'));
+
+    const res = mockRes();
+    await requestPayout(mockReq({ affiliateId: 1, body: { amount: 30 } }), res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
   test('returns 500 on database error during balance check', async () => {
+    // mockGetMinimumPayoutCents uses beforeEach default (1000 cents = $10)
     mockDbQuery.mockRejectedValueOnce(new Error('DB error'));
 
     const res = mockRes();
@@ -462,6 +494,7 @@ describe('requestPayout', () => {
   });
 
   test('returns 500 on database error during insert', async () => {
+    // mockGetMinimumPayoutCents uses beforeEach default (1000 cents = $10)
     mockDbQuery
       .mockResolvedValueOnce(mockAffiliateBalance(5000))
       .mockRejectedValueOnce(new Error('Insert failed'));
