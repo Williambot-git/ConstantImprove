@@ -34,7 +34,7 @@ export default function Admin() {
         const response = await api.adminMetrics();
         setMetrics(response.data);
       } catch (err) {
-        console.error('Failed to load metrics');
+        alert('Failed to load metrics. Please try refreshing.');
       }
     };
     if (auth?.role === 'admin') {
@@ -49,7 +49,7 @@ export default function Admin() {
       const response = await api.getAffiliates();
       setAffiliates(response.data || []);
     } catch (err) {
-      console.error('Failed to load affiliates');
+      alert('Failed to load affiliates. Please try refreshing.');
       setAffiliates([]);
     } finally {
       setAffiliatesLoading(false);

@@ -98,7 +98,7 @@ function AccountSettingsSection({ profile, onDeleteClick }) {
       setShowNewKit(true);
       setKitCopied(false);
     } catch (err) {
-      console.error('Failed to generate recovery kit', err);
+      // Already shows user-facing alert below; console.error removed to reduce server-side noise.
       if (typeof window !== 'undefined') {
         window.alert(err?.response?.data?.error || err?.message || 'Failed to generate recovery kit');
       }

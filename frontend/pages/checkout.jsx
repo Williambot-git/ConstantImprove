@@ -234,14 +234,6 @@ export default function Checkout() {
 
       setError('Unable to start card checkout at the moment.');
       setStep('confirm');
-    } catch (err) {
-      console.error(err);
-      const apiError = err?.response?.data?.error || err?.response?.data?.message;
-      if (apiError) {
-        setError(apiError);
-      } else {
-        setError('Failed to initiate checkout. Please try again.');
-      }
     } finally {
       setLoading(false);
     }
@@ -295,7 +287,7 @@ export default function Checkout() {
       setCopiedField(label);
       setTimeout(() => setCopiedField(''), 2000);
     } catch (err) {
-      console.error('Clipboard write failed', err);
+      // Clipboard access denied — silently fail. This is a non-critical UX enhancement.
     }
   };
 

@@ -40,7 +40,7 @@ export default function Dashboard() {
         const profileData = profileResponse?.data?.data || profileResponse?.data || null;
         setProfile(profileData);
       } catch (err) {
-        console.error('Failed to load profile', err);
+        // Silently handled — component falls back to showing "No profile data"
       }
 
       try {
@@ -48,7 +48,7 @@ export default function Dashboard() {
         const subData = response?.data?.data || response?.data || null;
         setSubscription(subData);
       } catch (err) {
-        console.error('Failed to load subscription', err);
+        // Silently handled — component falls back to showing "No subscription"
       }
     };
 
@@ -64,7 +64,7 @@ export default function Dashboard() {
       setSubscription(null);
       setShowCancelModal(false);
     } catch (err) {
-      console.error('Failed to cancel subscription');
+      alert('Failed to cancel subscription. Please try again.');
     } finally {
       setCancelLoading(false);
     }
@@ -77,7 +77,7 @@ export default function Dashboard() {
       auth.logout();
       router.push('/');
     } catch (err) {
-      console.error('Failed to delete account');
+      alert('Failed to delete account. Please try again.');
     } finally {
       setDeleteLoading(false);
     }

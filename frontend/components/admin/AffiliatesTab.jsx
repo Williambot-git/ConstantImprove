@@ -32,7 +32,7 @@ export default function AffiliatesTab({ affiliates = [], onRefresh, loading = fa
         await api.disableAffiliate(id);
         if (onRefresh) onRefresh();
       } catch (err) {
-        console.error('Failed to disable affiliate', err);
+        alert(err?.response?.data?.error || 'Failed to disable affiliate. Please try again.');
       }
     },
     [onRefresh]
@@ -56,7 +56,7 @@ export default function AffiliatesTab({ affiliates = [], onRefresh, loading = fa
         await api.adjustAffiliateEarnings(id, amountCents, reason);
         if (onRefresh) onRefresh();
       } catch (err) {
-        console.error('Failed to adjust earnings', err);
+        alert(err?.response?.data?.error || 'Failed to adjust earnings. Please try again.');
       }
     },
     [onRefresh]
