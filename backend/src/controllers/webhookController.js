@@ -12,12 +12,16 @@ const { processPlisioPaymentAsync, processPaymentsCloudPaymentAsync } = require(
 const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
 
 // Webhook verification interface
+// NOTE: Uses __dirname (same directory as this file, i.e. backend/src/controllers/)
+// NOT process.cwd() — process.cwd() varies by launch context (PM2 starts from /,
+// npm start from project root, tests from backend/), causing log writes to land
+// in unpredictable locations or silently fail. Fixed in commit 05:30 UTC session.
+const LOG_DIR = path.resolve(__dirname, '..', '..', 'logs');
 const logAuthorizeEvent = (label, data) => {
   try {
-    const dir = path.join(process.cwd(), 'logs');
-    fs.mkdirSync(dir, { recursive: true });
+    fs.mkdirSync(LOG_DIR, { recursive: true });
     const line = JSON.stringify({ ts: new Date().toISOString(), label, ...data });
-    fs.appendFileSync(path.join(dir, 'authorize-webhook.log'), line + '\n');
+    fs.appendFileSync(path.join(LOG_DIR, 'authorize-webhook.log'), line + '\n');
   } catch (error) {
     log.error('Authorize webhook logging error', { error: error.message });
   }
