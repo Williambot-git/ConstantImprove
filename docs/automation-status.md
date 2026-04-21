@@ -132,6 +132,7 @@
 | 132 | test(paymentProcessingService): add getInvoiceStatus throw test — plisioService.getInvoiceStatus throws while resolving invoice chain (line 72 inner catch); 1,168 backend tests | **DONE** (commit 7356f21) |
 | 133 | fix(webhookController.test.js): webhookController migrated to logger.js but tests spied on console.* — added mockLogger passthrough that records + forwards calls, updated 4 assertion sites (env-missing warns + logAuthorizeEvent fs-error); 1,175 backend tests green | **DONE** (commit 64d18a6) |
 | 134 | test(purewlService): add 2 branch-coverage tests — _request POST/else branch + resellerId absent | **DONE** (commit 5952d7a) |
+| 135 | docs(invoicePollingService): add comprehensive 71-line module documentation explaining Plisio checkpoint polling, ARB lifecycle, design decisions, and error handling philosophy | **DONE** (commit ef89d8f) |
 
 ---
 
