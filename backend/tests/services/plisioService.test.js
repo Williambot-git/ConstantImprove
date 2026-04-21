@@ -56,6 +56,24 @@ describe('plisioService', () => {
       expect(result.expiresAt).toBe('2026-04-17T12:00:00Z');
     });
 
+    it('non-success Plisio response (e.g. pending) — throws "Plisio invoice creation failed"', async () => {
+      // The Plisio API may return a response where status is neither 'success' nor throws.
+      // In this case the service falls through to the else branch and throws the
+      // server-provided message. This branch is structurally different from an axios
+      // rejection — the request succeeded but the invoice is not created.
+      axios.get.mockResolvedValue({
+        data: {
+          status: 'pending',
+          message: 'Invoice is pending',
+          data: {}
+        }
+      });
+
+      await expect(
+        plisioService.createInvoice(100, 'USD', 'Order', 'ORD-003', 'http://cb.com', 'http://su.com', 'http://ca.com')
+      ).rejects.toThrow('Failed to create crypto invoice');
+    });
+
     it('error response — throws "Failed to create crypto invoice"', async () => {
       // The service's catch block catches axios rejections and re-throws as a generic message
       axios.get.mockRejectedValue(new Error('Plisio API error'));
