@@ -563,3 +563,9 @@
     500ms delayed redirect to /, and graceful rendering when code is absent
   - Mirrors dynamic-import mock pattern from `authorize-redirect.test.jsx`
 - **Test baseline: 1,222 backend + 1,014 frontend = 2,236 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 668bb32).
+
+## 2026-04-21T03:00:00Z
+- **test(plisioService): add non-success Plisio response branch test** (commit 2a57b6d)
+  - Covers `createInvoice` when Plisio returns a response where `status` is neither `'success'` nor a network error — e.g., `{status:'pending', message:'Invoice is pending'}`. The service falls through to the `else` branch (line 45) and throws `'Failed to create crypto invoice'`.
+  - plisioService branch: **63.33% → 70%** (line 45 `else` → throw now covered)
+  - **1,223 backend + 1,014 frontend = 2,237 tests passing.** Pushed to GitHub.
