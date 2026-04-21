@@ -569,3 +569,27 @@
   - Covers `createInvoice` when Plisio returns a response where `status` is neither `'success'` nor a network error — e.g., `{status:'pending', message:'Invoice is pending'}`. The service falls through to the `else` branch (line 45) and throws `'Failed to create crypto invoice'`.
   - plisioService branch: **63.33% → 70%** (line 45 `else` → throw now covered)
   - **1,223 backend + 1,014 frontend = 2,237 tests passing.** Pushed to GitHub.
+
+---
+
+## Session: 2026-04-21 03:37 UTC (cron run)
+
+**Mission:** 15-min improvement sprint — remove console.error from ahoyman-dashboard React components.
+
+### Changes Made
+- **NexusTab.jsx** (`frontend/components/ahoyman-dashboard/`): Removed `console.error('Nexus data error:', err)` from `loadNexusData` catch block. `setError('Failed to load nexus data.')` was already present; the console.error was redundant noise.
+- **SalesTaxTab.jsx** (`frontend/components/ahoyman-dashboard/`): Removed `console.error('Tax data error:', err)` from `loadTaxData` catch block + added `setError('Failed to load tax data.')`. Removed `console.error('Export error:', err)` from `handleExport` catch block + added `alert('Failed to export CSV. Please try again.')`. Both catch paths already had user-facing error UI in the render — they just weren't being triggered.
+- **SalesTaxTab.test.jsx**: Updated API error test to assert on `'Failed to load tax data.'` user-visible text instead of console output. Replaced `'Export CSV error is swallowed gracefully (console.error only)'` test with `'shows alert when Export CSV fails'` that spies on `window.alert` instead of `console.error`.
+
+### Test Results
+- **59 test suites, 1014 passed, 1 todo** — all passing after changes.
+- No regressions introduced.
+
+### Pattern Applied
+In catch blocks that already set error state or call user-facing handlers: remove `console.error` (which only generates server-side noise), keep the `setError`/`alert` call that actually informs the user. Pattern is consistent with other tabs in the codebase.
+
+### Still Pending (next session)
+- Systematic scan of remaining `console.error` calls across frontend and backend components
+- Check `NexusTab.test.jsx` for any `console.error` spy assertions that may also need updating
+- Push to canonical mirror (https://github.com/Williambot-git/ConstantImprove) if remote is configured
+
