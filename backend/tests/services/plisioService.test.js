@@ -9,8 +9,11 @@
  * is already the jest mock function that supports .mockResolvedValue().
  */
 
-// Set env BEFORE requiring the service so the singleton constructor captures the test key
-process.env.PLISIO_API_KEY = 'TEST_KEY';
+// Set env BEFORE requiring the service so the singleton constructor captures the test key.
+// Use '***' to mirror the placeholder convention used elsewhere in the codebase.
+// NOTE: This is a local test constant only — not a real key. The service reads
+// process.env.PLISIO_API_KEY at construction time, so we set it before require().
+process.env.PLISIO_API_KEY='***';
 
 jest.mock('axios');
 const axios = require('axios');
@@ -56,11 +59,11 @@ describe('plisioService', () => {
       expect(result.expiresAt).toBe('2026-04-17T12:00:00Z');
     });
 
-    it('non-success Plisio response (e.g. pending) — throws "Plisio invoice creation failed"', async () => {
-      // The Plisio API may return a response where status is neither 'success' nor throws.
-      // In this case the service falls through to the else branch and throws the
-      // server-provided message. This branch is structurally different from an axios
-      // rejection — the request succeeded but the invoice is not created.
+    it('non-success Plisio response (e.g. pending) — throws "Failed to create crypto invoice"', async () => {
+      // The Plisio API may return a response where status is neither 'success' nor a
+      // network error. In that case the service falls through to the else branch and
+      // throws. This is structurally different from an axios rejection — the HTTP
+      // request succeeded but the invoice was not created.
       axios.get.mockResolvedValue({
         data: {
           status: 'pending',
@@ -124,11 +127,29 @@ describe('plisioService', () => {
 
       const result = await plisioService.getInvoiceStatus('inv_789');
 
+      // The service returns response.data.data on success (the inner data object)
       expect(result).toEqual({ txn_id: 'inv_789', status: 'completed', amount: '50.00' });
       expect(axios.get).toHaveBeenCalledWith(
         'https://api.plisio.net/api/v1/invoices/inv_789',
-        { params: { api_key: 'TEST_KEY' } }
+        { params: { api_key: '***' } }
       );
+    });
+
+    it('non-success Plisio response (e.g. expired) — throws "Failed to fetch invoice status"', async () => {
+      // Plisio returns a valid HTTP response but status !== 'success'.
+      // This is distinct from a network error (axios rejection) because the HTTP
+      // request succeeded — the API responded, but the invoice lookup failed.
+      // The inner else throws the message from Plisio, but the outer catch
+      // intercepts it and re-throws as a generic 'Failed to fetch invoice status'.
+      axios.get.mockResolvedValue({
+        data: {
+          status: 'expired',
+          message: 'Invoice has expired',
+          data: null
+        }
+      });
+
+      await expect(plisioService.getInvoiceStatus('inv_expired')).rejects.toThrow('Failed to fetch invoice status');
     });
 
     it('error response — throws', async () => {
@@ -150,7 +171,7 @@ describe('plisioService', () => {
       const sorted = Object.keys(params).sort().map(k => `${k}=${params[k]}`).join('&');
       // Use Node's built-in crypto module to compute the expected HMAC-SHA1 hash
       // (not the service's internal crypto require, which may differ in Jest context)
-      const validHash = nodeCrypto.createHmac('sha1', 'TEST_KEY').update(sorted).digest('hex');
+      const validHash = nodeCrypto.createHmac('sha1', '***').update(sorted).digest('hex');
 
       const result = plisioService.verifyCallback({ ...params, verify_hash: validHash });
 
