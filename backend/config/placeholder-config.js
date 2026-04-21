@@ -77,6 +77,8 @@ const payment = {
   
   // Enable Authorize.net debug logging (set DEBUG_AUTHORIZE_NET=true in environment)
   // Used by: src/controllers/paymentController.js (multiple DEBUG_AUTHORIZE_NET checks)
+  // Enable with: DEBUG_AUTHORIZE_NET=true node src/index.js
+  // When enabled, Authorize.net relay payloads are logged to backend/logs/authorize-relay.log
   debugAuthorizeNet: process.env.DEBUG_AUTHORIZE_NET === 'true',
   
   // ------------------ PaymentsCloud ------------------
