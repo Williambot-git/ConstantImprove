@@ -699,3 +699,14 @@ All `console.error` calls removed from frontend components — replaced with use
   - Previously fixed at 04:30 UTC for `authController.js` and `adminController.js`, but the numeric account creation path (`createNumericAccount`) in `userService.js` was missed
   - Now both user creation paths use the same 30-day grace window, consistent with `cleanupService` (suspends after 30 days) and `vpnAccountScheduler` (marks trial-expired after 30 days)
   - All 1,224 backend + 1,014 frontend = 2,238 tests passing. Pushed to GitHub (commit 9085bee).
+
+## 2026-04-21T10:30:00Z
+- **fix(affiliateDashboardController): requestPayout now reads minimum payout from DB via affiliateCommissionService**
+  - `requestPayout` previously used `parseInt(process.env.MIN_PAYOUT_CENTS) || 1000` directly — meaning William had to do a code deploy to change the minimum payout threshold
+  - Now uses `getMinimumPayoutCents()` from `affiliateCommissionService` — the same DB-backed lookup already used by `affiliateController.getMetrics`
+  - Error message format improved: `(minimumPayoutCents / 100).toFixed(2)` now always shows exactly 2 decimal places (e.g., `$25.00` instead of `$25`)
+  - 9 tests for `requestPayout` (was 7): existing tests updated for new DB call order; added 2 new tests:
+    - Rejects amount below DB-returned threshold (e.g., $10 < $25 when `payout_config` returns $25)
+    - Returns 500 when `getMinimumPayoutCents` throws (DB error reading `payout_config`)
+  - affiliateDashboardController.test.js: added `jest.mock` for `affiliateCommissionService` + `mockGetMinimumPayoutCents` in beforeEach
+  - **1,226 backend + 1,014 frontend = 2,240 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 8ef89c0).
