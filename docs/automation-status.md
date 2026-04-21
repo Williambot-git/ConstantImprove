@@ -710,3 +710,10 @@ All `console.error` calls removed from frontend components — replaced with use
     - Returns 500 when `getMinimumPayoutCents` throws (DB error reading `payout_config`)
   - affiliateDashboardController.test.js: added `jest.mock` for `affiliateCommissionService` + `mockGetMinimumPayoutCents` in beforeEach
   - **1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 02f65bd).
+
+## 2026-04-21T12:00:00Z
+- **fix(webhookController): remove stale applyAffiliateCommissionIfEligible import** (commit ed78687)
+  - `webhookController.js` imported `applyAffiliateCommissionIfEligible` from `./paymentController` as a re-export, but this function was never called anywhere in the webhook handlers — all payment processing already flows through `paymentProcessingService` which imports `applyAffiliateCommissionIfEligible` directly from `affiliateCommissionService`
+  - Removed the unused import and updated the test mock comment
+  - Test suite: 1,235 backend + 1,014 frontend = **2,249 tests passing** — unchanged
+  - All lint clean. Pushed to GitHub.
