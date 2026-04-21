@@ -692,3 +692,10 @@ All `console.error` calls removed from frontend components — replaced with use
   - All 5 TODOs confirmed legitimate (vpnController daemon stub ×1, securityMiddleware ×2, authController refresh token DB store ×1)
   - No backup files, orphaned scripts, or stale temp artifacts found
 - **1,224 backend + 1,014 frontend = 2,238 tests passing.** All 40 backend suites, 59 frontend suites — green. Lint clean. Pushed to GitHub (commit c801cd9).
+
+## 2026-04-21T10:00:00Z
+- **fix(userService): align trial period to 30-day grace window (was 7 days)**
+  - Found via systematic code sweep: `userService.js` line 42 used `Date.now() + 7 * 24 * 60 * 60 * 1000` while `authController_csrf.js` (lines 46-48) and all scheduler/suspension logic correctly used 30 days
+  - Previously fixed at 04:30 UTC for `authController.js` and `adminController.js`, but the numeric account creation path (`createNumericAccount`) in `userService.js` was missed
+  - Now both user creation paths use the same 30-day grace window, consistent with `cleanupService` (suspends after 30 days) and `vpnAccountScheduler` (marks trial-expired after 30 days)
+  - All 1,224 backend + 1,014 frontend = 2,238 tests passing. Pushed to GitHub (commit 9085bee).
