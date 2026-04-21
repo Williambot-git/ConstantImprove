@@ -29,9 +29,32 @@ const currentLevel = process.env.LOG_LEVEL
   ? LOG_LEVELS[process.env.LOG_LEVEL] ?? LOG_LEVELS.info
   : (process.env.NODE_ENV === 'production' ? LOG_LEVELS.info : LOG_LEVELS.debug);
 
+/**
+ * Serialize a value for logging, preserving Error details.
+ * JSON.stringify on an Error instance produces {} — we fix that here.
+ * This ensures error class names, messages, and stack traces appear in logs.
+ */
+const serializeForLog = (value) => {
+  if (value instanceof Error) {
+    return { name: value.name, message: value.message, stack: value.stack };
+  }
+  if (Array.isArray(value)) {
+    return value.map(serializeForLog);
+  }
+  if (value !== null && typeof value === 'object') {
+    const result = {};
+    for (const [k, v] of Object.entries(value)) {
+      result[k] = serializeForLog(v);
+    }
+    return result;
+  }
+  return value;
+};
+
 const formatMessage = (level, message, meta = {}) => {
   const timestamp = new Date().toISOString();
-  const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
+  const serialized = serializeForLog(meta);
+  const metaStr = Object.keys(serialized).length > 0 ? ` ${JSON.stringify(serialized)}` : '';
   return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
 };
 
