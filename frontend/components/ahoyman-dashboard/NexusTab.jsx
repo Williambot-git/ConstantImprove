@@ -38,7 +38,7 @@ export default function NexusTab() {
       const res = await api.getNexusOverview(params);
       setData(res.data);
     } catch (err) {
-      console.error('Nexus data error:', err);
+      // Log to structured logger in production; user sees the setError message below
       setError('Failed to load nexus data.');
     } finally {
       setLoading(false);

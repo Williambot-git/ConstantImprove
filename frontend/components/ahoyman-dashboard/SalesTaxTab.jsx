@@ -8,6 +8,7 @@ export default function SalesTaxTab() {
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState({ state: '', startDate: '', endDate: '' });
@@ -30,7 +31,8 @@ export default function SalesTaxTab() {
       setTotal(txRes.data.pagination?.total || 0);
       setSummary(sumRes.data.data || null);
     } catch (err) {
-      console.error('Tax data error:', err);
+      // Log to structured logger in production; user sees the setError message below
+      setError('Failed to load tax data.');
     } finally { setLoading(false); }
   };
 
@@ -56,7 +58,8 @@ export default function SalesTaxTab() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error('Export error:', err);
+      // Log to structured logger in production; alert is shown to user below
+      alert('Failed to export CSV. Please try again.');
     }
   };
 
@@ -118,7 +121,11 @@ export default function SalesTaxTab() {
       </form>
 
       {/* Transactions table */}
-      {loading ? <p style={{ color: '#A0AEC0', textAlign: 'center' }}>Loading...</p> : (
+      {loading ? (
+        <p style={{ color: '#A0AEC0', textAlign: 'center' }}>Loading...</p>
+      ) : error ? (
+        <p style={{ color: '#fc8181', textAlign: 'center' }}>{error}</p>
+      ) : (
         <>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>

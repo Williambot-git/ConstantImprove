@@ -141,15 +141,15 @@ describe('SalesTaxTab', () => {
     });
   });
 
-  test('handles API error gracefully without crashing', async () => {
+  test('shows error message when API call fails', async () => {
     mockGetTaxTransactions.mockRejectedValue(new Error('Network error'));
     mockGetTaxSummary.mockRejectedValue(new Error('Network error'));
 
     render(<SalesTaxTab />);
 
     await waitFor(() => {
-      // Component renders even after error
-      expect(screen.getByText('Sales Tax Center')).toBeInTheDocument();
+      // Component shows error message instead of crashing
+      expect(screen.getByText('Failed to load tax data.')).toBeInTheDocument();
     });
   });
 
@@ -345,22 +345,21 @@ describe('SalesTaxTab', () => {
     });
   });
 
-  test('Export CSV error is swallowed gracefully (console.error only)', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  test('shows alert when Export CSV fails', async () => {
+    const alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
     mockExportTaxCSV.mockRejectedValue(new Error('Export failed'));
 
     render(<SalesTaxTab />);
 
     await waitFor(() => screen.getByText('Sales Tax Center'));
 
-    // Should not throw
     await userEvent.click(screen.getByRole('button', { name: /export csv/i }));
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Export error:', expect.any(Error));
+      expect(alertSpy).toHaveBeenCalledWith('Failed to export CSV. Please try again.');
     });
 
-    consoleSpy.mockRestore();
+    alertSpy.mockRestore();
   });
 
   // === ADDITIONAL FILTER + PAGINATION INTERACTION ===
