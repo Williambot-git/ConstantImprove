@@ -75,7 +75,7 @@ const payment = {
   // Used by: src/config/paymentConfig.js (auto-set based on NODE_ENV)
   authorizeEnvironment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
   
-  // Enable Authorize.net debug logging
+  // Enable Authorize.net debug logging (set DEBUG_AUTHORIZE_NET=true in environment)
   // Used by: src/controllers/paymentController.js (multiple DEBUG_AUTHORIZE_NET checks)
   debugAuthorizeNet: process.env.DEBUG_AUTHORIZE_NET === 'true',
   
