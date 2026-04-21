@@ -837,4 +837,76 @@ describe('Error handling', () => {
     await updateSystemSettings(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
   });
+
+  test('getCustomer — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' } });
+    const res = mockRes();
+    await getCustomer(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('resetCustomerPassword — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' } });
+    const res = mockRes();
+    await resetCustomerPassword(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('rotateCustomerRecoveryKit — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' } });
+    const res = mockRes();
+    await rotateCustomerRecoveryKit(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('sendMessageToCustomer — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' }, body: { subject: 'Hi', message: 'Hello' } });
+    const res = mockRes();
+    await sendMessageToCustomer(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('deactivateCustomer — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' } });
+    const res = mockRes();
+    await deactivateCustomer(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('deleteCustomer — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'cust-1' } });
+    const res = mockRes();
+    await deleteCustomer(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('disableAffiliate — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'aff-1' } });
+    const res = mockRes();
+    await disableAffiliate(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('adjustAffiliateEarnings — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB error')));
+    const req = mockReq({ params: { id: 'aff-1' }, body: { amountCents: 5000 } });
+    const res = mockRes();
+    await adjustAffiliateEarnings(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
+
+  test('getReferralTracking — returns 500 when db.query throws', async () => {
+    db.query = jest.fn().mockImplementation(() => Promise.reject(new Error('DB unavailable')));
+    const req = mockReq({ query: {} });
+    const res = mockRes();
+    await getReferralTracking(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+  });
 });
