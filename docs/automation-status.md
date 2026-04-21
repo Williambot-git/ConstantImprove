@@ -638,6 +638,17 @@ All `console.error` calls removed from frontend components — replaced with use
 
 ### Blockers: **None.** Codebase confirmed clean.
 
+## 2026-04-21T07:30:00Z
+- **chore(frontend): fix ESLint warnings — migrate coverage/ to eslint.config.js ignores + replace stylesheet link in Head test** (commit bb41f91)
+  - **Root cause**: ESLint 9 flat config (eslint.config.js) uses `ignores` property instead of `.eslintignore`. The `.eslintignore` file was causing a deprecation warning AND not actually suppressing the coverage/ lint warnings.
+  - `coverage/` directory contains generated lcov-report JS files (block-navigation.js, prettify.js, sorter.js) with `eslint-disable` directives that ESLint was still processing — creating spurious warnings.
+  - `Head.test.jsx` tested children passthrough with `<link rel="stylesheet">` but Next.js ESLint plugin flags manual stylesheet links in `<Head>` as anti-patterns.
+  - **Fix 1**: Added `"coverage/"` to `ignores` array in `eslint.config.js` (flat config pattern)
+  - **Fix 2**: Deleted `frontend/.eslintignore` (deprecated, unused)
+  - **Fix 3**: Replaced `<link rel="stylesheet" href="/custom.css">` with `<meta name="custom" content="test">` in Head's children passthrough test — achieves same verification (arbitrary children pass through Head) without triggering no-css-tags warning
+  - **Result**: ESLint 0 errors, 0 warnings (was 0 errors, 3 warnings from coverage/ files + 1 fixable)
+  - **2,237 tests passing** (1,223 backend + 1,014 frontend). All 40 backend suites, 59 frontend suites — green. Pushed to GitHub.
+
 ## 2026-04-21T05:00:00Z
 - **docs(PROJECT_MAP.md): fix stale commission_rate=0.25 references** — PROJECT_MAP.md still showed old `commission_rate=0.25` in 4 places despite the system having been corrected to 0.10 months ago (commit d1d2411 fixed the code; docs were overlooked).
   - Line 53: `payout_config` table description updated from single `commission_rate=0.25` to per-interval rates (commission_rate_monthly/quarterly/semiannual/annual=0.10)
