@@ -617,6 +617,15 @@ All `console.error` calls removed from frontend components — replaced with use
 - Frontend: **1,015 tests** passing (59 suites, 1 todo)
 - **Total: 2,238 tests passing.** No regressions. Pushed to GitHub (commit b92caff).
 
+## 2026-04-21T06:30:00Z
+- **refactor(pageController): extract 224-line inline HTML/CSS to shared template** (commit a716654)
+  - New `backend/src/templates/htmlFrame.js` (243 lines) — canonical HTML/CSS shell with AhoyVPN theme, exported as `renderHtmlFrame(title, content)`
+  - `pageController.js`: 641 → 421 lines (−220 lines); removed duplicate inline template
+  - All 3 page handlers (`verifyEmailPage`, `resetPasswordPage`, `resendVerificationEmail`) call `renderTemplate` unchanged — behavior identical
+  - Theme changes (colors, logo, footer) now require editing one file instead of three
+  - `docs/plans/2026-04-21-pagecontroller-template-extraction.md` created
+  - **1,223 backend + 1,014 frontend = 2,237 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub.
+
 ## 2026-04-21T05:30:00Z
 - **fix(paymentController): logAuthorizeRelay — use __dirname instead of process.cwd()** (commit e7d230d)
   - **Root cause found**: `logAuthorizeRelay()` used `path.join(process.cwd(), 'logs')` to build the relay log path. `process.cwd()` is the working directory where Node was launched, which varies depending on how the server starts:
