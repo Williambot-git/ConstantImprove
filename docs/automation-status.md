@@ -557,4 +557,9 @@
   - `_document.jsx` had `<title>AHOY VPN - Privacy-First VPN Service</title>` causing ESLint `@next/next/no-title-in-document-head` warning
   - Next.js disallows `<title>` in `_document.jsx`; per-page `<Head>` in next/head is the correct pattern
   - ESLint now clean: 0 errors, 0 warnings
-- **Test baseline: 1,222 backend + 1,006 frontend = 2,228 tests passing.** All 40 backend suites, 58 frontend suites — green. Pushed to GitHub (commit 2f4064f).
+- **test(frontend): add affiliate/[code].jsx page tests** (commit 668bb32)
+  - `frontend/pages/affiliate/[code].jsx` — affiliate cookie-setting redirect page
+  - 8 tests covering: render (heading, subtitle, spinner), cookie call when code present,
+    500ms delayed redirect to /, and graceful rendering when code is absent
+  - Mirrors dynamic-import mock pattern from `authorize-redirect.test.jsx`
+- **Test baseline: 1,222 backend + 1,014 frontend = 2,236 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 668bb32).
