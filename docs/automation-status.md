@@ -512,3 +512,9 @@
   - Deleted `frontend/tests/pages/recover.test.jsx`: 10/17 tests failing due to fundamental mock isolation issues (`jest.clearAllMocks` between `mockImplementationOnce` calls, `useRouter`/`useContext` returning stale mocks after re-render). Component fixes are valid; the test file needs a complete rewrite with proper mock isolation before it can be committed.
 - **Test baseline: 1,221 backend + 905 frontend = 2,126 tests passing.** All 53 frontend suites green. No regressions.
 - **GitHub push: ab75416** (recover.jsx validation fix + test file removal)
+
+## 2026-04-21T00:30:00Z
+- **fix(exportController): fix template literal inside string** (commit c9c7628)
+  - `exportController.js:228`: `log.error("Cleaned up ${expired.rows.length}...")` — `${}` syntax inside a double-quoted string is NOT interpolated in JavaScript. This was a silent no-op logging bug. Fixed to proper template literal + changed level from `error` to `info` (cleanup success is INFO, not ERROR).
+  - Updated `IMPLEMENTATION_PLAN.md`: refreshed stale coverage section — old data showed 413 backend tests and 0% ahoymanController coverage; current reality is 1,221 backend / 957 frontend / 2,178 total with 94.8% overall backend coverage. Added per-controller coverage table, remaining opportunities, and updated milestone history.
+- **Test baseline: 1,221 backend + 957 frontend = 2,178 tests passing.** All 40 backend suites, 56 frontend suites — green. No regressions. Pushed to GitHub.
