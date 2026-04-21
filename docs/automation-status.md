@@ -616,6 +616,16 @@ All `console.error` calls removed from frontend components — replaced with use
 - Frontend: **1,015 tests** passing (59 suites, 1 todo)
 - **Total: 2,238 tests passing.** No regressions. Pushed to GitHub (commit b92caff).
 
+## 2026-04-21T05:30:00Z
+- **fix(paymentController): logAuthorizeRelay — use __dirname instead of process.cwd()** (commit e7d230d)
+  - **Root cause found**: `logAuthorizeRelay()` used `path.join(process.cwd(), 'logs')` to build the relay log path. `process.cwd()` is the working directory where Node was launched, which varies depending on how the server starts:
+    - PM2 starts from `/` → logs at `/logs` (wrong — silently fails)
+    - Direct `node` from different dirs → unpredictable paths
+    - Tests run from `backend/` → accidentally correct
+  - **Fix**: Extract `AUTHORIZE_RELAY_LOG` as a module-level constant resolved relative to `__dirname` (`backend/src/controllers/`), then traverse up to `backend/logs/`. Path is computed once at load time, deterministic regardless of launch context.
+  - This is the same class of bug as the DEBUG_AUTHORIZE_NET expression bug found in the 04:00 session — both were introduced in the same refactor that split URL inference out of `paymentController.js`.
+- **1,223 backend + 1,014 frontend = 2,237 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit e7d230d).
+
 ### Blockers: **None.** Codebase confirmed clean.
 
 ## 2026-04-21T05:00:00Z
