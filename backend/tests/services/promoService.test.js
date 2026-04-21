@@ -101,6 +101,32 @@ describe('promoService', () => {
     });
   });
 
+  // ============================================================
+  // validatePromoCode — discount type edge cases
+  // ============================================================
+
+  describe('validatePromoCode — invalid discount type', () => {
+    it('should return error when promo code has an unknown discount_type', async () => {
+      // DB returns a promo with discount_type that doesn't match any known case
+      // (data corruption or misconfigured promo in DB)
+      db.query.mockResolvedValueOnce({
+        rows: [{
+          id: 'bad-type-promo',
+          code: 'BADDESC',
+          discount_type: 'invalid_type',   // ← not 'percent', 'fixed', or 'free_trial'
+          discount_value: 10,
+          max_uses: null,
+          uses_count: 0,
+          expires_at: null,
+          applies_to_plan_keys: null
+        }]
+      });
+      const result = await promoService.validatePromoCode('BADDESC', 'monthly', 5999);
+      expect(result.valid).toBe(false);
+      expect(result.error).toBe('Invalid discount type');
+    });
+  });
+
   describe('validatePromoCode — error handling', () => {
     it('should return error on database failure', async () => {
       db.query.mockRejectedValueOnce(new Error('DB connection lost'));
