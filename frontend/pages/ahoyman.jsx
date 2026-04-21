@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import { FormGroup, Input } from '../components/ui/Form';
+import { Card } from '../components/ui';
+import { Button } from '../components/ui';
+import { FormGroup, Input } from '../components/ui';
 import { sanitizeText } from '../lib/sanitize';
 
 export default function AhoyManLogin() {

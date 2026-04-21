@@ -1,4 +1,4 @@
-import Card from '../components/ui/Card';
+import { Card } from '../components/ui';
 
 export default function AffiliateAgreement() {
   return (

@@ -16,8 +16,8 @@
  */
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
+import { Card } from '../components/ui';
+import { Button } from '../components/ui';
 import api from '../api/client';
 import OverviewTab from '../components/affiliate-dashboard/OverviewTab';
 import LinksTab from '../components/affiliate-dashboard/LinksTab';

@@ -1,5 +1,5 @@
 import Head from '../components/Head';
-import Card from '../components/ui/Card';
+import { Card } from '../components/ui';
 
 const DOWNLOADS = [
   {

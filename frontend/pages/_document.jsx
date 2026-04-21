@@ -37,8 +37,10 @@ export default function Document() {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
 
-        {/* Default title — individual pages override this via next/head */}
-        <title>AHOY VPN - Privacy-First VPN Service</title>
+        {/* Note: Per-page <Head> in next/head defines each page's <title>.
+            Defining a default <title> here would cause ESLint's
+            @next/next/no-title-in-document-head rule to fire. The canonical
+            default is set per-page in each pages/*.jsx file. */}
 
         {/* Security Headers */}
         <meta httpEquiv="X-UA-Compatible" content="ie=edge" />

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import Card from '../components/ui/Card';
-import Button from '../components/ui/Button';
-import { FormGroup, Input } from '../components/ui/Form';
+import { Card } from '../components/ui';
+import { Button } from '../components/ui';
+import { FormGroup, Input } from '../components/ui';
 import api from '../api/client';
 
 export default function Register() {
