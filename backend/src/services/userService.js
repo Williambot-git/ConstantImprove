@@ -39,7 +39,10 @@ async function createUser(email = null, planKey = null) {
   
   // Create numeric account (for customer identification)
   // But force password change on first login for PCI compliance
-  const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days trial
+  // ALIGNED: 30-day grace window matches authController_csrf.js and vpnAccountScheduler.
+  // Previously used 7 days, missed in 04:30 UTC 7→30 alignment session.
+  const trialEndsAt = new Date();
+  trialEndsAt.setDate(trialEndsAt.getDate() + 30);
   
   const user = await User.createNumericAccount({
     email,
