@@ -248,7 +248,7 @@ async function processPaymentsCloudPaymentAsync(data) {
     `;
     await db.query(updateSubQuery, [data.id, subscription.id]);
 
-    // Create VPN account via PureWL
+    // Create VPN account via VPNResellers
     const vpnAccount = await createVpnAccount(userId, account_number, plan_key);
 
     // Send welcome email with VPN credentials (if email exists)

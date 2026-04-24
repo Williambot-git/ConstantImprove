@@ -143,7 +143,7 @@ const getCustomer = async (req, res) => {
     const customerResult = await db.query(
       `SELECT u.id, u.account_number, u.created_at, u.last_login, u.is_active,
               s.status as subscription_status, s.current_period_end, s.plan_id,
-              va.purewl_username, va.expiry_date as vpn_expiry_date
+              va.vpn_username, va.expiry_date as vpn_expiry_date
        FROM users u
        LEFT JOIN subscriptions s ON u.id = s.user_id AND s.status = 'active'
        LEFT JOIN vpn_accounts va ON u.id = va.user_id

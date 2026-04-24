@@ -509,8 +509,8 @@ const getProfile = async (req, res) => {
               u.updated_at,
               u.last_login,
               u.is_active,
-              va.purewl_username AS vpn_username,
-              va.purewl_password AS vpn_password,
+              va.vpn_username AS vpn_username,
+              va.vpn_password AS vpn_password,
               va.status AS vpn_status,
               va.expiry_date AS vpn_expiry_date
        FROM users u
