@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import styles from './styles';
+import styles from './styles.js';
 
 function VpnCredentialsSection({ profile, subscription }) {
   return (
@@ -40,4 +40,4 @@ function VpnCredentialsSection({ profile, subscription }) {
   );
 }
 
-module.exports = VpnCredentialsSection;
+export default VpnCredentialsSection;

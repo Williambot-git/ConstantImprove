@@ -2,7 +2,7 @@
 // Extracted from dashboard.jsx to enable component decomposition.
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import styles from './styles';
+import styles from './styles.js';
 
 function PlanCard({ plan, onSelect, selected }) {
   return (
@@ -32,4 +32,4 @@ function PlanCard({ plan, onSelect, selected }) {
   );
 }
 
-module.exports = PlanCard;
+export default PlanCard;

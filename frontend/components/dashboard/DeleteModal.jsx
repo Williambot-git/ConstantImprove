@@ -2,7 +2,7 @@
 // Extracted from dashboard.jsx to enable component decomposition.
 import Card from '../ui/Card';
 import Button from '../ui/Button';
-import styles from './styles';
+import styles from './styles.js';
 
 function DeleteModal({ onCancel, onConfirm, loading }) {
   return (
@@ -23,4 +23,4 @@ function DeleteModal({ onCancel, onConfirm, loading }) {
   );
 }
 
-module.exports = DeleteModal;
+export default DeleteModal;

@@ -7,7 +7,7 @@ import Button from '../ui/Button';
 import { FormGroup, Input } from '../ui/Form';
 import api from '../../api/client';
 import { AuthContext } from '../../pages/_app';
-import styles from './styles';
+import styles from './styles.js';
 
 function AccountSettingsSection({ profile, onDeleteClick }) {
   const auth = useContext(AuthContext);
@@ -253,4 +253,4 @@ function AccountSettingsSection({ profile, onDeleteClick }) {
   );
 }
 
-module.exports = AccountSettingsSection;
+export default AccountSettingsSection;

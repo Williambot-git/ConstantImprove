@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import PlanCard from './PlanCard';
-import styles from './styles';
+import styles from './styles.js';
 
 // Plans data — mirrors the plans from backend /api/payment/plans
 // Kept in sync with backend plans:
@@ -93,4 +93,4 @@ function SubscriptionSection({ subscription, paymentMethod, onCancel }) {
   );
 }
 
-module.exports = SubscriptionSection;
+export default SubscriptionSection;

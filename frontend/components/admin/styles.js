@@ -12,7 +12,7 @@
 // Edit this file — all components pick up changes automatically.
 // Never inline styles that belong here when working on admin components.
 
-module.exports = {
+const styles = {
   container: {
     maxWidth: '1200px',
     margin: '0 auto',
@@ -152,3 +152,5 @@ module.exports = {
     borderBottom: '1px solid #3A3A3A',
   },
 };
+
+export default styles;
