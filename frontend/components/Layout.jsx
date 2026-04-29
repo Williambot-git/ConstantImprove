@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { AuthContext } from '../pages/_app';
 
@@ -10,12 +11,14 @@ export default function Layout({ children }) {
       <Header auth={auth} />
       <main style={styles.main}>{children}</main>
       <Footer />
-      <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.floatingSupportButton} aria-label="Contact support">Contact Support</a>
+      <Link href="/contact" style={styles.floatingSupportButton} aria-label="Contact support">Contact Support</Link>
     </div>
   );
 }
 
 function Header({ auth }) {
+  const router = useRouter();
+
   return (
     <>
       <header style={styles.header} className="ahoy-header">
@@ -30,23 +33,20 @@ function Header({ auth }) {
             </Link>
           </div>
           <nav style={styles.nav} className="ahoy-nav" aria-label="Main navigation">
-            <Link href="/" passHref><a style={styles.navLink}>Home</a></Link>
-            <Link href="/faq" passHref><a style={styles.navLink}>FAQ</a></Link>
-            <Link href="/downloads" passHref><a style={styles.navLink}>Downloads</a></Link>
-            <Link href="/privacy" passHref><a style={styles.navLink}>Privacy</a></Link>
-            <Link href="/tos" passHref><a style={styles.navLink}>Terms</a></Link>
+            <Link href="/" passHref><a style={styles.navLink} className={router.pathname === '/' ? 'ahoy-nav-link-active' : ''}>Home</a></Link>
+            <Link href="/faq" passHref><a style={styles.navLink} className={router.pathname === '/faq' ? 'ahoy-nav-link-active' : ''}>FAQ</a></Link>
+            <Link href="/downloads" passHref><a style={styles.navLink} className={router.pathname === '/downloads' ? 'ahoy-nav-link-active' : ''}>Downloads</a></Link>
+            <Link href="/privacy" passHref><a style={styles.navLink} className={router.pathname === '/privacy' ? 'ahoy-nav-link-active' : ''}>Privacy</a></Link>
+            <Link href="/tos" passHref><a style={styles.navLink} className={router.pathname === '/tos' ? 'ahoy-nav-link-active' : ''}>Terms</a></Link>
             {auth?.isLoggedIn ? (
               <>
-                {auth.role === 'customer' && <Link href="/dashboard" passHref><a style={styles.navLink}>Dashboard</a></Link>}
-                {auth.role === 'affiliate' && <Link href="/affiliate" passHref><a style={styles.navLink}>Affiliate</a></Link>}
-                {auth.role === 'admin' && <Link href="/admin" passHref><a style={styles.navLink}>Admin</a></Link>}
+                {auth.role === 'customer' && <Link href="/dashboard" passHref><a style={styles.navLink} className={router.pathname === '/dashboard' ? 'ahoy-nav-link-active' : ''}>Dashboard</a></Link>}
+                {auth.role === 'affiliate' && <Link href="/affiliate" passHref><a style={styles.navLink} className={router.pathname.startsWith('/affiliate') ? 'ahoy-nav-link-active' : ''}>Affiliate</a></Link>}
+                {auth.role === 'admin' && <Link href="/admin" passHref><a style={styles.navLink} className={router.pathname === '/admin' ? 'ahoy-nav-link-active' : ''}>Admin</a></Link>}
                 <button style={styles.logoutBtn} onClick={auth.logout} type="button">Sign out</button>
               </>
             ) : (
-              <>
-                <Link href="/login" passHref><a style={styles.navLink}>Sign in</a></Link>
-                <Link href="/register" passHref><a style={styles.ctaBtn}>Get Started</a></Link>
-              </>
+              <Link href="/login" passHref><a style={styles.navLink} className={router.pathname === '/login' ? 'ahoy-nav-link-active' : ''}>Sign in</a></Link>
             )}
           </nav>
         </div>
@@ -79,6 +79,7 @@ function Footer() {
         </div>
         <div style={styles.footerSection}>
           <p style={styles.footerHeading}>Support</p>
+          <Link href="/contact" passHref><a style={styles.footerLink}>Contact Support</a></Link>
           <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink}>ahoyvpn@ahoyvpn.net</a>
         </div>
       </div>

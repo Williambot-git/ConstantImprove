@@ -59,14 +59,6 @@ export default function Register() {
         <h1 style={styles.title}>Create Account</h1>
         <p style={styles.subtitle}>Set your password to generate your AhoyVPN account number</p>
 
-        <Card style={styles.explanationCard}>
-          <p style={styles.explanationText}>
-            <strong>Signup Process:</strong><br/><br/>
-            Upon setting your password, we will provide you with a unique user ID. Please save this user ID, then log in using your ID and password. Proceed to generate a recovery kit and purchase a subscription via fiat payment.<br/><br/>
-            Please allow one to two minutes for the payment form to process your transaction. If your VPN client credentials do not appear instantly on your dashboard, please wait an additional 15–30 minutes. If you still do not see the credentials after that time, contact William at ahoyvpn@ahoyvpn.net for assistance.
-          </p>
-        </Card>
-
         <form onSubmit={handleSubmit}>
           <FormGroup label="Password">
             <Input
@@ -127,6 +119,15 @@ export default function Register() {
             </Button>
           )}
         </form>
+
+        {/* Signup Process memo — below the form, less intimidating */}
+        <Card style={styles.explanationCard}>
+          <p style={styles.explanationText}>
+            <strong>Signup Process:</strong><br/><br/>
+            Upon setting your password, we will provide you with a unique user ID. Please save this user ID, then log in using your ID and password. Proceed to generate a recovery kit and purchase a subscription via fiat payment.<br/><br/>
+            Please allow one to two minutes for the payment form to process your transaction. If your VPN client credentials do not appear instantly on your dashboard, please wait an additional 15–30 minutes. If you still do not see the credentials after that time, contact William at ahoyvpn@ahoyvpn.net for assistance.
+          </p>
+        </Card>
 
         <Card style={styles.infoCard}>
           <p style={styles.infoText}>
