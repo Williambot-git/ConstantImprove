@@ -151,6 +151,33 @@ class EmailService {
   getSupportEmail() {
     return this.fromSupport;
   }
+
+  // Send a contact/support message from the public contact form
+  async sendContactEmail({ name, email, subject, message }) {
+    const mailOptions = {
+      from: `"AhoyVPN Contact Form" <${this.fromTransactional}>`,
+      to: this.fromSupport,
+      replyTo: `"${name}" <${email}>`,
+      subject: `[Contact Form] ${subject}`,
+      text: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`,
+      html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <hr />
+        <p>${message.replace(/\n/g, '<br />')}</p>
+      `,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      log.info('Contact form email sent', { from: email, messageId: info.messageId });
+      return info;
+    } catch (error) {
+      log.error('Failed to send contact email', { from: email, error: error.message || error });
+      throw error;
+    }
+  }
 }
 
 module.exports = new EmailService();
