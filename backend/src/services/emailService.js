@@ -1,10 +1,17 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const fs = require('fs');
 const path = require('path');
 const log = require('../utils/logger');
 
 class EmailService {
   constructor() {
+    // SendGrid — preferred for transactional email
+    if (process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    }
+
+    // Nodemailer — fallback / used for non-SendGrid SMTP
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT, 10) || 587,
@@ -14,7 +21,7 @@ class EmailService {
         pass: process.env.SMTP_PASS,
       },
     });
-    
+
     this.fromTransactional = process.env.EMAIL_FROM_TRANSACTIONAL || 'ahoyvpn@ahoyvpn.net';
     this.fromSupport = process.env.EMAIL_FROM_SUPPORT || 'William@ahoyvpn.com';
     
@@ -154,9 +161,9 @@ class EmailService {
 
   // Send a contact/support message from the public contact form
   async sendContactEmail({ name, email, subject, message }) {
-    const mailOptions = {
-      from: `"AhoyVPN Contact Form" <${this.fromTransactional}>`,
+    const msg = {
       to: this.fromSupport,
+      from: `"AhoyVPN Contact" <${this.fromTransactional}>`,
       replyTo: `"${name}" <${email}>`,
       subject: `[Contact Form] ${subject}`,
       text: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`,
@@ -170,11 +177,11 @@ class EmailService {
     };
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      log.info('Contact form email sent', { from: email, messageId: info.messageId });
+      const [info] = await sgMail.send(msg);
+      log.info('Contact form email sent via SendGrid', { to: this.fromSupport, messageId: info.messageId });
       return info;
     } catch (error) {
-      log.error('Failed to send contact email', { from: email, error: error.message || error });
+      log.error('SendGrid contact email failed', { error: error.message || error, response: error.response?.body });
       throw error;
     }
   }
