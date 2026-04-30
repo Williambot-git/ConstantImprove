@@ -32,4 +32,4 @@ export { default as Spinner } from './Spinner';
 
 // Form primitives (Form default export, plus named form controls)
 export { default as Form } from './Form';
-export { FormGroup, Input, Select } from './Form';
+export { FormGroup, Input, Select, Textarea } from './Form';
