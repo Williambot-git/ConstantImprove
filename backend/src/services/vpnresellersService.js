@@ -1,12 +1,12 @@
 /**
- * PureWL VPN Resellers API Service
+ * VPNResellers VPN Resellers API Service
  *
- * Wraps the PureWL/atomapi.com VPN account management REST API.
+ * Wraps the VPNResellers/atomapi.com VPN account management REST API.
  * Handles authentication token management, request signing, and maps
  * raw API responses into the shapes used by vpnResellersService.
  *
  * WHY this class exists:
- *   The PureWL API is a pure-http RPC layer (form-encoded POSTs with
+ *   The VPNResellers API is a pure-http RPC layer (form-encoded POSTs with
  *   X-AccessToken headers). It is not a standard REST resource, so it
  *   doesn't fit cleanly into a generic HTTP client. This class:
  *     1. Manages token lifecycle (fetch / cache / refresh)
@@ -56,13 +56,13 @@ function actionLabel(method, path) {
   return labels[key] || `${method} ${path}`;
 }
 
-class PureWLService {
+class VPNResellersService {
   constructor() {
     // Configuration — loaded from environment so tests can override via
     // process.env stubs without constructor injection.
-    this.baseUrl = process.env.PUREWL_BASE_URL || 'https://atomapi.com';
-    this.secretKey = process.env.PUREWL_SECRET_KEY;
-    this.resellerId = process.env.PUREWL_RESELLER_ID;
+    this.baseUrl = process.env.VPNRESELLERS_BASE_URL || 'https://atomapi.com';
+    this.secretKey = process.env.VPNRESELLERS_SECRET_KEY;
+    this.resellerId = process.env.VPNRESELLERS_RESELLER_ID;
 
     // Token cache — instance-level so each require() call gets its own cache.
     // (Node.js caches module exports, so subsequent require()s return the same
@@ -72,7 +72,7 @@ class PureWLService {
 
     // Validate key config early so failures surface at startup, not on first call.
     if (!this.secretKey) {
-      throw new Error('PUREWL_SECRET_KEY is not defined in environment variables');
+      throw new Error('VPNRESELLERS_SECRET_KEY is not defined in environment variables');
     }
 
     // Shared axios client — base URL + base headers are set once here so
@@ -106,7 +106,7 @@ class PureWLService {
     }
 
     try {
-      // PureWL auth endpoint: POST /auth/v1/accessToken
+      // VPNResellers auth endpoint: POST /auth/v1/accessToken
       // Request body is form-encoded (x-www-form-urlencoded)
       const response = await this.client.post('/auth/v1/accessToken', {
         secretKey: this.secretKey,
@@ -122,11 +122,11 @@ class PureWLService {
       return accessToken;
     } catch (error) {
       // Log the raw API error so operators have full context for debugging.
-      log.error('Failed to get PureWL access token', {
+      log.error('Failed to get VPNResellers access token', {
         error: error.response?.data || error.message,
       });
       throw new Error(
-        `PureWL authentication failed: ${error.response?.data?.header?.message || error.message}`
+        `VPNResellers authentication failed: ${error.response?.data?.header?.message || error.message}`
       );
     }
   }
@@ -134,7 +134,7 @@ class PureWLService {
   // ─── Core request engine ────────────────────────────────────────────────────
 
   /**
-   * Make an authenticated API call through the PureWL proxy.
+   * Make an authenticated API call through the VPNResellers proxy.
    *
    * This is the single place where:
    *   - The X-AccessToken header is attached
@@ -168,23 +168,23 @@ class PureWLService {
       return response.data.body;
     } catch (error) {
       // Log structured error with full API response (helps ops debug)
-      log.error(`PureWL API error [${method}] [${path}]`, {
+      log.error(`VPNResellers API error [${method}] [${path}]`, {
         error: error.response?.data || error.message,
       });
       // Re-throw with a domain-prefixed message; include the HTTP method so callers
       // can identify which operation failed even when the path is ambiguous.
       const apiMessage = error.response?.data?.header?.message || error.message;
-      throw new Error(`PureWL ${actionLabel(method, path)} failed: ${apiMessage}`);
+      throw new Error(`VPNResellers ${actionLabel(method, path)} failed: ${apiMessage}`);
     }
   }
 
   // ─── Account operations ─────────────────────────────────────────────────────
 
   /**
-   * Create a new VPN account on the PureWL platform.
+   * Create a new VPN account on the VPNResellers platform.
    *
    * Called by vpnResellersService when a new paid subscription is activated.
-   * The uuid is our internal userId — PureWL stores it as the account label.
+   * The uuid is our internal userId — VPNResellers stores it as the account label.
    *
    * @param {string} userId       - our internal user UUID
    * @param {number} [period=30]  - account validity in days
@@ -204,7 +204,7 @@ class PureWLService {
    * Generate a VPN account credential set (alternative endpoint to createVPNAccount).
    *
    * Both createVPNAccount and generateVPNAccount accept the same payload schema
-   * but hit different PureWL endpoints. The distinction is an API design artifact;
+   * but hit different VPNResellers endpoints. The distinction is an API design artifact;
    * we expose both for backward compatibility.
    *
    * @param {string} userId
@@ -225,9 +225,9 @@ class PureWLService {
    * Extend the expiry date of an existing VPN account.
    *
    * Called when a subscription renews (ARB webhook fires).  The extensionDate
-   * must be in DD-MM-YYYY format per PureWL's API contract.
+   * must be in DD-MM-YYYY format per VPNResellers' API contract.
    *
-   * @param {string} vpnUsername  - PureWL account username
+   * @param {string} vpnUsername  - VPNResellers account username
    * @param {string} extensionDate - new expiry date string 'DD-MM-YYYY'
    * @returns {object} API response body
    */
@@ -278,14 +278,14 @@ class PureWLService {
   /**
    * Query the current status of a VPN account.
    *
-   * NOTE: Unlike other GET endpoints, PureWL requires the X-AccessToken as a
+   * NOTE: Unlike other GET endpoints, VPNResellers requires the X-AccessToken as a
    * query parameter rather than a header for the status endpoint.
    *
    * @param {string} vpnUsername
    * @returns {{ status, expiryDate, ... }} account state object
    */
   async getVPNAccountStatus(vpnUsername) {
-    // PureWL GET endpoint requires token as a query param, not a header.
+    // VPNResellers GET endpoint requires token as a query param, not a header.
     const accessToken = await this.getAccessToken();
     const path =
       `/vam/v2/status?X-AccessToken=${encodeURIComponent(accessToken)}` +
@@ -294,11 +294,11 @@ class PureWLService {
       const response = await this.client.get(path);
       return response.data.body;
     } catch (error) {
-      log.error('Failed to get PureWL VPN account status', {
+      log.error('Failed to get VPNResellers VPN account status', {
         error: error.response?.data || error.message,
       });
       const apiMessage = error.response?.data?.header?.message || error.message;
-      throw new Error(`PureWL account status check failed: ${apiMessage}`);
+      throw new Error(`VPNResellers account status check failed: ${apiMessage}`);
     }
   }
 
@@ -307,7 +307,7 @@ class PureWLService {
   /**
    * List available countries for a given device type.
    *
-   * @param {string} [deviceType='windows'] - PureWL device type slug
+   * @param {string} [deviceType='windows'] - VPNResellers device type slug
    * @returns {string[]} array of country codes
    */
   async getCountries(deviceType = 'windows') {
@@ -318,14 +318,14 @@ class PureWLService {
   /**
    * Get the lowest-latency server for a given country + protocol + user.
    *
-   * PureWL's speedtest endpoint returns a sorted array; we surface the first
+   * VPNResellers' speedtest endpoint returns a sorted array; we surface the first
    * result as the "optimized" server recommendation.
    *
-   * @param {string} countrySlug   - PureWL country identifier
-   * @param {string} protocolSlug   - PureWL protocol identifier
+   * @param {string} countrySlug   - VPNResellers country identifier
+   * @param {string} protocolSlug   - VPNResellers protocol identifier
    * @param {string} username      - vpnUsername to scope the optimization
    * @param {string} [deviceType='windows']
-   * @returns {object} server object from PureWL
+   * @returns {object} server object from VPNResellers
    */
   async getOptimizedServer(countrySlug, protocolSlug, username, deviceType = 'windows') {
     const body = await this._request('POST', '/speedtest/v4/serversWithoutPsk', {
@@ -339,4 +339,4 @@ class PureWLService {
   }
 }
 
-module.exports = new PureWLService();
+module.exports = new VPNResellersService();

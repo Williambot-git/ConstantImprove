@@ -93,7 +93,7 @@ SELECT
   s.current_period_end,
   s.current_period_end as next_billing_at,
   s.cancel_at_period_end,
-  va.purewl_username,
+  va.vpnresellers_username,
   va.expiry_date as vpn_expiry_date,
   va.status as vpn_status
 FROM users u

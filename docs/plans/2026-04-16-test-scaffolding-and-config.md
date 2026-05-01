@@ -174,13 +174,13 @@ const VPNRESELLERS_API_KEY = process.env.VPNRESELLERS_API_KEY || 'YOUR_VPNRESELL
 const VPNRESELLERS_API_URL = process.env.VPNRESELLERS_API_URL || 'https://api.vpnresellers.com';
 
 /**
- * PureWL API (alternative VPN provider — appears to be present but
+ * VPNResellers API (alternative VPN provider — appears to be present but
  * may not be actively used in current flow)
- * Location: src/services/purewlService.js
- * Env vars: PUREWL_API_KEY, PUREWL_API_URL
+ * Location: src/services/vpnresellersService.js
+ * Env vars: VPNRESELLERS_API_KEY, VPNRESELLERS_API_URL
  */
-const PUREWL_API_KEY = process.env.PUREWL_API_KEY || 'YOUR_PUREWL_API_KEY';
-const PUREWL_API_URL = process.env.PUREWL_API_URL || 'https://api.purewl.com';
+const VPNRESELLERS_API_KEY = process.env.VPNRESELLERS_API_KEY || 'YOUR_VPNRESELLERS_API_KEY';
+const VPNRESELLERS_API_URL = process.env.VPNRESELLERS_API_URL || 'https://api.vpnresellers.com';
 
 /**
  * ================================================================
@@ -314,8 +314,8 @@ module.exports = {
   // VPN providers
   VPNRESELLERS_API_KEY,
   VPNRESELLERS_API_URL,
-  PUREWL_API_KEY,
-  PUREWL_API_URL,
+  VPNRESELLERS_API_KEY,
+  VPNRESELLERS_API_URL,
   // Email
   SMTP_HOST,
   SMTP_PORT,

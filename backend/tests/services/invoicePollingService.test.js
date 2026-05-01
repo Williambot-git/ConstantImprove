@@ -464,7 +464,7 @@ describe('invoicePollingService', () => {
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions
         .mockResolvedValueOnce({ // SELECT vpn_accounts
-          rows: [{ id: 'va-1', purewl_uuid: 'uuid-abc' }]
+          rows: [{ id: 'va-1', vpnresellers_uuid: 'uuid-abc' }]
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts
         .mockResolvedValueOnce({ rows: [] }); // UPDATE users
@@ -653,7 +653,7 @@ describe('invoicePollingService', () => {
 
     // -------------------------------------------------------------------------
     // pollArbSubscriptions — line 183: vpnResellersService.deactivateAccount throws
-    // VPN account has purewl_uuid, ARB is suspended, but deactivateAccount throws.
+    // VPN account has vpnresellers_uuid, ARB is suspended, but deactivateAccount throws.
     // The error is caught (line 183), logged, and VPN account status still updated.
     // -------------------------------------------------------------------------
     it('ARB suspended with VPN account but deactivateAccount throws — logs warning, VPN still suspended, user deactivated', async () => {
@@ -677,8 +677,8 @@ describe('invoicePollingService', () => {
           }]
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions (canceled)
-        .mockResolvedValueOnce({ // SELECT vpn_accounts — returns account WITH purewl_uuid
-          rows: [{ id: 'va-suspend', purewl_uuid: 'uuid-suspend' }]
+        .mockResolvedValueOnce({ // SELECT vpn_accounts — returns account WITH vpnresellers_uuid
+          rows: [{ id: 'va-suspend', vpnresellers_uuid: 'uuid-suspend' }]
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts (suspended)
         .mockResolvedValueOnce({ rows: [] }); // UPDATE users (deactivated)
@@ -700,25 +700,25 @@ describe('invoicePollingService', () => {
       // Warning was logged for the deactivation failure (proves deactivateAccount was called and threw)
       expect(logWarn).toHaveBeenCalledWith(
         'Failed to deactivate VPN on ARB cancel',
-        expect.objectContaining({ purewlUuid: 'uuid-suspend', error: expect.any(String) })
+        expect.objectContaining({ vpnresellersUuid: 'uuid-suspend', error: expect.any(String) })
       );
 
       logWarn.mockReset();
     });
 
     // -------------------------------------------------------------------------
-    // pollArbSubscriptions — line 180: purewl_uuid is falsy (empty string)
-    // VPN account exists but purewl_uuid is null/empty — deactivateAccount NOT called.
+    // pollArbSubscriptions — line 180: vpnresellers_uuid is falsy (empty string)
+    // VPN account exists but vpnresellers_uuid is null/empty — deactivateAccount NOT called.
     // VPN account status still updated to suspended; user still deactivated.
     // -------------------------------------------------------------------------
-    it('ARB suspended with VPN account but purewl_uuid falsy — deactivateAccount skipped, VPN still suspended', async () => {
+    it('ARB suspended with VPN account but vpnresellers_uuid falsy — deactivateAccount skipped, VPN still suspended', async () => {
       arbSpy = jest.spyOn(AuthorizeNetService.prototype, 'getArbSubscription')
         .mockResolvedValueOnce({
           status: 'suspended',
           paymentStatus: ''
         });
 
-      // VPN account row has no purewl_uuid (line 180: if (va.purewl_uuid) is FALSE)
+      // VPN account row has no vpnresellers_uuid (line 180: if (va.vpnresellers_uuid) is FALSE)
       // so the deactivateAccount try block is skipped entirely.
       db.query = jest.fn()
         .mockResolvedValueOnce({
@@ -731,8 +731,8 @@ describe('invoicePollingService', () => {
           }]
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE subscriptions (canceled)
-        .mockResolvedValueOnce({ // SELECT vpn_accounts — row exists but purewl_uuid is null
-          rows: [{ id: 'va-nouuid', purewl_uuid: null }]
+        .mockResolvedValueOnce({ // SELECT vpn_accounts — row exists but vpnresellers_uuid is null
+          rows: [{ id: 'va-nouuid', vpnresellers_uuid: null }]
         })
         .mockResolvedValueOnce({ rows: [] }) // UPDATE vpn_accounts (suspended)
         .mockResolvedValueOnce({ rows: [] }); // UPDATE users (deactivated)

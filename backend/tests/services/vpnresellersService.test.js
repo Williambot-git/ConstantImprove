@@ -1,8 +1,8 @@
 /**
- * purewlService unit tests
+ * vpnresellersService unit tests
  *
- * Tests PureWLService class which wraps the PureWL VPN API (atomapi.com).
- * The service is exported as a singleton instance (module.exports = new PureWLService()).
+ * Tests VPNResellersService class which wraps the VPNResellers VPN API (atomapi.com).
+ * The service is exported as a singleton instance (module.exports = new VPNResellersService()).
  *
  * Mock strategy:
  * - jest.mock('axios') makes require('axios') return __mocks__/axios.js
@@ -12,15 +12,15 @@
  * - axios.create was called at construction: verify via client.baseURL property
  */
 
-process.env.PUREWL_BASE_URL = 'https://atomapi.com';
-process.env.PUREWL_SECRET_KEY = 'testSecretKey';
-process.env.PUREWL_RESELLER_ID = 'reseller123';
+process.env.VPNRESELLERS_BASE_URL = 'https://atomapi.com';
+process.env.VPNRESELLERS_SECRET_KEY = 'testSecretKey';
+process.env.VPNRESELLERS_RESELLER_ID = 'reseller123';
 
 jest.mock('axios');
 const axios = require('axios');
 
 // Require the singleton ONCE — constructor runs once at module load
-const purewlService = require('../../src/services/purewlService');
+const vpnresellersService = require('../../src/services/vpnresellersService');
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -35,9 +35,9 @@ beforeEach(() => {
   axios.get.mockReset();
   axios.put.mockReset();
   // Reset service token caching state between tests
-  purewlService.accessToken = null;
-  purewlService.tokenExpiry = null;
-  purewlService.resellerId = 'reseller123';
+  vpnresellersService.accessToken = null;
+  vpnresellersService.tokenExpiry = null;
+  vpnresellersService.resellerId = 'reseller123';
 });
 
 // Note: No jest.restoreAllMocks() here.
@@ -74,28 +74,28 @@ const queueAccountOpResponse = (overrides = {}) => {
 
 // ─── Constructor tests ───────────────────────────────────────────────────────
 
-describe('PureWLService constructor', () => {
-  it('sets baseUrl from PUREWL_BASE_URL env var', () => {
-    expect(purewlService.baseUrl).toBe('https://atomapi.com');
+describe('VPNResellersService constructor', () => {
+  it('sets baseUrl from VPNRESELLERS_BASE_URL env var', () => {
+    expect(vpnresellersService.baseUrl).toBe('https://atomapi.com');
   });
 
   it('sets secretKey and resellerId from env vars', () => {
-    expect(purewlService.secretKey).toBe('testSecretKey');
-    expect(purewlService.resellerId).toBe('reseller123');
+    expect(vpnresellersService.secretKey).toBe('testSecretKey');
+    expect(vpnresellersService.resellerId).toBe('reseller123');
   });
 
   it('initializes accessToken and tokenExpiry to null', () => {
     // Reset by beforeEach to null; constructor also sets them to null
-    expect(purewlService.accessToken).toBeNull();
-    expect(purewlService.tokenExpiry).toBeNull();
+    expect(vpnresellersService.accessToken).toBeNull();
+    expect(vpnresellersService.tokenExpiry).toBeNull();
   });
 
   it('creates axios client with correct baseURL and headers (verified via service.client)', () => {
     // axios.create was called at construction with the config.
     // The service stores the client and its defaults reflect what was passed.
-    expect(purewlService.client.defaults.baseURL).toBe('https://atomapi.com');
-    expect(purewlService.client.defaults.headers['Content-Type']).toBe('application/x-www-form-urlencoded');
-    expect(purewlService.client.defaults.headers['Accept']).toBe('application/json');
+    expect(vpnresellersService.client.defaults.baseURL).toBe('https://atomapi.com');
+    expect(vpnresellersService.client.defaults.headers['Content-Type']).toBe('application/x-www-form-urlencoded');
+    expect(vpnresellersService.client.defaults.headers['Accept']).toBe('application/json');
   });
 });
 
@@ -103,10 +103,10 @@ describe('PureWLService constructor', () => {
 
 describe('getAccessToken', () => {
   it('returns cached token when expiry is still in the future', async () => {
-    purewlService.accessToken = 'cachedToken';
-    purewlService.tokenExpiry = Date.now() + 60000;
+    vpnresellersService.accessToken = 'cachedToken';
+    vpnresellersService.tokenExpiry = Date.now() + 60000;
 
-    const token = await purewlService.getAccessToken();
+    const token = await vpnresellersService.getAccessToken();
     expect(token).toBe('cachedToken');
     // No HTTP calls should be made when token is cached
     expect(axios.__mockInstance__.post).not.toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe('getAccessToken', () => {
   it('calls POST /auth/v1/accessToken when no valid token is cached', async () => {
     queueAuthSuccess('newToken', 3600);
 
-    const token = await purewlService.getAccessToken();
+    const token = await vpnresellersService.getAccessToken();
     expect(token).toBe('newToken');
     expect(axios.__mockInstance__.post).toHaveBeenCalledTimes(1);
     expect(axios.__mockInstance__.post).toHaveBeenCalledWith('/auth/v1/accessToken', {
@@ -128,13 +128,13 @@ describe('getAccessToken', () => {
     queueAuthSuccess('newToken', 7200);
 
     const before = Date.now();
-    await purewlService.getAccessToken();
+    await vpnresellersService.getAccessToken();
     const after = Date.now();
 
-    expect(purewlService.accessToken).toBe('newToken');
+    expect(vpnresellersService.accessToken).toBe('newToken');
     // expiry = Date.now() + (expirySecs * 1000) = Date.now() + 7200000
-    expect(purewlService.tokenExpiry).toBeGreaterThan(before + 7200000 - 1000);
-    expect(purewlService.tokenExpiry).toBeLessThan(after + 7200000 + 1000);
+    expect(vpnresellersService.tokenExpiry).toBeGreaterThan(before + 7200000 - 1000);
+    expect(vpnresellersService.tokenExpiry).toBeLessThan(after + 7200000 + 1000);
   });
 
   it('updates resellerId from auth response', async () => {
@@ -142,8 +142,8 @@ describe('getAccessToken', () => {
       data: { body: { accessToken: 'tok', expiry: 3600, resellerId: 'newResellerId', resellerUid: 'uid1' } }
     });
 
-    await purewlService.getAccessToken();
-    expect(purewlService.resellerId).toBe('newResellerId');
+    await vpnresellersService.getAccessToken();
+    expect(vpnresellersService.resellerId).toBe('newResellerId');
   });
 
   it('throws descriptive error on auth failure with response data', async () => {
@@ -151,15 +151,15 @@ describe('getAccessToken', () => {
       response: { data: { header: { message: 'Invalid secret key' } } }
     });
 
-    await expect(purewlService.getAccessToken()).rejects
-      .toThrow('PureWL authentication failed: Invalid secret key');
+    await expect(vpnresellersService.getAccessToken()).rejects
+      .toThrow('VPNResellers authentication failed: Invalid secret key');
   });
 
   it('throws generic message when error has no response data', async () => {
     axios.__mockInstance__.post.mockRejectedValueOnce(new Error('Network error'));
 
-    await expect(purewlService.getAccessToken()).rejects
-      .toThrow('PureWL authentication failed: Network error');
+    await expect(vpnresellersService.getAccessToken()).rejects
+      .toThrow('VPNResellers authentication failed: Network error');
   });
 });
 
@@ -173,7 +173,7 @@ describe('createVPNAccount', () => {
       queueVPNAccountResponse({ vpnUsername: 'created_user' })
     );
 
-    const result = await purewlService.createVPNAccount('user123', 30, { pref1: 'val' });
+    const result = await vpnresellersService.createVPNAccount('user123', 30, { pref1: 'val' });
     expect(result.vpnUsername).toBe('created_user');
     expect(result.vpnPassword).toBe('vpnpass_test');
     expect(result.expiryDate).toBe('2027-01-01');
@@ -190,18 +190,18 @@ describe('createVPNAccount', () => {
     axios.__mockInstance__.post.mockResolvedValueOnce(queueVPNAccountResponse());
     axios.__mockInstance__.post.mockResolvedValueOnce(queueVPNAccountResponse());
 
-    await purewlService.createVPNAccount('user123');
+    await vpnresellersService.createVPNAccount('user123');
     const createCall = axios.__mockInstance__.post.mock.calls[1];
     expect(createCall[1].period).toBe(30);
   });
 
   it('re-uses cached token without calling auth again', async () => {
-    purewlService.accessToken = 'cachedToken';
-    purewlService.tokenExpiry = Date.now() + 60000;
+    vpnresellersService.accessToken = 'cachedToken';
+    vpnresellersService.tokenExpiry = Date.now() + 60000;
     // Only queue account creation — no auth needed
     axios.__mockInstance__.post.mockResolvedValueOnce(queueVPNAccountResponse());
 
-    await purewlService.createVPNAccount('user123');
+    await vpnresellersService.createVPNAccount('user123');
     // Only 1 call (account creation), not 2
     expect(axios.__mockInstance__.post).toHaveBeenCalledTimes(1);
   });
@@ -212,8 +212,8 @@ describe('createVPNAccount', () => {
       response: { data: { header: { message: 'User already exists' } } }
     });
 
-    await expect(purewlService.createVPNAccount('user123')).rejects
-      .toThrow('PureWL account creation failed: User already exists');
+    await expect(vpnresellersService.createVPNAccount('user123')).rejects
+      .toThrow('VPNResellers account creation failed: User already exists');
   });
 });
 
@@ -226,7 +226,7 @@ describe('generateVPNAccount', () => {
       queueVPNAccountResponse({ vpnUsername: 'generated_user' })
     );
 
-    const result = await purewlService.generateVPNAccount('user456', 90);
+    const result = await vpnresellersService.generateVPNAccount('user456', 90);
     expect(result.vpnUsername).toBe('generated_user');
 
     const genCall = axios.__mockInstance__.post.mock.calls[1];
@@ -240,8 +240,8 @@ describe('generateVPNAccount', () => {
       response: { data: { header: { message: 'Generation quota exceeded' } } }
     });
 
-    await expect(purewlService.generateVPNAccount('user456')).rejects
-      .toThrow('PureWL account generation failed: Generation quota exceeded');
+    await expect(vpnresellersService.generateVPNAccount('user456')).rejects
+      .toThrow('VPNResellers account generation failed: Generation quota exceeded');
   });
 });
 
@@ -252,7 +252,7 @@ describe('extendVPNAccount', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.put.mockResolvedValueOnce(queueAccountOpResponse());
 
-    const result = await purewlService.extendVPNAccount('vpnuser_test', '15-06-2027');
+    const result = await vpnresellersService.extendVPNAccount('vpnuser_test', '15-06-2027');
     expect(result.status).toBe('success');
 
     // PUT has only 1 call per test (vs POST which has 2: auth + operation), so index is 0
@@ -268,8 +268,8 @@ describe('extendVPNAccount', () => {
       response: { data: { header: { message: 'Account not found' } } }
     });
 
-    await expect(purewlService.extendVPNAccount('vpnuser_test', '15-06-2027')).rejects
-      .toThrow('PureWL account extension failed: Account not found');
+    await expect(vpnresellersService.extendVPNAccount('vpnuser_test', '15-06-2027')).rejects
+      .toThrow('VPNResellers account extension failed: Account not found');
   });
 });
 
@@ -280,7 +280,7 @@ describe('renewVPNAccount', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.put.mockResolvedValueOnce(queueAccountOpResponse());
 
-    const result = await purewlService.renewVPNAccount('vpnuser_test', 30);
+    const result = await vpnresellersService.renewVPNAccount('vpnuser_test', 30);
     expect(result.status).toBe('success');
 
     const renewCall = axios.__mockInstance__.put.mock.calls[0];
@@ -294,8 +294,8 @@ describe('renewVPNAccount', () => {
       response: { data: { header: { message: 'Renewal payment failed' } } }
     });
 
-    await expect(purewlService.renewVPNAccount('vpnuser_test', 30)).rejects
-      .toThrow('PureWL account renewal failed: Renewal payment failed');
+    await expect(vpnresellersService.renewVPNAccount('vpnuser_test', 30)).rejects
+      .toThrow('VPNResellers account renewal failed: Renewal payment failed');
   });
 });
 
@@ -306,7 +306,7 @@ describe('disableVPNAccount', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.put.mockResolvedValueOnce({ data: { body: { status: 'disabled' } } });
 
-    const result = await purewlService.disableVPNAccount('vpnuser_test');
+    const result = await vpnresellersService.disableVPNAccount('vpnuser_test');
     expect(result.status).toBe('disabled');
 
     const disableCall = axios.__mockInstance__.put.mock.calls[0];
@@ -320,8 +320,8 @@ describe('disableVPNAccount', () => {
       response: { data: { header: { message: 'Account is locked' } } }
     });
 
-    await expect(purewlService.disableVPNAccount('vpnuser_test')).rejects
-      .toThrow('PureWL account disable failed: Account is locked');
+    await expect(vpnresellersService.disableVPNAccount('vpnuser_test')).rejects
+      .toThrow('VPNResellers account disable failed: Account is locked');
   });
 });
 
@@ -332,7 +332,7 @@ describe('enableVPNAccount', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.put.mockResolvedValueOnce({ data: { body: { status: 'enabled' } } });
 
-    const result = await purewlService.enableVPNAccount('vpnuser_test');
+    const result = await vpnresellersService.enableVPNAccount('vpnuser_test');
     expect(result.status).toBe('enabled');
 
     const enableCall = axios.__mockInstance__.put.mock.calls[0];
@@ -346,8 +346,8 @@ describe('enableVPNAccount', () => {
       response: { data: { header: { message: 'Account is expired' } } }
     });
 
-    await expect(purewlService.enableVPNAccount('vpnuser_test')).rejects
-      .toThrow('PureWL account enable failed: Account is expired');
+    await expect(vpnresellersService.enableVPNAccount('vpnuser_test')).rejects
+      .toThrow('VPNResellers account enable failed: Account is expired');
   });
 });
 
@@ -360,7 +360,7 @@ describe('getVPNAccountStatus', () => {
       data: { body: { status: 'active', expiryDate: '2027-01-01' } }
     });
 
-    const result = await purewlService.getVPNAccountStatus('vpnuser_test');
+    const result = await vpnresellersService.getVPNAccountStatus('vpnuser_test');
     expect(result.status).toBe('active');
 
     expect(axios.__mockInstance__.get).toHaveBeenCalledTimes(1);
@@ -375,8 +375,8 @@ describe('getVPNAccountStatus', () => {
       response: { data: { header: { message: 'VPN username not found' } } }
     });
 
-    await expect(purewlService.getVPNAccountStatus('vpnuser_test')).rejects
-      .toThrow('PureWL account status check failed: VPN username not found');
+    await expect(vpnresellersService.getVPNAccountStatus('vpnuser_test')).rejects
+      .toThrow('VPNResellers account status check failed: VPN username not found');
   });
 });
 
@@ -389,7 +389,7 @@ describe('getCountries', () => {
       data: { body: { countries: [{ id: 1, name: 'United States', slug: 'us' }] } }
     });
 
-    const result = await purewlService.getCountries('mac');
+    const result = await vpnresellersService.getCountries('mac');
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe('United States');
 
@@ -405,7 +405,7 @@ describe('getCountries', () => {
     axios.__mockInstance__.get.mockResolvedValueOnce({ data: { body: { countries: [] } } });
     axios.__mockInstance__.get.mockResolvedValueOnce({ data: { body: { countries: [] } } });
 
-    await purewlService.getCountries();
+    await vpnresellersService.getCountries();
     expect(axios.__mockInstance__.get).toHaveBeenCalledWith(
       '/inventory/v3/countries/windows',
       { headers: { 'X-AccessToken': 'tok' } }
@@ -418,8 +418,8 @@ describe('getCountries', () => {
       response: { data: { header: { message: 'Inventory service unavailable' } } }
     });
 
-    await expect(purewlService.getCountries()).rejects
-      .toThrow('PureWL countries fetch failed: Inventory service unavailable');
+    await expect(vpnresellersService.getCountries()).rejects
+      .toThrow('VPNResellers countries fetch failed: Inventory service unavailable');
   });
 });
 
@@ -438,7 +438,7 @@ describe('getOptimizedServer', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.post.mockResolvedValueOnce(serverResponse);
 
-    const result = await purewlService.getOptimizedServer('us', 'tcp', 'vpnuser_test', 'mac');
+    const result = await vpnresellersService.getOptimizedServer('us', 'tcp', 'vpnuser_test', 'mac');
     expect(result.host).toBe('us-east-1.vpn.com');
 
     const optCall = axios.__mockInstance__.post.mock.calls[1];
@@ -457,7 +457,7 @@ describe('getOptimizedServer', () => {
     queueAuthSuccess('tok', 3600);
     axios.__mockInstance__.post.mockResolvedValueOnce(serverResponse);
 
-    await purewlService.getOptimizedServer('us', 'udp', 'vpnuser_test');
+    await vpnresellersService.getOptimizedServer('us', 'udp', 'vpnuser_test');
     const optCall = axios.__mockInstance__.post.mock.calls[1];
     expect(optCall[1].sDeviceType).toBe('windows');
   });
@@ -468,7 +468,7 @@ describe('getOptimizedServer', () => {
       data: { body: { servers: [{ host: 'optimized.vpn.net' }] } }
     });
 
-    const result = await purewlService.getOptimizedServer('uk', 'wireguard', 'vpnuser_test');
+    const result = await vpnresellersService.getOptimizedServer('uk', 'wireguard', 'vpnuser_test');
     expect(result.host).toBe('optimized.vpn.net');
   });
 
@@ -478,8 +478,8 @@ describe('getOptimizedServer', () => {
       response: { data: { header: { message: 'No servers available for country' } } }
     });
 
-    await expect(purewlService.getOptimizedServer('xx', 'tcp', 'vpnuser_test')).rejects
-      .toThrow('PureWL server optimization failed: No servers available for country');
+    await expect(vpnresellersService.getOptimizedServer('xx', 'tcp', 'vpnuser_test')).rejects
+      .toThrow('VPNResellers server optimization failed: No servers available for country');
   });
 });
 
@@ -495,7 +495,7 @@ describe('_request POST (default) branch', () => {
     });
 
     // createVPNAccount uses POST → hits the `else` branch in _request
-    await purewlService.createVPNAccount('user999', 30);
+    await vpnresellersService.createVPNAccount('user999', 30);
 
     // call[1] is the VPN operation (call[0] was auth)
     const postCall = axios.__mockInstance__.post.mock.calls[1];
@@ -512,9 +512,9 @@ describe('_request POST (default) branch', () => {
 describe('getAccessToken — resellerId absent', () => {
   it('does not overwrite resellerId when response does not include it', async () => {
     // Pre-set resellerId to a known value
-    purewlService.resellerId = 'originalReseller';
-    purewlService.accessToken = null;
-    purewlService.tokenExpiry = null;
+    vpnresellersService.resellerId = 'originalReseller';
+    vpnresellersService.accessToken = null;
+    vpnresellersService.tokenExpiry = null;
 
     // Auth response WITHOUT resellerId field
     axios.__mockInstance__.post.mockResolvedValueOnce({
@@ -527,22 +527,22 @@ describe('getAccessToken — resellerId absent', () => {
       }
     });
 
-    await purewlService.getAccessToken();
+    await vpnresellersService.getAccessToken();
 
     // resellerId should remain unchanged ('originalReseller')
-    expect(purewlService.resellerId).toBe('originalReseller');
-    expect(purewlService.accessToken).toBe('newTokenNoReseller');
+    expect(vpnresellersService.resellerId).toBe('originalReseller');
+    expect(vpnresellersService.accessToken).toBe('newTokenNoReseller');
   });
 });
 
 // =============================================================================
-// PureWLService constructor — throws when PUREWL_SECRET_KEY is missing
+// VPNResellersService constructor — throws when VPNRESELLERS_SECRET_KEY is missing
 // =============================================================================
-describe('PureWLService constructor', () => {
-  it('throws when PUREWL_SECRET_KEY is not defined', () => {
+describe('VPNResellersService constructor', () => {
+  it('throws when VPNRESELLERS_SECRET_KEY is not defined', () => {
     // Save and clear the env var so a fresh module load triggers the constructor throw.
-    const saved = process.env.PUREWL_SECRET_KEY;
-    delete process.env.PUREWL_SECRET_KEY;
+    const saved = process.env.VPNRESELLERS_SECRET_KEY;
+    delete process.env.VPNRESELLERS_SECRET_KEY;
 
     try {
       // jest.isolateModules gives us a fresh module registry — the service module
@@ -551,7 +551,7 @@ describe('PureWLService constructor', () => {
       let thrownMsg = '';
       try {
         jest.isolateModules(() => {
-          require('../../src/services/purewlService');
+          require('../../src/services/vpnresellersService');
         });
       } catch (e) {
         threw = true;
@@ -559,9 +559,9 @@ describe('PureWLService constructor', () => {
       }
 
       expect(threw).toBe(true);
-      expect(thrownMsg).toContain('PUREWL_SECRET_KEY is not defined');
+      expect(thrownMsg).toContain('VPNRESELLERS_SECRET_KEY is not defined');
     } finally {
-      process.env.PUREWL_SECRET_KEY = saved;
+      process.env.VPNRESELLERS_SECRET_KEY = saved;
     }
   });
 });

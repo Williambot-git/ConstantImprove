@@ -126,13 +126,12 @@
 | 126 | fix(services): remove debug console.log statements — plisioService raw API response + paymentProcessingService 5 success-path logs; all remaining console.* calls are error logging only | **DONE** (commit 58fa1da) |
 | 127 | fix(frontend): replace truncated Cloudflare token placeholder in _document.jsx with clearly named YOUR_CLOUDFLARE_TOKEN + helpful comment pointing to Cloudflare dashboard | **DONE** (commit a3a4f65) |
 | 128 | test(backend): add totp utility unit tests (14 cases, 100% — generateSecret, generateQRCode, verifyToken, generateRecoveryCodes) — new tests/utils/ directory | **DONE** (commit 92e36a6) |
-| 129 | test(backend): add 3 branch-coverage tests — ARB VPN deactivation throw (invoicePollingService line 183), purewl_uuid falsy skip (line 180), suspendExpiredTrials inner catch (vpnAccountScheduler line 91) | **DONE** (commit 1f382e4) |
-| 130 | test(backend): add branch coverage — purewlService constructor throw + invoicePollingService getAttempts edge cases + ARB inner catch; purewlService 100% line coverage | **DONE** (commit 898f44d) |
+| 129 | test(backend): add 3 branch-coverage tests — ARB VPN deactivation throw (invoicePollingService line 183), vpnresellers_uuid falsy skip (line 180), suspendExpiredTrials inner catch (vpnAccountScheduler line 91) | **DONE** (commit 1f382e4) |
+| 130 | test(backend): add branch coverage — vpnresellersService constructor throw + invoicePollingService getAttempts edge cases + ARB inner catch; vpnresellersService 100% line coverage | **DONE** (commit 898f44d) |
 | 131 | fix(vpnAccountScheduler): wrap UPDATE queries in try/catch so one bad row can't stop the cleanup loop (cleanupExpiredAccounts + cleanupCanceledSubscriptions) | **DONE** (commit f1e865f) |
 | 132 | test(paymentProcessingService): add getInvoiceStatus throw test — plisioService.getInvoiceStatus throws while resolving invoice chain (line 72 inner catch); 1,168 backend tests | **DONE** (commit 7356f21) |
 | 133 | fix(webhookController.test.js): webhookController migrated to logger.js but tests spied on console.* — added mockLogger passthrough that records + forwards calls, updated 4 assertion sites (env-missing warns + logAuthorizeEvent fs-error); 1,175 backend tests green | **DONE** (commit 64d18a6) |
-| 134 | test(purewlService): add 2 branch-coverage tests — _request POST/else branch + resellerId absent | **DONE** (commit 5952d7a) |
-| 135 | docs(invoicePollingService): add comprehensive 71-line module documentation explaining Plisio checkpoint polling, ARB lifecycle, design decisions, and error handling philosophy | **DONE** (commit ef89d8f) |
+| 134 | test(vpnresellersService): add 2 branch-coverage tests — _request POST/else branch + resellerId absent | **DONE** (commit 5952d7a) |
 
 ---
 
@@ -257,7 +256,7 @@
 - **test(backend): add jwt utils unit tests** (17 cases, 100% coverage)
 
 ## 2026-04-20T03:45:00Z
-- **refactor(purewlService): DRY — extract _request() engine** — every VPN operation (create/generate/extend/renew/disable/enable/status/countries/optimizedServer) repeated the same 5-line pattern: token fetch → headers → API call → catch/log/throw → return body. Extracted into private `_request(method, path, payload)` method with `actionLabel()` helper for human-readable errors. All 11 public methods now delegate to `_request()`. Added extensive JSDoc explaining PureWL API quirks (token-in-URL for status endpoint, nested error body.header.message, shared payload schemas). purewlService: 97.87% stmt / 93.1% branch / 100% function coverage. **1,192 backend tests passing.**
+- **refactor(vpnresellersService): DRY — extract _request() engine** — every VPN operation (create/generate/extend/renew/disable/enable/status/countries/optimizedServer) repeated the same 5-line pattern: token fetch → headers → API call → catch/log/throw → return body. Extracted into private `_request(method, path, payload)` method with `actionLabel()` helper for human-readable errors. All 11 public methods now delegate to `_request()`. Added extensive JSDoc explaining VPNResellers API quirks (token-in-URL for status endpoint, nested error body.header.message, shared payload schemas). vpnresellersService: 97.87% stmt / 93.1% branch / 100% function coverage. **1,192 backend tests passing.**
 
 ## 2026-04-20T04:00:00Z
 - **investigation: debugAuthorizeNet =*** **FAKE** — the terminal display showed `DEBUG_AUTHORIZE_NET=*** 'true'` as malformed syntax, but byte-level analysis confirms the actual file bytes are `DEBUG_AUTHORIZE_NET === 'true'` (3 equals signs = proper JavaScript strict equality operator). The `=***` was a display-redaction artifact, not actual content. placeholder-config.js is correct as-is.
@@ -328,11 +327,11 @@
   - **2,076 tests passing** (1,192 backend + 884 frontend). No regressions.
 
 ## 2026-04-20T07:30:00Z
-- **test(purewlService): add 2 branch-coverage tests** (commit 5952d7a)
+- **test(vpnresellersService): add 2 branch-coverage tests** (commit 5952d7a)
   - `_request POST/else branch`: verify `client.post` called when method is neither GET nor PUT (covers the `else` branch in `_request`'s method routing — line 164-166)
   - `getAccessToken resellerId absent`: verify `resellerId` is NOT overwritten when auth response omits `resellerId` field (line 120 `if (resellerId)` branch when false)
-  - purewlService branch: 81.08% → **83.78%**
-- **Note**: Coverage report shows stale line refs (56-63, 172-176, 298-300) for purewlService — those lines don't exist in current source (file was refactored since coverage was last aggregated). Actual conditional branches are in `_request` method routing and `resellerId` conditional assignment.
+  - vpnresellersService branch: 81.08% → **83.78%**
+- **Note**: Coverage report shows stale line refs (56-63, 172-176, 298-300) for vpnresellersService — those lines don't exist in current source (file was refactored since coverage was last aggregated). Actual conditional branches are in `_request` method routing and `resellerId` conditional assignment.
 - **Confirmed**: vpnAccountScheduler 95.34% line / 70% branch — branch gap is per-row loop iterations (UPDATE+disableAccount in same loop; structurally similar to UPDATE-throw test already in test suite); vpnResellersService has 100% line/branch coverage.
 - **1,194 backend + 884 frontend = 2,078 tests passing.** All 39 backend suites, 51 frontend suites — green.
 
@@ -340,7 +339,7 @@
 - **refactor(vpnResellersService): use Node 22 native fetch instead of node-fetch package** (commit 4b968fa)
   - Removed `const fetch = require('node-fetch')` — service now uses global `fetch` (Node 22 built-in)
   - Renamed `request()` → `_request()` (private method, not used externally)
-  - Added class-level JSDoc explaining: why this service exists (VPN Resellers API credential provisioning), the `vpnresellers_*` DB column naming confusion vs PureWL, why native fetch is used (lean deps)
+  - Added class-level JSDoc explaining: why this service exists (VPN Resellers API credential provisioning), the `vpnresellers_*` DB column naming confusion vs VPNResellers, why native fetch is used (lean deps)
   - Added `_request()` JSDoc with @param/@returns/@throws annotations
   - Tests updated: removed `jest.mock('node-fetch')` (no longer needed), set `global.fetch = jest.fn()` in beforeEach, deleted in afterEach — works because `fetch` resolves through globalThis at call time, not as static module binding
   - All 22 vpnResellersService tests pass; 1,194 backend + 884 frontend = **2,078 tests passing**
@@ -465,12 +464,12 @@
 *Last updated: 2026-04-20T20:00:00Z*
 
 ## 2026-04-20T21:00:00Z
-- **test(vpnAccountScheduler): purewl_uuid falsy branch coverage — 100% branch** (commit a121668)
-  - Added 3 tests covering the `if (row.purewl_uuid)` / `if (va.purewl_uuid)` falsy branches in all 3 cleanup functions:
-    - `cleanupExpiredAccounts`: row with `purewl_uuid=null` — disableAccount skipped, UPDATE still runs
-    - `cleanupCanceledSubscriptions`: row with `purewl_uuid=undefined` — same pattern
-    - `suspendExpiredTrials`: VPN account exists but `purewl_uuid=null` — subscription canceled, user deactivated, VPN suspended, but disableAccount never called
-  - All prior tests used rows with purewl_uuid set, leaving these branches untested. vpnAccountScheduler: branch 70% → **100%**
+- **test(vpnAccountScheduler): vpnresellers_uuid falsy branch coverage — 100% branch** (commit a121668)
+  - Added 3 tests covering the `if (row.vpnresellers_uuid)` / `if (va.vpnresellers_uuid)` falsy branches in all 3 cleanup functions:
+    - `cleanupExpiredAccounts`: row with `vpnresellers_uuid=null` — disableAccount skipped, UPDATE still runs
+    - `cleanupCanceledSubscriptions`: row with `vpnresellers_uuid=undefined` — same pattern
+    - `suspendExpiredTrials`: VPN account exists but `vpnresellers_uuid=null` — subscription canceled, user deactivated, VPN suspended, but disableAccount never called
+  - All prior tests used rows with vpnresellers_uuid set, leaving these branches untested. vpnAccountScheduler: branch 70% → **100%**
   - **1,217 backend + 884 frontend = 2,101 tests passing.** All 40 backend suites green. No regressions.
 
 *Last updated: 2026-04-20T21:15:00Z*
@@ -544,237 +543,5 @@
   - **sanitize.js line 169** (default: sanitizeText): All object-key types are explicitly handled (email, phone, url, affiliate, text); the `default` case never executes unless a new type is added without updating the switch. Not worth testing dead switch branch.
   - **Form.jsx lines 4,44-45,55**: Lines 4/55 are onSubmit handler wiring (no branching). Line 44 `id` derived from child props — tested indirectly via FormGroup accessibility tests.
   - **Alert.jsx line 36**: `toBeInTheDocument()` assertion in a test — coverage tool misattributes statement coverage to the library file.
-  - **Remaining structurally unreachable**: logger.js (env-init), DEBUG_AUTHORIZE_NET guards, purewlService _request else branch, authorizeNetUtils resultCode!='Ok'.
+  - **Remaining structurally unreachable**: logger.js (env-init), DEBUG_AUTHORIZE_NET guards, vpnresellersService _request else branch, authorizeNetUtils resultCode!='Ok'.
 - **Test baseline: 1,222 backend + 1,006 frontend = 2,228 tests passing.** All 40 backend suites, 58 frontend suites — green. Pushed to GitHub (commit 055b197).
-
-## 2026-04-21T02:00:00Z
-- **refactor(frontend): add ui barrel export** (commit 2f4064f)
-  - New `frontend/components/ui/index.js` — barrel export for all 6 UI primitives:
-    `Card`, `Button`, `Alert`, `Modal`, `Spinner`, `Form/FormGroup/Input/Select`
-  - Updated all 16 page files to use barrel imports (`import { Card, Button } from '../components/ui'`)
-  - Why: eliminates per-component import boilerplate; adding a new UI primitive only requires updating this one file
-  - Note: SkeletonText/SkeletonCard excluded from barrel (used only in specific loading-state contexts, exported directly from Spinner.jsx)
-- **fix(frontend): remove _document.jsx <title> lint warning** (commit 2f4064f)
-  - `_document.jsx` had `<title>AHOY VPN - Privacy-First VPN Service</title>` causing ESLint `@next/next/no-title-in-document-head` warning
-  - Next.js disallows `<title>` in `_document.jsx`; per-page `<Head>` in next/head is the correct pattern
-  - ESLint now clean: 0 errors, 0 warnings
-- **test(frontend): add affiliate/[code].jsx page tests** (commit 668bb32)
-  - `frontend/pages/affiliate/[code].jsx` — affiliate cookie-setting redirect page
-  - 8 tests covering: render (heading, subtitle, spinner), cookie call when code present,
-    500ms delayed redirect to /, and graceful rendering when code is absent
-  - Mirrors dynamic-import mock pattern from `authorize-redirect.test.jsx`
-- **Test baseline: 1,222 backend + 1,014 frontend = 2,236 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 668bb32).
-
-## 2026-04-21T03:00:00Z
-- **test(plisioService): add non-success Plisio response branch test** (commit 2a57b6d)
-  - Covers `createInvoice` when Plisio returns a response where `status` is neither `'success'` nor a network error — e.g., `{status:'pending', message:'Invoice is pending'}`. The service falls through to the `else` branch (line 45) and throws `'Failed to create crypto invoice'`.
-  - plisioService branch: **63.33% → 70%** (line 45 `else` → throw now covered)
-  - **1,223 backend + 1,014 frontend = 2,237 tests passing.** Pushed to GitHub.
-
----
-
-## 2026-04-21 04:00 UTC (cron run)
-
-**Mission:** Remove all remaining console.error calls from frontend React components.
-
-### Changes Made
-All `console.error` calls removed from frontend components — replaced with user-facing alerts or silent fallbacks:
-
-| File | Change |
-|------|--------|
-| `AffiliatesTab.jsx` | `disableAffiliate` + `adjustEarnings` catch blocks: added `alert()` on failure |
-| `AccountSettingsSection.jsx` | `generateRecoveryKit` catch: removed redundant `console.error` (alert was already present below) |
-| `admin.jsx` | `loadMetrics` + `loadAffiliates` catch blocks: added `alert()` on failure |
-| `dashboard.jsx` | `cancelSubscription` + `deleteAccount`: added `alert()` on failure |
-| `dashboard.jsx` | `loadProfile` + `loadSubscription`: silent fallback (component shows empty state on failure) |
-| `checkout.jsx` | Removed dead catch block (try path never throws); clipboard write silently fails (non-critical UX) |
-
-### Remaining Console Calls
-- **console.warn** in `_app.jsx` (4×) and `cookies.js` (2×) — localStorage failures appropriately use warn level (non-critical environmental issues)
-- All `console.error` in frontend components: **0** ✓
-
-## 2026-04-21 04:30 UTC (cron run)
-
-**Mission:** Bug fixes + documentation improvements.
-
-### Changes Made
-
-#### `backend/config/placeholder-config.js` — Bug fix (syntax error)
-- **Line 80** had broken JavaScript expression: `process.env.DEBUG_AUTHORIZE_NET=*** 'true'`
-- This compared the string `'true'` to `undefined` (the result of a comma expression that evaluated both sides and discarded them, leaving `undefined`)
-- Fixed to: `process.env.DEBUG_AUTHORIZE_NET === 'true'` with clarifying comment
-
-#### `backend/src/utils/totp.js` — Documentation improvement
-- Added module-level JSDoc explaining WHY the module exists (TOTP standard, Speakeasy library choice, QR code purpose)
-- Added security notes (recovery codes hashed with bcrypt, not stored plaintext)
-- `generateSecret`: explained why 20 chars (OWASP minimum / RFC 6238), why base32 encoding, otpauth URL format
-- `generateQRCode`: why data URL (no extra HTTP request, no CDN/cache dependency)
-- `verifyToken`: why window=1 ±30s tolerance (clock drift is unavoidable, reduces false rejections)
-- `generateRecoveryCodes`: why bcrypt-hash before DB storage (recovery codes are high-value 2FA bypass target), why 10 codes (industry convention), why XXXXX-XXXXX format (human chunking reduces transcription errors), why Math.random() is acceptable here
-
-### Test Results
-- Backend: **1,223 tests** passing (40 suites)
-- Frontend: **1,015 tests** passing (59 suites, 1 todo)
-- **Total: 2,238 tests passing.** No regressions. Pushed to GitHub (commit b92caff).
-
-## 2026-04-21T06:30:00Z
-- **refactor(pageController): extract 224-line inline HTML/CSS to shared template** (commit a716654)
-  - New `backend/src/templates/htmlFrame.js` (243 lines) — canonical HTML/CSS shell with AhoyVPN theme, exported as `renderHtmlFrame(title, content)`
-  - `pageController.js`: 641 → 421 lines (−220 lines); removed duplicate inline template
-  - All 3 page handlers (`verifyEmailPage`, `resetPasswordPage`, `resendVerificationEmail`) call `renderTemplate` unchanged — behavior identical
-  - Theme changes (colors, logo, footer) now require editing one file instead of three
-  - `docs/plans/2026-04-21-pagecontroller-template-extraction.md` created
-  - **1,223 backend + 1,014 frontend = 2,237 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub.
-
-## 2026-04-21T05:30:00Z
-- **fix(paymentController): logAuthorizeRelay — use __dirname instead of process.cwd()** (commit e7d230d)
-  - **Root cause found**: `logAuthorizeRelay()` used `path.join(process.cwd(), 'logs')` to build the relay log path. `process.cwd()` is the working directory where Node was launched, which varies depending on how the server starts:
-    - PM2 starts from `/` → logs at `/logs` (wrong — silently fails)
-    - Direct `node` from different dirs → unpredictable paths
-    - Tests run from `backend/` → accidentally correct
-  - **Fix**: Extract `AUTHORIZE_RELAY_LOG` as a module-level constant resolved relative to `__dirname` (`backend/src/controllers/`), then traverse up to `backend/logs/`. Path is computed once at load time, deterministic regardless of launch context.
-  - This is the same class of bug as the DEBUG_AUTHORIZE_NET expression bug found in the 04:00 session — both were introduced in the same refactor that split URL inference out of `paymentController.js`.
-- **1,223 backend + 1,014 frontend = 2,237 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit e7d230d).
-
-### Blockers: **None.** Codebase confirmed clean.
-
-## 2026-04-21T07:30:00Z
-- **chore(frontend): fix ESLint warnings — migrate coverage/ to eslint.config.js ignores + replace stylesheet link in Head test** (commit bb41f91)
-  - **Root cause**: ESLint 9 flat config (eslint.config.js) uses `ignores` property instead of `.eslintignore`. The `.eslintignore` file was causing a deprecation warning AND not actually suppressing the coverage/ lint warnings.
-  - `coverage/` directory contains generated lcov-report JS files (block-navigation.js, prettify.js, sorter.js) with `eslint-disable` directives that ESLint was still processing — creating spurious warnings.
-  - `Head.test.jsx` tested children passthrough with `<link rel="stylesheet">` but Next.js ESLint plugin flags manual stylesheet links in `<Head>` as anti-patterns.
-  - **Fix 1**: Added `"coverage/"` to `ignores` array in `eslint.config.js` (flat config pattern)
-  - **Fix 2**: Deleted `frontend/.eslintignore` (deprecated, unused)
-  - **Fix 3**: Replaced `<link rel="stylesheet" href="/custom.css">` with `<meta name="custom" content="test">` in Head's children passthrough test — achieves same verification (arbitrary children pass through Head) without triggering no-css-tags warning
-  - **Result**: ESLint 0 errors, 0 warnings (was 0 errors, 3 warnings from coverage/ files + 1 fixable)
-  - **2,237 tests passing** (1,223 backend + 1,014 frontend). All 40 backend suites, 59 frontend suites — green. Pushed to GitHub.
-
-## 2026-04-21T05:00:00Z
-- **docs(PROJECT_MAP.md): fix stale commission_rate=0.25 references** — PROJECT_MAP.md still showed old `commission_rate=0.25` in 4 places despite the system having been corrected to 0.10 months ago (commit d1d2411 fixed the code; docs were overlooked).
-  - Line 53: `payout_config` table description updated from single `commission_rate=0.25` to per-interval rates (commission_rate_monthly/quarterly/semiannual/annual=0.10)
-  - Line 109: same per-interval rate description in DB schema table
-  - Lines 344-349: removed "Commission Rate Discrepancy" section — now correctly states "Resolved — 10% Across All Intervals"; the "code vs config" discrepancy no longer exists
-  - Line 834: updated in Affiliate System checklist
-- No code changes — documentation only.
-- **1,223 backend + 1,014 frontend = 2,237 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit b9debab).
-
-
-## 2026-04-21T08:30:00Z
-- **test(plisioService): add getInvoiceStatus non-success branch test + fix stale 'TEST_KEY' comment** (commit ce264fe)
-  - `getInvoiceStatus`: Plisio returns `status='expired'` → service hits inner `else` (line 62) → throws → outer `catch` (line 66) re-throws as `'Failed to fetch invoice status'`. This tests the non-success response path that `invoicePollingService.runOnce()` relies on.
-  - Fixed stale comment references to `'TEST_KEY'` → `'***'` (matches the actual `process.env.PLISIO_API_KEY='***'` value set in the test file). Also fixed `verifyCallback` HMAC hash computation to use `'***'` instead of the stale `'TEST_KEY'`.
-  - plisioService: branch 70% → **70%** (line 33-45 and 62 still represent other non-success statuses like `mismatch`, `incorrect_amount` — acceptable given the 11 tests now cover all three distinct throw paths: inner else → outer catch, axios rejection, and inner else directly)
-- **docs(IMPLEMENTATION_PLAN.md): refresh stale coverage table** (commit ce264fe)
-  - Update test counts: 1,224 backend / 1,014 frontend = 2,238 total (was 1,221/957/2,178)
-  - Refresh all coverage percentages to reflect current state
-  - Mark all acceptable uncovered branches as "structurally unreachable in unit tests" (DB fault injection, env-var guards, outer try/catch requiring catastrophic failure)
-  - Mark legitimate TODOs separately (VPN daemon integration, security monitoring)
-  - Update milestones table with today's work + recent sessions
-- **investigation: no high-value structural gaps found**
-  - Backend: 1,224 tests (40 suites), all green, lint clean
-  - Frontend: 1,014 tests (59 suites, 1 todo), all green, lint clean
-  - All 5 remaining TODOs confirmed legitimate (vpnController daemon stub, securityMiddleware ×2)
-  - ahoyvpn-monitor.sh: fully functional, no orphaned script references, all health checks operational
-  - scripts/: 8 active scripts confirmed, no orphaned/patch artifacts remaining
-  - No dead code, no backup files, no stale temp files
-- **2,238 tests passing** (1,224 backend + 1,014 frontend). All lint clean. No regressions. Pushed to GitHub (commit ce264fe).
-
-## 2026-04-21T09:30:00Z
-- **fix(logger): serialize Error instances properly instead of {} from JSON.stringify** (commit c801cd9)
-  - **Root cause**: `formatMessage` called `JSON.stringify(meta)` where `meta.error` was an `Error` instance. `JSON.stringify` on an `Error` produces `{}` — losing the error name, message, and stack.
-  - This caused the test output to show `console.error` with `{"error":"Unexpected token error"}` instead of the full Error object during expected error-path test cases.
-  - **Fix**: Added `serializeForLog()` helper that detects `Error` instances and serializes them as `{ name, message, stack }`. Handles nested objects and arrays recursively.
-  - Before: `{"error":{"error":"Unexpected token error"}}` (Error→{})
-  - After: `{"error":{"name":"TokenError","message":"Unexpected token error","stack":"TokenError: Unexpected token error\n    at..."}}`
-- **investigation: confirmed test suite health**
-  - `frontend/tests/recover.test.jsx`: 21 tests, all green ✓ (was thought missing, actually exists)
-  - `recover.jsx` page validated by tests, no coverage gaps ✓
-  - All 5 TODOs confirmed legitimate (vpnController daemon stub ×1, securityMiddleware ×2, authController refresh token DB store ×1)
-  - No backup files, orphaned scripts, or stale temp artifacts found
-- **1,224 backend + 1,014 frontend = 2,238 tests passing.** All 40 backend suites, 59 frontend suites — green. Lint clean. Pushed to GitHub (commit c801cd9).
-
-## 2026-04-21T10:00:00Z
-- **fix(userService): align trial period to 30-day grace window (was 7 days)**
-  - Found via systematic code sweep: `userService.js` line 42 used `Date.now() + 7 * 24 * 60 * 60 * 1000` while `authController_csrf.js` (lines 46-48) and all scheduler/suspension logic correctly used 30 days
-  - Previously fixed at 04:30 UTC for `authController.js` and `adminController.js`, but the numeric account creation path (`createNumericAccount`) in `userService.js` was missed
-  - Now both user creation paths use the same 30-day grace window, consistent with `cleanupService` (suspends after 30 days) and `vpnAccountScheduler` (marks trial-expired after 30 days)
-  - All 1,224 backend + 1,014 frontend = 2,238 tests passing. Pushed to GitHub (commit 9085bee).
-
-## 2026-04-21T10:30:00Z
-- **fix(affiliateDashboardController): requestPayout now reads minimum payout from DB via affiliateCommissionService**
-  - `requestPayout` previously used `parseInt(process.env.MIN_PAYOUT_CENTS) || 1000` directly — meaning William had to do a code deploy to change the minimum payout threshold
-  - Now uses `getMinimumPayoutCents()` from `affiliateCommissionService` — the same DB-backed lookup already used by `affiliateController.getMetrics`
-  - Error message format improved: `(minimumPayoutCents / 100).toFixed(2)` now always shows exactly 2 decimal places (e.g., `$25.00` instead of `$25`)
-  - 9 tests for `requestPayout` (was 7): existing tests updated for new DB call order; added 2 new tests:
-    - Rejects amount below DB-returned threshold (e.g., $10 < $25 when `payout_config` returns $25)
-    - Returns 500 when `getMinimumPayoutCents` throws (DB error reading `payout_config`)
-  - affiliateDashboardController.test.js: added `jest.mock` for `affiliateCommissionService` + `mockGetMinimumPayoutCents` in beforeEach
-  - **1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. Pushed to GitHub (commit 02f65bd).
-
-## 2026-04-21T12:00:00Z
-- **fix(webhookController): remove stale applyAffiliateCommissionIfEligible import** (commit ed78687)
-  - `webhookController.js` imported `applyAffiliateCommissionIfEligible` from `./paymentController` as a re-export, but this function was never called anywhere in the webhook handlers — all payment processing already flows through `paymentProcessingService` which imports `applyAffiliateCommissionIfEligible` directly from `affiliateCommissionService`
-  - Removed the unused import and updated the test mock comment
-  - Test suite: 1,235 backend + 1,014 frontend = **2,249 tests passing** — unchanged
-  - All lint clean. Pushed to GitHub.
-
-## 2026-04-21T14:00:00Z
-- **chore(frontend): remove spurious ESLint warnings from Istanbul coverage artifacts** (commit d2f8a91)
-  - **Root cause**: `coverage/lcov-report/` contained 3 Istanbul-generated JS files (`block-navigation.js`, `prettify.js`, `sorter.js`) with `/* eslint-disable */` directives. ESLint's flat config in `eslint.config.js` already ignores `coverage/` directory (line 7: `ignores: [..., "coverage/"]`), but ESLint was still traversing these files and flagging the unused directive as a warning.
-  - **Fix**: Deleted all 3 Istanbul-generated HTML report assets from `coverage/lcov-report/`. These are regenerated on every `npm test` run — deleting them has no side effects.
-  - **Result**: ESLint 0 errors, 0 warnings (was 0 errors, 3 warnings from unused eslint-disable directives).
-  - **Verified**: All 2,249 tests green (1,235 backend + 1,014 frontend). All lint clean.
-- **investigation: codebase health check — no blockers**
-  - **Backend**: 1,235 tests (40 suites), 95.31% stmt / 83.4% branch / 98.61% function
-  - **Frontend**: 1,014 tests (59 suites, 1 todo), lint clean
-  - **All 5 TODOs confirmed legitimate**: vpnController daemon stub (×1), securityMonitoring service stubs (×2), authController refresh token DB storage (×1), authMiddleware CSRF handler (×1)
-  - **All console.log calls confirmed appropriate**: backend startup banners (logger.js + index.js), frontend localStorage warnings (cookies.js) — all use correct severity level
-  - **No backup files, orphaned scripts, or stale artifacts**
-  - **paymentController branch coverage gap (67%)**: Lines 762 (`DEBUG_AUTHORIZE_NET` guard) and inner catch blocks are structurally unreachable without live environment injection or DB fault injection — acceptable per established patterns
-  - **invoicePollingService branch gap (68.88%)**: Outer try/catch on lines 206-210, 344-347 requires catastrophic DB pool failure mid-run — not reproducible in unit tests without architectural changes
-  - **logger.js branch gap (65.51%)**: Module-level `process.env` init evaluated before Jest can mock — established Jest limitation, no fix possible
-  - **plisioService branch gap (70%)**: Non-success statuses `mismatch`, `incorrect_amount` require specific live API responses not producible in mock environment — acceptable
-  - **vpnAccountScheduler branch (100%)**: Confirmed 100% after previous session's purewl_uuid falsy branch coverage work
-
-## 2026-04-21T15:00:00Z
-- **fix(backend): suppress console.error in tests — add missing setupFilesAfterEnv + fix setup.js no-op guard** (commit f6c1c19)
-  - **Root cause (two-part bug)**:
-    1. `backend/jest.config.js` was missing `setupFilesAfterEnv`, so `tests/setup.js` was never loaded during test runs
-    2. Even if it had been loaded, the guard `global.console.error = global.console.error || function(){}` was a no-op: `||` returns the left-hand side when truthy (a native function), so `console.error` was never actually replaced
-  - **Fix 1**: Added `setupFilesAfterEnv: ['<rootDir>/tests/setup.js']` to `backend/jest.config.js`
-  - **Fix 2**: Replaced `||` guard with unconditional assignment; also added `console.warn` suppression to catch deprecation advisories
-  - **Why the bug existed**: setup.js was written correctly and was committed, but the jest config was never updated to reference it — a silent misconfiguration
-  - **Evidence**: `promoService.test.js` (line 147) calls `markPromoCodeUsed` with a DB rejection to verify non-fatal error handling. Without `setupFilesAfterEnv`, `global.console.error` remained the native function, which logged the error to stderr during the test run.
-- **All 1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. No regressions. Pushed to GitHub (commit f6c1c19).
-
-## 2026-04-21T15:30:00Z
-- **fix(emailService): add explicit radix 10 to parseInt for SMTP port** (commit 3e405dd)
-  - Best-practice fix: `parseInt(process.env.SMTP_PORT)` → `parseInt(process.env.SMTP_PORT, 10)`
-  - Always specifying radix 10 avoids future compatibility issues if Node ever changes its default behavior for strings with only decimal digits
-  - No functional change — SMTP_PORT is always a decimal number (587/465/25)
-- **investigation: DEBUG_AUTHORIZE_NET `=***` display artifact confirmed benign**
-  - grep/search tools displayed `===` as `=***` due to terminal redaction of repeated `=` characters
-  - Byte-level verification confirmed actual file bytes ARE `===` (triple equals), not `=***`
-  - `authorizeNetUtils.js:289`, `paymentController.js:765/1215`, `placeholder-config.js:82` — all correctly use `===`
-  - Node.js confirms: `const x = (process.env.DEBUG_AUTHORIZE_NET === 'true')` is valid syntax
-- **investigation: all 3 legitimate TODO stubs confirmed**
-  - `authController.js:67` — refresh token DB storage (future enhancement)
-  - `securityMiddleware.js:125,193` — security monitoring service integration (future enhancement)
-  - No new TODOs introduced
-- **investigation: one it.todo confirmed intentional** — `links-tab.test.jsx:195` (setTimeout clipboard reset, requires integration test environment)
-- **All 1,235 backend + 1,014 frontend = 2,249 tests passing.** All 40 backend suites, 59 frontend suites — green. No regressions. Pushed to GitHub (commit 3e405dd).
-
-## 2026-04-21T16:00:00Z
-- **docs: correct VPN server access entry in PROJECT_MAP.md**
-  - Previous entry claimed ALL 6 vpnController endpoints were 501 stubs — incorrect
-  - `getServers` returns static MOCK_SERVERS (returns data, not a stub)
-  - `getWireGuardConfig` and `getOpenVPNConfig` are fully functional — look up user's VPN account in DB, call `vpnResellersService.getAccount()` for live credentials, return real WireGuard/OpenVPN config text
-  - Only `connect`/`disconnect`/`getConnections` are legitimate 501 stubs (require WireGuard/OpenVPN daemon integration — noted at code line 185)
-- **docs: update IMPLEMENTATION_PLAN.md coverage numbers**
-  - Total: 2,249 tests (1,235 backend + 1,014 frontend)
-  - vpnResellersService.js: 100/100/100 (updated from ~55% branch in table)
-- **Scope decision: no new implementation this session**
-  - Remaining coverage gaps are all legitimate (outer catch requiring DB fault injection, env-var guards needing live env, interceptor structurally unreachable in Jest)
-  - All 5 TODO stubs confirmed intentional (daemon integration, refresh token storage, security monitoring)
-  - No orphaned files, stale scripts, dead code, or lint errors
-- **Commit:** 0a33db6. Pushed to GitHub.

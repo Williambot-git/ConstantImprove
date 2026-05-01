@@ -45,13 +45,17 @@ function Header({ auth }) {
             ) : (
               <>
                 <Link href="/login" passHref><a style={styles.navLink}>Sign in</a></Link>
-                <Link href="/register" passHref><a style={styles.ctaBtn}>Get Started</a></Link>
+                <Link href="/register" passHref><a style={styles.ctaBtn} className="ahoy-cta">Get Started</a></Link>
               </>
             )}
           </nav>
         </div>
       </header>
       <style jsx>{`
+        .ahoy-nav a:hover:not(.ahoy-cta) { color: #C8C8C8; text-shadow: 0 0 12px rgba(59, 130, 246, 0.5); }
+        .ahoy-cta { color: #FFFFFF; }
+        .ahoy-cta:hover { background-color: #2563EB; color: #FFFFFF; box-shadow: 0 0 16px rgba(59, 130, 246, 0.6); }
+        .ahoy-social-link:hover { color: #F5F5F0; text-shadow: 0 0 8px rgba(59, 130, 246, 0.4); }
         @media (max-width: 768px) {
           .ahoy-headerContent { padding: 0.75rem 1rem !important; flex-direction: column !important; align-items: flex-start !important; gap: 0.75rem !important; }
           .ahoy-nav { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; gap: 0.5rem !important; }
@@ -81,6 +85,15 @@ function Footer() {
           <p style={styles.footerHeading}>Support</p>
           <a href="mailto:ahoyvpn@ahoyvpn.net" style={styles.footerLink}>ahoyvpn@ahoyvpn.net</a>
         </div>
+        <div style={styles.footerSection}>
+          <p style={styles.footerHeading}>Follow</p>
+          <a href="https://x.com/AhoyVPN" target="_blank" rel="noopener noreferrer" style={styles.socialLink} className="ahoy-social-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            <span style={{ marginLeft: '0.5rem' }}>X / Twitter</span>
+          </a>
+        </div>
       </div>
       <div style={styles.footerBottom}>
         <p style={styles.footerCopy}>© 2026 AHOY VPN. All rights reserved.</p>
@@ -108,6 +121,7 @@ const styles = {
   footerTagline: { color: '#5A5A5A', fontSize: '0.8rem' },
   footerHeading: { color: '#5A5A5A', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.25rem' },
   footerLink: { color: '#8A8A8A', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease' },
+  socialLink: { color: '#8A8A8A', textDecoration: 'none', fontSize: '0.875rem', transition: 'color 0.2s ease', display: 'flex', alignItems: 'center' },
   footerBottom: { borderTop: '1px solid #1E1E1E', paddingTop: '1.5rem', maxWidth: '1100px', margin: '0 auto' },
   footerCopy: { color: '#5A5A5A', fontSize: '0.8rem', textAlign: 'center' },
   floatingSupportButton: { position: 'fixed', right: '20px', bottom: '20px', zIndex: 110, backgroundColor: '#3B82F6', color: '#fff', textDecoration: 'none', padding: '0.625rem 1rem', borderRadius: '999px', boxShadow: '0 4px 16px rgba(59,130,246,0.35)', fontSize: '0.8rem', fontWeight: 600, transition: 'background-color 0.2s ease' },

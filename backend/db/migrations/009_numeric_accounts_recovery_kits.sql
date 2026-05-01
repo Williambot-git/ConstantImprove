@@ -214,7 +214,7 @@ SELECT
   s.current_period_start,
   s.current_period_end,
   s.current_period_end as next_billing_at,
-  va.purewl_username,
+  va.vpnresellers_username,
   va.expiry_date as vpn_expiry_date
 FROM users u
 LEFT JOIN subscriptions s ON u.id = s.user_id

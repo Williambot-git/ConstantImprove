@@ -206,7 +206,7 @@ async function getUserSubscription(userId) {
  * Create a new VPN account or extend an existing one.
  *
  * @param {number} userId          - The user ID
- * @param {string} accountNumber    - PureWL account number (used in username prefix)
+ * @param {string} accountNumber    - VPNResellers account number (used in username prefix)
  * @param {string} planInterval     - 'month', 'quarter', 'semi_annual', or 'year'
  * @param {{ renew?: boolean }} opts - Options
  * @param {boolean} opts.renew      - If true, extends expiry on the existing vpn_accounts
@@ -230,7 +230,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
   // Instead we extend the expiry on the row we already have.
   if (renew) {
     const existing = await db.query(
-      'SELECT id, purewl_uuid, purewl_username, purewl_password FROM vpn_accounts WHERE user_id = $1',
+      'SELECT id, vpnresellers_uuid, vpnresellers_username, vpnresellers_password FROM vpn_accounts WHERE user_id = $1',
       [userId]
     );
     if (existing.rows.length > 0) {
@@ -245,7 +245,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
       );
 
       // Sync expiry to VPN Resellers so the server recognises it
-      const { purewl_uuid: existingUuid } = existing.rows[0];
+      const { vpnresellers_uuid: existingUuid } = existing.rows[0];
       if (existingUuid) {
         try {
           await vpnResellersService.setExpiry(existingUuid, newExpiryYmd);
@@ -256,8 +256,8 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
 
       const updated = await db.query('SELECT * FROM vpn_accounts WHERE user_id = $1', [userId]);
       return {
-        username: updated.rows[0]?.purewl_username,
-        password: updated.rows[0]?.purewl_password,   // unchanged — kept from original creation
+        username: updated.rows[0]?.vpnresellers_username,
+        password: updated.rows[0]?.vpnresellers_password,   // unchanged — kept from original creation
         accountId: existingUuid,
         account: updated.rows[0],
         renewed: true                                 // signals this was a renewal, not a fresh create
@@ -305,12 +305,12 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
   const allowedCountries = createdData?.allowed_countries || [];
 
   const result = await db.query(
-    `INSERT INTO vpn_accounts (user_id, purewl_username, purewl_password, purewl_uuid, expiry_date, status, allowed_countries, created_at, updated_at)
+    `INSERT INTO vpn_accounts (user_id, vpnresellers_username, vpnresellers_password, vpnresellers_uuid, expiry_date, status, allowed_countries, created_at, updated_at)
      VALUES ($1, $2, $3, $4, $5, 'active', $6::jsonb, NOW(), NOW())
      ON CONFLICT (user_id) DO UPDATE SET
-       purewl_username = EXCLUDED.purewl_username,
-       purewl_password = EXCLUDED.purewl_password,
-       purewl_uuid = EXCLUDED.purewl_uuid,
+       vpnresellers_username = EXCLUDED.vpnresellers_username,
+       vpnresellers_password = EXCLUDED.vpnresellers_password,
+       vpnresellers_uuid = EXCLUDED.vpnresellers_uuid,
        expiry_date = EXCLUDED.expiry_date,
        status = EXCLUDED.status,
        allowed_countries = EXCLUDED.allowed_countries,

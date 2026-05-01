@@ -9,7 +9,7 @@
  *
  * VPN PROVIDER IDENTITY CRISIS:
  * The DB column is named `vpnresellers_*` but the actual provider is VPN Resellers.
- * Will has a separate "PureWL" account too — purewlService.js handles that one.
+ * Will has a separate "VPNResellers" account too — vpnresellersService.js handles that one.
  * Both providers may be used or consolidated in the future.
  *
  * ABOUT node-fetch:

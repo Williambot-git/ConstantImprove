@@ -84,7 +84,7 @@ Unattended-Upgrade::Automatic-Reboot-Time "03:00";
 ## Troubleshooting
 - **Service fails to start**: Check journalctl for errors.
 - **Port 3000 already in use**: Ensure no other process is using the port (`sudo lsof -i :3000`).
-- **Environment variables missing**: Verify `.env` file exists and contains required keys (database, PureWL, etc.).
+- **Environment variables missing**: Verify `.env` file exists and contains required keys (database, VPNResellers, etc.).
 - **PostgreSQL not running**: Start it with `sudo systemctl start postgresql`.
 
 ## Notes

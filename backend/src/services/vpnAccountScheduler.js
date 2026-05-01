@@ -6,18 +6,18 @@ const vpnResellersService = new VpnResellersService();
 
 async function cleanupExpiredAccounts() {
   const result = await db.query(
-    `SELECT id, purewl_uuid, user_id
+    `SELECT id, vpnresellers_uuid, user_id
      FROM vpn_accounts
      WHERE status = 'active' AND expiry_date <= NOW()`
   );
 
   for (const row of result.rows) {
     try {
-      if (row.purewl_uuid) {
-        await vpnResellersService.disableAccount(row.purewl_uuid);
+      if (row.vpnresellers_uuid) {
+        await vpnResellersService.disableAccount(row.vpnresellers_uuid);
       }
     } catch (err) {
-      log.warn('Failed to deactivate VPN account', { purewlUuid: row.purewl_uuid, error: err.message });
+      log.warn('Failed to deactivate VPN account', { vpnresellersUuid: row.vpnresellers_uuid, error: err.message });
     }
 
     try {
@@ -37,7 +37,7 @@ async function cleanupExpiredAccounts() {
 
 async function cleanupCanceledSubscriptions() {
   const result = await db.query(
-    `SELECT va.id, va.purewl_uuid
+    `SELECT va.id, va.vpnresellers_uuid
      FROM vpn_accounts va
      JOIN subscriptions s ON s.user_id = va.user_id
      WHERE va.status IN ('active')
@@ -47,11 +47,11 @@ async function cleanupCanceledSubscriptions() {
 
   for (const row of result.rows) {
     try {
-      if (row.purewl_uuid) {
-        await vpnResellersService.disableAccount(row.purewl_uuid);
+      if (row.vpnresellers_uuid) {
+        await vpnResellersService.disableAccount(row.vpnresellers_uuid);
       }
     } catch (err) {
-      log.warn('Failed to deactivate VPN account (canceled subscription)', { purewlUuid: row.purewl_uuid, error: err.message });
+      log.warn('Failed to deactivate VPN account (canceled subscription)', { vpnresellersUuid: row.vpnresellers_uuid, error: err.message });
     }
 
     try {
@@ -90,17 +90,17 @@ async function suspendExpiredTrials() {
 
       // Suspend VPN account if exists
       const vpnAccount = await db.query(
-        `SELECT id, purewl_uuid FROM vpn_accounts WHERE user_id = $1 AND status = 'active'`,
+        `SELECT id, vpnresellers_uuid FROM vpn_accounts WHERE user_id = $1 AND status = 'active'`,
         [row.user_id]
       );
 
       if (vpnAccount.rows.length > 0) {
         const va = vpnAccount.rows[0];
-        if (va.purewl_uuid) {
+        if (va.vpnresellers_uuid) {
           try {
-            await vpnResellersService.disableAccount(va.purewl_uuid);
+            await vpnResellersService.disableAccount(va.vpnresellers_uuid);
           } catch (err) {
-            log.warn('Failed to deactivate VPN account (trial expiry)', { purewlUuid: va.purewl_uuid, error: err.message });
+            log.warn('Failed to deactivate VPN account (trial expiry)', { vpnresellersUuid: va.vpnresellers_uuid, error: err.message });
           }
         }
         await db.query(

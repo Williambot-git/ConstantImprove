@@ -72,13 +72,13 @@ CREATE TABLE payments (
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- VPN accounts (PureWL credentials)
+-- VPN accounts (VPNResellers credentials)
 CREATE TABLE vpn_accounts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-  purewl_username VARCHAR(255) NOT NULL,
-  purewl_password VARCHAR(255) NOT NULL,
-  purewl_uuid VARCHAR(255) NOT NULL,
+  vpnresellers_username VARCHAR(255) NOT NULL,
+  vpnresellers_password VARCHAR(255) NOT NULL,
+  vpnresellers_uuid VARCHAR(255) NOT NULL,
   expiry_date TIMESTAMP NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'disabled', 'expired')),
   multi_login_limit INTEGER NOT NULL DEFAULT 5,
@@ -110,7 +110,7 @@ CREATE TABLE connections (
   bytes_down BIGINT NOT NULL DEFAULT 0
 );
 
--- Servers (cached from PureWL inventory)
+-- Servers (cached from VPNResellers inventory)
 CREATE TABLE servers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name VARCHAR(100) NOT NULL,

@@ -215,7 +215,7 @@ PHASE 10 → Commission Math Verification
 - [ ] **transactions** — commission rows credited with correct `affiliate_id` and `amount_cents`
 - [ ] **referrals** — attribution by `referral_link_id` (not by code string)
 - [ ] **payout_requests** — status transitions: pending → approved/rejected
-- [ ] **vpn_accounts** — `purewl_*` columns store VPNResellers credentials (misleading but working)
+- [ ] **vpn_accounts** — `vpnresellers_*` columns store VPNResellers credentials (misleading but working)
 - [ ] **promo_codes** — 11 orphaned codes (acceptable, not critical)
 - [ ] **No N+1 queries** — affiliate metrics, admin lists use efficient joins
 
@@ -290,7 +290,7 @@ These were fixed on April 14 — verify they are NOT broken by any new changes:
 - [ ] **Input validation** → Joi schema validation on all POST/PUT endpoints
   - Invalid payloads → 400 with descriptive error
 - [ ] **Rate limiting** → No brute force possible on login (5 failures → 15 min lockout)
-- [ ] **Sensitive data export** → password_hash, totp_secret, purewl_password NEVER exported
+- [ ] **Sensitive data export** → password_hash, totp_secret, vpnresellers_password NEVER exported
 - [ ] **Webhook signature** → Plisio, PaymentsCloud, Authorize.net signatures verified
 
 ---

@@ -119,18 +119,18 @@ const vpn = {
   // Used by: src/config/paymentConfig.js
   vpnResellersApiUrl: process.env.VPN_RESELLERS_API_URL || 'https://api.vpnresellers.com',
   
-  // ------------------ PureWL (Atom VPN) ------------------
-  // PureWL API base URL
-  // Used by: src/services/purewlService.js
-  purewlBaseUrl: process.env.PUREWL_BASE_URL || 'https://atomapi.com',
+  // ------------------ VPNResellers (Atom VPN) ------------------
+  // VPNResellers API base URL
+  // Used by: src/services/vpnresellersService.js
+  vpnresellersBaseUrl: process.env.VPNRESELLERS_BASE_URL || 'https://atomapi.com',
   
-  // PureWL secret key for API authentication
-  // Used by: src/services/purewlService.js
-  purewlSecretKey: process.env.PUREWL_SECRET_KEY || '',
+  // VPNResellers secret key for API authentication
+  // Used by: src/services/vpnresellersService.js
+  vpnresellersSecretKey: process.env.VPNRESELLERS_SECRET_KEY || '',
   
-  // PureWL reseller ID
-  // Used by: src/services/purewlService.js
-  purewlResellerId: process.env.PUREWL_RESELLER_ID || '',
+  // VPNResellers reseller ID
+  // Used by: src/services/vpnresellersService.js
+  vpnresellersResellerId: process.env.VPNRESELLERS_RESELLER_ID || '',
 };
 
 // =============================================================================

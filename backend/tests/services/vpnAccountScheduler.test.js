@@ -52,8 +52,8 @@ describe('vpnAccountScheduler', () => {
     it('should disable accounts and update status when expired accounts found', async () => {
       const expiredRows = {
         rows: [
-          { id: 1, purewl_uuid: 'uuid-1', user_id: 101 },
-          { id: 2, purewl_uuid: 'uuid-2', user_id: 102 }
+          { id: 1, vpnresellers_uuid: 'uuid-1', user_id: 101 },
+          { id: 2, vpnresellers_uuid: 'uuid-2', user_id: 102 }
         ]
       };
 
@@ -84,7 +84,7 @@ describe('vpnAccountScheduler', () => {
     it('should still update status when disableAccount throws (swallows error)', async () => {
       const expiredRows = {
         rows: [
-          { id: 5, purewl_uuid: 'uuid-fail', user_id: 501 }
+          { id: 5, vpnresellers_uuid: 'uuid-fail', user_id: 501 }
         ]
       };
 
@@ -114,7 +114,7 @@ describe('vpnAccountScheduler', () => {
 
       const expiredRows = {
         rows: [
-          { id: 100, purewl_uuid: 'uuid-upd-fail', user_id: 601 }
+          { id: 100, vpnresellers_uuid: 'uuid-upd-fail', user_id: 601 }
         ]
       };
 
@@ -144,7 +144,7 @@ describe('vpnAccountScheduler', () => {
     it('should disable VPN account and update status for canceled subscriptions', async () => {
       const canceledRows = {
         rows: [
-          { id: 10, purewl_uuid: 'uuid-cancel-1' }
+          { id: 10, vpnresellers_uuid: 'uuid-cancel-1' }
         ]
       };
 
@@ -174,7 +174,7 @@ describe('vpnAccountScheduler', () => {
     it('disableAccount throws during cleanupCanceledSubscriptions — error logged, status still updated', async () => {
       const canceledRows = {
         rows: [
-          { id: 11, purewl_uuid: 'uuid-disable-fail' }
+          { id: 11, vpnresellers_uuid: 'uuid-disable-fail' }
         ]
       };
 
@@ -208,7 +208,7 @@ describe('vpnAccountScheduler', () => {
 
       const vpnAccountRows = {
         rows: [
-          { id: 30, purewl_uuid: 'uuid-trial-1' }
+          { id: 30, vpnresellers_uuid: 'uuid-trial-1' }
         ]
       };
 
@@ -257,7 +257,7 @@ describe('vpnAccountScheduler', () => {
 
     // -------------------------------------------------------------------------
     // suspendExpiredTrials — line 91: disableAccount throws inside inner try block
-    // VPN account exists with purewl_uuid, subscription canceled, but disableAccount
+    // VPN account exists with vpnresellers_uuid, subscription canceled, but disableAccount
     // throws. The error is caught at line 91, logged, and pipeline continues —
     // subscription remains canceled and user remains deactivated.
     // -------------------------------------------------------------------------
@@ -270,7 +270,7 @@ describe('vpnAccountScheduler', () => {
 
       const vpnAccountRows = {
         rows: [
-          { id: 31, purewl_uuid: 'uuid-trial-fail' }
+          { id: 31, vpnresellers_uuid: 'uuid-trial-fail' }
         ]
       };
 
@@ -294,18 +294,18 @@ describe('vpnAccountScheduler', () => {
   });
 
   // ============================================================
-  // purewl_uuid falsy branches — all 3 cleanup functions skip disableAccount
-  // when purewl_uuid is null/undefined, but still update DB and continue loop.
+  // vpnresellers_uuid falsy branches — all 3 cleanup functions skip disableAccount
+  // when vpnresellers_uuid is null/undefined, but still update DB and continue loop.
   // ============================================================
 
   // -------------------------------------------------------------------------
-  // cleanupExpiredAccounts — line 16: `if (row.purewl_uuid)` branch when falsy
-  // Row has purewl_uuid=null — disableAccount NOT called, UPDATE still runs.
+  // cleanupExpiredAccounts — line 16: `if (row.vpnresellers_uuid)` branch when falsy
+  // Row has vpnresellers_uuid=null — disableAccount NOT called, UPDATE still runs.
   // -------------------------------------------------------------------------
-  describe('cleanupExpiredAccounts — purewl_uuid falsy skips disableAccount', () => {
-    it('disableAccount skipped when row.purewl_uuid is null — UPDATE still runs', async () => {
+  describe('cleanupExpiredAccounts — vpnresellers_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when row.vpnresellers_uuid is null — UPDATE still runs', async () => {
       const rows = [
-        { id: 55, purewl_uuid: null, user_id: 505 }
+        { id: 55, vpnresellers_uuid: null, user_id: 505 }
       ];
 
       mockQuery
@@ -317,7 +317,7 @@ describe('vpnAccountScheduler', () => {
       await expect(cleanupExpiredAccounts()).resolves.not.toThrow();
 
       expect(mockDisableAccount).not.toHaveBeenCalled();
-      // UPDATE still fired (purewl_uuid falsy guard skipped disableAccount but not UPDATE)
+      // UPDATE still fired (vpnresellers_uuid falsy guard skipped disableAccount but not UPDATE)
       const updateCalls = mockQuery.mock.calls.filter(
         c => c[0] && c[0].includes('UPDATE vpn_accounts')
       );
@@ -326,13 +326,13 @@ describe('vpnAccountScheduler', () => {
   });
 
   // -------------------------------------------------------------------------
-  // cleanupCanceledSubscriptions — line 50: `if (row.purewl_uuid)` branch when falsy
-  // Row has purewl_uuid=undefined — disableAccount NOT called, UPDATE to expired runs.
+  // cleanupCanceledSubscriptions — line 50: `if (row.vpnresellers_uuid)` branch when falsy
+  // Row has vpnresellers_uuid=undefined — disableAccount NOT called, UPDATE to expired runs.
   // -------------------------------------------------------------------------
-  describe('cleanupCanceledSubscriptions — purewl_uuid falsy skips disableAccount', () => {
-    it('disableAccount skipped when row.purewl_uuid is undefined — UPDATE still runs', async () => {
+  describe('cleanupCanceledSubscriptions — vpnresellers_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when row.vpnresellers_uuid is undefined — UPDATE still runs', async () => {
       const rows = [
-        { id: 65, purewl_uuid: undefined, user_id: 605 }
+        { id: 65, vpnresellers_uuid: undefined, user_id: 605 }
       ];
 
       mockQuery
@@ -352,12 +352,12 @@ describe('vpnAccountScheduler', () => {
   });
 
   // -------------------------------------------------------------------------
-  // suspendExpiredTrials — line 99: `if (va.purewl_uuid)` inner branch when falsy
-  // VPN account exists (rows.length > 0) but purewl_uuid is null —
+  // suspendExpiredTrials — line 99: `if (va.vpnresellers_uuid)` inner branch when falsy
+  // VPN account exists (rows.length > 0) but vpnresellers_uuid is null —
   // disableAccount NOT called, but UPDATE vpn_accounts -> suspended still runs.
   // -------------------------------------------------------------------------
-  describe('suspendExpiredTrials — vpnAccount.rows[0].purewl_uuid falsy skips disableAccount', () => {
-    it('disableAccount skipped when va.purewl_uuid is null — subscription canceled, user deactivated, VPN suspended', async () => {
+  describe('suspendExpiredTrials — vpnAccount.rows[0].vpnresellers_uuid falsy skips disableAccount', () => {
+    it('disableAccount skipped when va.vpnresellers_uuid is null — subscription canceled, user deactivated, VPN suspended', async () => {
       const expiredTrialRows = {
         rows: [
           { id: 26, user_id: 206, status: 'trialing', plisio_invoice_id: 'inv-26' }
@@ -366,7 +366,7 @@ describe('vpnAccountScheduler', () => {
 
       const vpnAccountRows = {
         rows: [
-          { id: 32, purewl_uuid: null }  // VPN account exists but purewl_uuid is null
+          { id: 32, vpnresellers_uuid: null }  // VPN account exists but vpnresellers_uuid is null
         ]
       };
 
@@ -381,7 +381,7 @@ describe('vpnAccountScheduler', () => {
 
       await expect(suspendExpiredTrials()).resolves.not.toThrow();
 
-      // disableAccount never called because va.purewl_uuid is falsy
+      // disableAccount never called because va.vpnresellers_uuid is falsy
       expect(mockDisableAccount).not.toHaveBeenCalled();
       // All 5 DB operations still fired (subscription canceled, user deactivated, VPN suspended)
       expect(mockQuery).toHaveBeenCalledTimes(5);
@@ -401,8 +401,8 @@ describe('vpnAccountScheduler', () => {
     it('UPDATE throw during cleanupExpiredAccounts — error logged, loop processes all rows', async () => {
       // Simulate: SELECT finds 2 rows; UPDATE for row[0] throws; UPDATE for row[1] succeeds
       const rows = [
-        { id: 50, purewl_uuid: 'uuid-expired-1', user_id: 501 },
-        { id: 51, purewl_uuid: 'uuid-expired-2', user_id: 502 }
+        { id: 50, vpnresellers_uuid: 'uuid-expired-1', user_id: 501 },
+        { id: 51, vpnresellers_uuid: 'uuid-expired-2', user_id: 502 }
       ];
 
       // Mutable flag — checked BEFORE incrementing, so first UPDATE throws and subsequent ones succeed.
@@ -450,8 +450,8 @@ describe('vpnAccountScheduler', () => {
       const { warn } = require('../../src/utils/logger');
       warn.mockImplementation(() => {});
       const rows = [
-        { id: 60, purewl_uuid: 'uuid-cancel-1' },
-        { id: 61, purewl_uuid: 'uuid-cancel-2' }
+        { id: 60, vpnresellers_uuid: 'uuid-cancel-1' },
+        { id: 61, vpnresellers_uuid: 'uuid-cancel-2' }
       ];
 
       // Mutable flag — first UPDATE throws, subsequent ones succeed
