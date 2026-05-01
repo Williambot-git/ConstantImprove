@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const { protect, csrfProtection, loginRateLimiter } = require('../middleware/authMiddleware_new');
+const { protect, csrfProtection } = require('../middleware/authMiddleware_new');
 
-// Public routes (rate-limited)
-router.post('/register', loginRateLimiter, authController.register);
-router.post('/login', loginRateLimiter, authController.login);
+// Public routes (no CSRF protection needed)
+router.post('/register', authController.register);
+router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshToken);
-router.post('/forgot-password', loginRateLimiter, authController.forgotPassword);
+router.post('/forgot-password', authController.forgotPassword);
 router.post('/reset-password', authController.resetPassword);
 router.post('/verify-email', authController.verifyEmail);
 

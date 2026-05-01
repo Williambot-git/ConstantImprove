@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui';
 
@@ -57,6 +58,49 @@ const STEPS = [
   { step: '03', title: 'Connect', description: 'Download the client and connect to any of our global server locations.' },
 ];
 
+// FAQ accordion item for homepage
+function FAQHomeItem({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="faq-home-item">
+      <button
+        className="faq-home-question"
+        onClick={() => setOpen(!open)}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          width: '100%',
+          textAlign: 'left',
+          padding: '0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem',
+        }}
+      >
+        <span style={{ fontSize: '0.95rem', fontWeight: 500, color: '#F5F5F0' }}>{question}</span>
+        <span style={{ color: '#3B82F6', fontSize: '1.1rem', flexShrink: 0 }}>{open ? '−' : '+'}</span>
+      </button>
+      {open && (
+        <p className="faq-home-answer" style={{ fontSize: '0.875rem', color: '#8A8A8A', lineHeight: 1.65, margin: 0 }}>
+          {answer}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// Top 6 FAQ items for homepage — same content as the full /faq page
+const HOME_FAQS = [
+  { q: 'How do I create an account?', a: 'Simply choose a plan on our homepage and proceed to checkout. After payment confirmation, we generate a numeric username and password for you. No email address required.' },
+  { q: 'Do you keep logs of my activity?', a: 'No. We do not log or store any information about your online activities — no IP addresses, DNS queries, websites visited, or connection times.' },
+  { q: 'What payment methods do you accept?', a: 'We accept credit and debit cards (via PaymentsCloud) and a wide range of cryptocurrencies (via Plisio).' },
+  { q: 'How many devices can I connect?', a: 'All plans include up to 10 simultaneous connections under one account. Account sharing is not permitted.' },
+  { q: 'What is a recovery kit?', a: 'A recovery kit is a unique code provided after account creation. If you lose your password, you can use this kit to recover your account and set a new password. Each kit is single-use.' },
+  { q: 'How do I contact support?', a: 'Email us at ahoyvpn@ahoyvpn.net or use the Contact Support button in the footer. We aim to respond within 24 hours.' },
+];
+
 export default function Home() {
   return (
     <div style={styles.page}>
@@ -97,7 +141,7 @@ export default function Home() {
         </div>
         <div style={styles.featuresGrid}>
           {FEATURES.map((f) => (
-            <div key={f.title} style={styles.featureCard}>
+            <div key={f.title} className="feature-card">
               <h3 style={styles.featureTitle}>{f.title}</h3>
               <p style={styles.featureDesc}>{f.description}</p>
             </div>
@@ -115,7 +159,7 @@ export default function Home() {
         </div>
         <div style={styles.pricingGrid}>
           {PLANS.map((plan) => (
-            <div key={plan.id} style={styles.pricingCard}>
+            <div key={plan.id} className="pricing-card">
               {plan.badge && (
                 <span style={{
                   ...styles.pricingBadge,
@@ -147,13 +191,34 @@ export default function Home() {
         </div>
         <div style={styles.stepsGrid}>
           {STEPS.map((s, i) => (
-            <div key={s.step} style={styles.step}>
+            <div key={s.step} className="step-card">
               <span style={styles.stepNumber}>{s.step}</span>
               <h3 style={styles.stepTitle}>{s.title}</h3>
               <p style={styles.stepDesc}>{s.description}</p>
             </div>
           ))}
         </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section style={styles.section}>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>Frequently asked questions</h2>
+          <p style={styles.sectionSubtitle}>
+            Quick answers before you sign up.
+          </p>
+        </div>
+        <div style={styles.faqGrid}>
+          {HOME_FAQS.map((item, idx) => (
+            <FAQHomeItem key={idx} question={item.q} answer={item.a} />
+          ))}
+        </div>
+        <p style={styles.faqMoreLink}>
+          Still have questions?{' '}
+          <Link href="/faq" style={{ color: '#3B82F6', textDecoration: 'none' }}>
+            View all FAQs →
+          </Link>
+        </p>
       </section>
 
       {/* CTA Banner */}
@@ -362,6 +427,22 @@ const styles = {
     fontSize: '0.875rem',
     color: '#8A8A8A',
     lineHeight: 1.65,
+  },
+
+  faqGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+    marginTop: '2rem',
+    maxWidth: '720px',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  faqMoreLink: {
+    textAlign: 'center',
+    marginTop: '1.5rem',
+    fontSize: '0.875rem',
+    color: '#8A8A8A',
   },
 
   ctaBanner: {

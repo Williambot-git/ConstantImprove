@@ -4,7 +4,7 @@
  *
  * Supports TWO usage patterns:
  * 1. axios.get(url, config) — used by plisioService (module-level get/post)
- * 2. axios.create(config).get/post/put() — used by vpnresellersService (instance methods)
+ * 2. axios.create(config).get/post/put() — used by purewlService (instance methods)
  *
  * Key design:
  * - Module-level get/post/put are the canonical jest.fn() mocks.
@@ -43,6 +43,6 @@ module.exports = {
   create: createAxiosInstance,
   // Expose the instance for tests that need direct access without spyOn:
   //   require('axios').__mockInstance__.post.mockResolvedValueOnce(...)
-  // For vpnresellersService (uses create), the instance is from the last create() call.
+  // For purewlService (uses create), the instance is from the last create() call.
   __mockInstance__: createAxiosInstance(),
 };

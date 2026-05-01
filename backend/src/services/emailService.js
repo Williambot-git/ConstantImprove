@@ -1,10 +1,17 @@
 const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 const fs = require('fs');
 const path = require('path');
 const log = require('../utils/logger');
 
 class EmailService {
   constructor() {
+    // SendGrid — preferred for transactional email
+    if (process.env.SENDGRID_API_KEY) {
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    }
+
+    // Nodemailer — fallback / used for non-SendGrid SMTP
     this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: parseInt(process.env.SMTP_PORT, 10) || 587,
@@ -14,7 +21,7 @@ class EmailService {
         pass: process.env.SMTP_PASS,
       },
     });
-    
+
     this.fromTransactional = process.env.EMAIL_FROM_TRANSACTIONAL || 'ahoyvpn@ahoyvpn.net';
     this.fromSupport = process.env.EMAIL_FROM_SUPPORT || 'William@ahoyvpn.com';
     
@@ -150,6 +157,33 @@ class EmailService {
   // For customer‑service replies (manual)
   getSupportEmail() {
     return this.fromSupport;
+  }
+
+  // Send a contact/support message from the public contact form
+  async sendContactEmail({ name, email, subject, message }) {
+    const msg = {
+      to: this.fromSupport,
+      from: `"AhoyVPN Contact" <${this.fromTransactional}>`,
+      replyTo: `"${name}" <${email}>`,
+      subject: `[Contact Form] ${subject}`,
+      text: `Name: ${name}\nEmail: ${email}\nSubject: ${subject}\n\nMessage:\n${message}`,
+      html: `
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <hr />
+        <p>${message.replace(/\n/g, '<br />')}</p>
+      `,
+    };
+
+    try {
+      const [info] = await sgMail.send(msg);
+      log.info('Contact form email sent via SendGrid', { to: this.fromSupport, messageId: info.messageId });
+      return info;
+    } catch (error) {
+      log.error('SendGrid contact email failed', { error: error.message || error, response: error.response?.body });
+      throw error;
+    }
   }
 }
 

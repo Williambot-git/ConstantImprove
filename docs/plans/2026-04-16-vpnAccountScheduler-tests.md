@@ -76,8 +76,8 @@ const { disableAccount } = new VpnResellersService();
 describe('cleanupExpiredAccounts', () => {
   it('should disable expired accounts and update status to expired', async () => {
     const mockRows = [
-      { id: 1, vpnresellers_uuid: 'uuid-1', user_id: 10 },
-      { id: 2, vpnresellers_uuid: 'uuid-2', user_id: 20 }
+      { id: 1, purewl_uuid: 'uuid-1', user_id: 10 },
+      { id: 2, purewl_uuid: 'uuid-2', user_id: 20 }
     ];
     db.query
       .mockResolvedValueOnce({ rows: mockRows }) // SELECT
@@ -124,7 +124,7 @@ describe('cleanupExpiredAccounts', () => {
 
 ```javascript
   it('should update status to expired even if disableAccount throws', async () => {
-    const mockRows = [{ id: 5, vpnresellers_uuid: 'uuid-fail', user_id: 50 }];
+    const mockRows = [{ id: 5, purewl_uuid: 'uuid-fail', user_id: 50 }];
     db.query
       .mockResolvedValueOnce({ rows: mockRows })
       .mockResolvedValueOnce({ rows: [] });
@@ -149,8 +149,8 @@ describe('cleanupExpiredAccounts', () => {
 describe('cleanupCanceledSubscriptions', () => {
   it('should disable accounts for canceled subscriptions past period end', async () => {
     const mockRows = [
-      { id: 1, vpnresellers_uuid: 'uuid-c1' },
-      { id: 2, vpnresellers_uuid: 'uuid-c2' }
+      { id: 1, purewl_uuid: 'uuid-c1' },
+      { id: 2, purewl_uuid: 'uuid-c2' }
     ];
     db.query
       .mockResolvedValueOnce({ rows: mockRows })
@@ -191,7 +191,7 @@ describe('suspendExpiredTrials', () => {
     // Subscription query result
     const subRows = [{ id: 99, user_id: 77, plisio_invoice_id: 'inv_abc' }];
     // VPN account query result
-    const vpnRows = [{ id: 15, vpnresellers_uuid: 'uuid-trial' }];
+    const vpnRows = [{ id: 15, purewl_uuid: 'uuid-trial' }];
 
     db.query
       // SELECT subscriptions

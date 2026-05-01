@@ -1011,7 +1011,7 @@ describe('processPaymentsCloudPaymentAsync', () => {
       return Promise.resolve(sequence[callIndex++] || { rows: [] });
     });
 
-    _origCreateVpnAccount.mockRejectedValueOnce(new Error('VPNResellers API error'));
+    _origCreateVpnAccount.mockRejectedValueOnce(new Error('PureWL API error'));
 
     // Must NOT throw — outer catch (line 282) handles it and logs gracefully
     await expect(processPaymentsCloudPaymentAsync({

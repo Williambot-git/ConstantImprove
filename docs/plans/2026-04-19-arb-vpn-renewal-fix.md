@@ -39,7 +39,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
   if (renew) {
     // Look up the existing vpn_accounts row for this user
     const existing = await db.query(
-      'SELECT id, vpnresellers_uuid FROM vpn_accounts WHERE user_id = $1',
+      'SELECT id, purewl_uuid FROM vpn_accounts WHERE user_id = $1',
       [userId]
     );
     if (existing.rows.length > 0) {
@@ -54,7 +54,7 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
       );
 
       // Also update expiry on VPN Resellers side so the server recognizes it
-      const { vpnresellers_uuid: existingUuid } = existing.rows[0];
+      const { purewl_uuid: existingUuid } = existing.rows[0];
       if (existingUuid) {
         try {
           await vpnResellersService.setExpiry(existingUuid, newExpiryYmd);
@@ -65,8 +65,8 @@ async function createVpnAccount(userId, accountNumber, planInterval, { renew = f
 
       const updated = await db.query('SELECT * FROM vpn_accounts WHERE user_id = $1', [userId]);
       return {
-        username: updated.rows[0]?.vpnresellers_username,
-        password: updated.rows[0]?.vpnresellers_password,  // unchanged — kept from original creation
+        username: updated.rows[0]?.purewl_username,
+        password: updated.rows[0]?.purewl_password,  // unchanged — kept from original creation
         accountId: existingUuid,
         account: updated.rows[0],
         renewed: true
@@ -167,8 +167,8 @@ describe('createVpnAccount renew:true — existing VPN account', () => {
   test('extends expiry on existing vpn_accounts row without calling VPN Resellers create', async () => {
     // Existing VPN account for user_id=1
     mockDbQuery
-      .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_123', vpnresellers_username: 'user_abc', vpnresellers_password: 'secret123' }] }) // existing lookup
-      .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_123', vpnresellers_username: 'user_abc', vpnresellers_password: 'secret123', expiry_date: '2026-05-19' }] }); // updated row
+      .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_abc', purewl_password: 'secret123' }] }) // existing lookup
+      .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_abc', purewl_password: 'secret123', expiry_date: '2026-05-19' }] }); // updated row
 
     const result = await createVpnAccount(1, 'ACC001', 'month', { renew: true });
 
@@ -189,7 +189,7 @@ describe('createVpnAccount renew:true — existing VPN account', () => {
     mockVpnResellersService.checkUsername.mockResolvedValue({ data: { message: 'Username not taken' } });
     mockVpnResellersService.createAccount.mockResolvedValue({ data: { id: 'new_id', allowed_countries: [] } });
     mockVpnResellersService.setExpiry.mockResolvedValue(undefined);
-    mockDbQuery.mockResolvedValueOnce({ rows: [{ id: 20, vpnresellers_uuid: 'new_id' }] }); // INSERT result
+    mockDbQuery.mockResolvedValueOnce({ rows: [{ id: 20, purewl_uuid: 'new_id' }] }); // INSERT result
 
     const result = await createVpnAccount(1, 'ACC002', 'month', { renew: true });
 

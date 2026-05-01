@@ -50,12 +50,12 @@ Every checkable item in every priority has been mapped and verified. See below f
 - [x] Affiliate attribution — cookie `affiliate_code` at checkout → `subscription.referral_code` (normalizeAffiliateCode strips special chars)
 - [x] Commission calculation — 10% of net profit, $0.75 min, case-insensitive username lookup ✅ FIXED
 - [x] Payout request flow — min $10, manual email, backend now says `Ahoyvpn@ahoyvpn.net` ✅ FIXED
-- [x] `payout_config` table — key=`minimum_payout_cents`=1000, `commission_rate`=0.25, `hold_period_days`=30, `default_discount_cents`
+- [x] `payout_config` table — key=`minimum_payout_cents`=1000, `commission_rate_monthly/quarterly/semiannual/annual`=0.10, `hold_period_days`=30, `default_discount_cents`
 
 **User/Subscription System** ✅
 - [x] Subscription states — trialing (30-day grace window), active, cancelled, expired
 - [x] VPN credentials generation — VPNResellers API on payment webhook; account created, enabled, expiry set
-- [x] VPN server access — ALL 501 ❌ — controller (`vpnController.js`) has 6 stub functions returning `{error: 'Not implemented'}`; VPNResellersService (`vpnResellersService.js`) has account management methods but NO server list/config methods
+- [x] VPN server access — `getServers` returns static MOCK_SERVERS list (not live API); `getWireGuardConfig` and `getOpenVPNConfig` look up real VPN account from `vpn_accounts` table, call `vpnResellersService.getAccount()` for live credentials, then return a config — VPNResellersService (`vpnResellersService.js`) has account management methods; `connect`/`disconnect`/`getConnections` are legitimate 501 stubs (require daemon integration)
 
 **Frontend Pages** ✅ (all mapped — see Priority 1 Checklist for details)
 
@@ -106,8 +106,8 @@ Every checkable item in every priority has been mapped and verified. See below f
 | `payments` | id, user_id, subscription_id, amount_cents, payment_method, status, plisio_invoice_id, created_at | |
 | `transactions` | id, affiliate_id, type, amount_cents, paid_out_at, created_at | type = 'commission' or 'payout' |
 | `payout_requests` | id, affiliate_id, amount_cents, status, requested_at, processed_at, processor_transaction_id, notes | |
-| `payout_config` | id, affiliate_id, key, value | Keys: minimum_payout_cents=1000, commission_rate=0.25, hold_period_days=30, default_discount_cents |
-| `vpn_accounts` | id, user_id, vpnresellers_username, vpnresellers_password, vpnresellers_uuid, expiry_date, status, multi_login_limit, allowed_countries (jsonb) | ⚠️ `vpnresellers_*` columns store VPNResellers credentials |
+| `payout_config` | id, affiliate_id, key, value | Keys: minimum_payout_cents=1000, commission_rate_monthly/quarterly/semiannual/annual=0.10, hold_period_days=30, default_discount_cents |
+| `vpn_accounts` | id, user_id, purewl_username, purewl_password, purewl_uuid, expiry_date, status, multi_login_limit, allowed_countries (jsonb) | ⚠️ `purewl_*` columns store VPNResellers credentials (misleading name) |
 | `recovery_kits` | id, user_id, kit (encrypted), expires_at, used_at, last_shown_at | 8 codes, argon2 hashed, 1-hour expiry |
 | `password_reset_tokens` | id, user_id, token_hash, expires_at, used, created_at | SHA-256 hash, 1-hour expiry |
 | `sessions` | id, user_id, token_hash, expires_at, revoked, created_at | |
@@ -340,13 +340,10 @@ Formula: `(amountCents - operatingCostCents) * 0.10`, capped at minimum $0.75
 
 ---
 
-### 🟡 Commission Rate Discrepancy (Low Risk — Not Triggered Yet)
+### 🟡 Commission Rate (Resolved — 10% Across All Intervals)
 
-- `payout_config` table says: `commission_rate = 0.25` (25%)
-- Code (`applyAffiliateCommissionIfEligible`) says: `commissionRate = 0.10` (10%)
-
-**Code takes precedence** — commission is always 10% because the code runs, not the config.
-The payout_config value of 25% is never read by the actual commission function.
+- `payout_config` stores per-interval rates: `commission_rate_monthly` = `commission_rate_quarterly` = `commission_rate_semiannual` = `commission_rate_annual` = 0.10 (10%)
+- Code (`applyAffiliateCommissionIfEligible`) uses: `commissionRate = 0.10` (10%) — aligns with DB
 
 ---
 
@@ -613,7 +610,7 @@ Both say `william@ahoyvpn.com` instead of `Ahoyvpn@ahoyvpn.net`. This is a **bac
 ### ✅ VPN Account Structure
 
 `vpn_accounts` table:
-- `vpnresellers_username`, `vpnresellers_password`, `vpnresellers_uuid` — VPNResellers credentials
+- `purewl_username`, `purewl_password`, `purewl_uuid` — VPNResellers credentials
 - `expiry_date`, `status` (active/expired)
 - `multi_login_limit`, `allowed_countries` (jsonb)
 - `user_id` links to users table
@@ -712,7 +709,7 @@ All authenticated (requires `authMiddleware.protect` + CSRF).
 1. createVpnAccount(userId, accountNumber, planInterval)
 2. VPNResellersService.createAccount({username, password})
 3. VPNResellersService.setExpiry(accountId, expiryDateYmd)  
-4. Insert into vpn_accounts (user_id, vpnresellers_username, vpnresellers_password, vpnresellers_uuid, expiry_date, status, allowed_countries)
+4. Insert into vpn_accounts (user_id, purewl_username, purewl_password, purewl_uuid, expiry_date, status, allowed_countries)
 5. Return {username, password, accountId}
 6. Email sent to customer via emailService.sendAccountCreatedEmail()
 ```
@@ -831,7 +828,7 @@ ORDER BY al.created_at DESC
 - [x] Commission calculation — 10% of net profit, $0.75 minimum, CASE MISMATCH BUG ❌
 - [x] Commission hold period — 30 days before available for payout
 - [x] Payout request flow — min $10, manual email to William, backend has wrong email ❌
-- [x] payout_config table — min_payout_cents=1000, commission_rate={rate:0.25}, hold_period_days=30
+- [x] payout_config table — min_payout_cents=1000, commission_rate_monthly/quarterly/semiannual/annual={rate:0.10}, hold_period_days=30
 
 **User/Subscription System:**
 - [x] Subscription states — trialing (30-day grace window), active, cancelled, expired
@@ -993,7 +990,7 @@ Returns: referral ID, signup_date, status, commission_cents, paid_at, plan_name,
 
 ### ✅ Export Service (Security)
 
-Blocked fields never exported: `password_hash`, `numeric_password_hash`, `salt`, `totp_secret`, `recovery_codes`, `kit_hash`, `password_reset_token`, `vpnresellers_password`, `vpnresellers_uuid`, IP addresses, file paths
+Blocked fields never exported: `password_hash`, `numeric_password_hash`, `salt`, `totp_secret`, `recovery_codes`, `kit_hash`, `password_reset_token`, `purewl_password`, `purewl_uuid`, IP addresses, file paths
 
 ---
 
@@ -1101,11 +1098,11 @@ pm2 update --restart-delay 1000
 | `PAYCLOUD_API_KEY` + `PAYCLOUD_SECRET` | PaymentsCloud | Alternative card processor |
 | `MAILERSEND_API_KEY` | MailerSend | Transactional email |
 | `SMTP_PASS` | MailerSend | SMTP relay |
-| `VPNRESELLERS_SECRET_KEY` | VPNResellers | **NOT IN USE** — VPNResellers used instead |
+| `PUREWL_SECRET_KEY` | PureWL | **NOT IN USE** — VPNResellers used instead |
 | `JWT_SECRET` + `REFRESH_TOKEN_SECRET` | Local | Auth token signing |
 | `PLISIO_WEBHOOK_SECRET` | Plisio | Webhook HMAC verification |
 
-**VPN Providers:** VPNResellersService is PRIMARY (used in createVpnAccount). PureWLService exists but is dead code — configured with VPNRESELLERS_SECRET_KEY but never called.
+**VPN Providers:** VPNResellersService is PRIMARY (used in createVpnAccount). PureWLService exists but is dead code — configured with PUREWL_SECRET_KEY but never called.
 
 ### ✅ Frontend Pages (All Static HTML)
 
@@ -1151,18 +1148,18 @@ tos.html
 - PM2 process `ahoyvpn-backend`: online, 225 restarts, ~85MB RAM, running as `ahoy` user
 - `NODE_ENV` determines: secure cookies, CSRF enforcement, cleanup job toggles
 
-### ⚠️ VPNResellers is Dead Code
+### ⚠️ PureWL is Dead Code
 
-`vpnresellersService.js` exists and uses `VPNRESELLERS_SECRET_KEY` — but `createVpnAccount` in `userService.js` only calls `vpnResellersService.createAccount()`. VPNResellers is never called anywhere. The `vpnresellers_username`, `vpnresellers_password`, `vpnresellers_uuid` column names in `vpn_accounts` — these are VPNResellers credentials stored under the old purewl name.
+`purewlService.js` exists and uses `PUREWL_SECRET_KEY` — but `createVpnAccount` in `userService.js` only calls `vpnResellersService.createAccount()`. PureWL is never called anywhere. The `purewl_username`, `purewl_password`, `purewl_uuid` column names in `vpn_accounts` are misleading — these are actually VPNResellers credentials, not PureWL.
 
 ---
 
 ### Critical Findings This Session
 
 1. **PM2 crashed 225 times** — backend is unstable, needs investigation
-2. **VPNResellers is dead code** — VPNRESELLERS_SECRET_KEY is configured but never used
+2. **PureWL is dead code** — PUREWL_SECRET_KEY is configured but never used
 3. **Webhook.ahoyvpn.net SSL** — expires Jun 27 (after ahoyvpn.net's Jun 3)
-4. **VPNResellers column names** — `vpnresellers_*` columns store VPNResellers data (misleading schema)
+4. **VPNResellers column names** — `purewl_*` columns actually store VPNResellers data (misleading schema)
 
 ### Complete API Keys Status
-All 12+ external services have keys configured. Only VPNResellers key is unused (dead service).
+All 12+ external services have keys configured. Only PureWL key is unused (dead service).

@@ -42,3 +42,146 @@ a:hover { color: var(--color-accent-hover); }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-ter); }
 
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* ─── Navbar hover ─────────────────────────────────────────── */
+.ahoy-nav a {
+  color: #8A8A8A;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+.ahoy-nav a:hover,
+.ahoy-nav a.ahoy-nav-link-hover {
+  color: #F5F5F0;
+}
+.ahoy-nav a.ahoy-nav-link-active {
+  color: #F5F5F0;
+}
+
+/* ─── Feature / pricing / step cards ───────────────────────── */
+.feature-card {
+  padding: 2rem 1.75rem;
+  background-color: #1A1A1A;
+  border-right: 1px solid #2E2E2E;
+  border-bottom: 1px solid #2E2E2E;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  cursor: default;
+}
+.feature-card:hover {
+  background-color: #1F1F1F;
+  transform: translateY(-2px);
+}
+.feature-card:last-child {
+  border-right: none;
+}
+@media (max-width: 768px) {
+  .feature-card { border-right: none; }
+}
+
+.pricing-card {
+  position: relative;
+  background-color: #1A1A1A;
+  border: 1px solid #2E2E2E;
+  border-radius: 10px;
+  padding: 1.75rem;
+  text-align: center;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+.pricing-card:hover {
+  border-color: #3B82F6;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(59,130,246,0.15);
+}
+
+.step-card {
+  padding: 1.5rem 2rem;
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+.step-card:hover {
+  transform: translateY(-2px);
+}
+
+/* ─── FAQ accordion on homepage ────────────────────────────── */
+.faq-home-item {
+  background-color: #1A1A1A;
+  border: 1px solid #2E2E2E;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+.faq-home-item:hover,
+.faq-home-item.faq-home-expanded {
+  border-color: #3B82F6;
+}
+.faq-home-question {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #F5F5F0;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+.faq-home-question:hover {
+  background-color: #1F1F1F;
+}
+.faq-home-answer {
+  padding: 0 1.5rem 1.25rem;
+  border-top: 1px solid #2E2E2E;
+  color: #8A8A8A;
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+/* ─── Privacy / TOS prose sections ────────────────────────── */
+.prose-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid #1E1E1E;
+}
+.prose-section:last-child {
+  border-bottom: none;
+}
+.prose-section h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #F5F5F0;
+  margin-bottom: 0.875rem;
+  letter-spacing: 0.01em;
+}
+.prose-section p {
+  color: #B0C4DE;
+  line-height: 1.8;
+  font-size: 0.9rem;
+}
+.prose-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+}
+.prose-section li {
+  color: #B0C4DE;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  position: relative;
+}
+.prose-section li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #3B82F6;
+}

@@ -59,3 +59,15 @@ export function Select({ value, onChange, children, error = false, style = {}, .
     </select>
   );
 }
+
+export function Textarea({ placeholder, value, onChange, disabled = false, error = false, style = {}, rows = 4, ...props }) {
+  return (
+    <textarea
+      placeholder={placeholder} value={value} onChange={onChange} disabled={disabled} rows={rows}
+      style={{ width: '100%', padding: '0.625rem 0.875rem', backgroundColor: '#1A1A1A', color: '#F5F5F0', border: error ? '1px solid #EF4444' : '1px solid #2E2E2E', borderRadius: '6px', fontSize: '0.9rem', fontFamily: 'inherit', transition: 'border-color 0.2s ease, box-shadow 0.2s ease', outline: 'none', resize: 'vertical', minHeight: '100px', ...style }}
+      onFocus={(e) => { if (!error) { e.target.style.borderColor = '#3B82F6'; e.target.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.15)'; }}}
+      onBlur={(e) => { e.target.style.borderColor = error ? '#EF4444' : '#2E2E2E'; e.target.style.boxShadow = 'none'; }}
+      {...props}
+    />
+  );
+}

@@ -297,17 +297,17 @@ async function pollArbSubscriptions(opts = {}) {
           );
 
           const vpnAccount = await db.query(
-            `SELECT id, vpnresellers_uuid FROM vpn_accounts WHERE user_id = $1 AND status = 'active'`,
+            `SELECT id, vpn_uuid FROM vpn_accounts WHERE user_id = $1 AND status = 'active'`,
             [sub.user_id]
           );
 
           if (vpnAccount.rows.length > 0) {
             const va = vpnAccount.rows[0];
-            if (va.vpnresellers_uuid) {
+            if (va.vpn_uuid) {
               try {
-                await vpnResellersService.deactivateAccount({ account_id: va.vpnresellers_uuid });
+                await vpnResellersService.deactivateAccount({ account_id: va.vpn_uuid });
               } catch (err) {
-                log.warn('Failed to deactivate VPN on ARB cancel', { vpnresellersUuid: va.vpnresellers_uuid, error: err.message });
+                log.warn('Failed to deactivate VPN on ARB cancel', { vpnUuid: va.vpn_uuid, error: err.message });
               }
             }
             await db.query(

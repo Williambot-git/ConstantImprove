@@ -19,7 +19,7 @@ const plisioService = require('../services/plisioService');
 
 const zipTaxService = require('../services/ziptaxService');
 
-const { getAuthorizeTransactionDetails, AuthorizeNetService } = require('../services/authorizeNetUtils');
+const { getAuthorizeTransactionDetails, AuthorizeNetService, parseHostedPaymentPageResponse } = require('../services/authorizeNetUtils');
 
 // Re-export affiliateCommissionService.applyAffiliateCommissionIfEligible so existing
 // importers (webhookController, paymentProcessingService) continue to work without changes.
@@ -1202,14 +1202,22 @@ const authorizeRelayResponse = async (req, res) => {
 
 
 
-    const responseCode = String(payload.x_response_code || payload.response_code || '').trim();
-
-    const transactionId = String(payload.x_trans_id || payload.transId || '').trim();
-
-    const invoiceNumber = String(payload.x_invoice_num || payload.invoiceNumber || '').trim();
-
-    const amountRaw = String(payload.x_amount || payload.amount || '').trim();
-
+    // Accept.js / opaque token mode: parse x_payload if present
+    let responseCode = String(payload.x_response_code || payload.response_code || '').trim();
+    let transactionId = String(payload.x_trans_id || payload.transId || '').trim();
+    let invoiceNumber = String(payload.x_invoice_num || payload.invoiceNumber || '').trim();
+    let amountRaw = String(payload.x_amount || payload.amount || '').trim();
+    if (!responseCode && !transactionId && (payload.x_payload || payload.payload)) {
+      const { appBaseUrl } = inferBaseUrls(req);
+      const relayUrl = `${appBaseUrl}/api/payment/authorize/relay`;
+      const parsed = await parseHostedPaymentPageResponse(payload, relayUrl);
+      if (parsed) {
+        responseCode = parsed.responseCode || '';
+        transactionId = parsed.transId || '';
+        invoiceNumber = parsed.invoiceNumber || '';
+        amountRaw = parsed.amount || '';
+      }
+    }
 
 
         if (process.env.DEBUG_AUTHORIZE_NET === 'true') {

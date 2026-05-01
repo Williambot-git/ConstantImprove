@@ -1,6 +1,6 @@
 # AhoyVPN Backend API
 
-Node.js/Express backend for AhoyVPN, integrating with VPNResellers (Atom VPN) for VPN infrastructure, cryptocurrency payments via Plisio, and PostgreSQL for data.
+Node.js/Express backend for AhoyVPN, integrating with PureWL (Atom VPN) for VPN infrastructure, cryptocurrency payments via Plisio, and PostgreSQL for data.
 
 ## Core Principles
 
@@ -31,7 +31,7 @@ Node.js/Express backend for AhoyVPN, integrating with VPNResellers (Atom VPN) fo
 - User authentication (JWT, 2FA, recovery codes)
 - Subscription management (monthly, quarterly, semi‑annual, annual)
 - Payment processing (Plisio for cryptocurrency, PaymentsCloud for fiat)
-- VPN account provisioning via VPNResellers API
+- VPN account provisioning via PureWL API
 - Affiliate program (invitation‑only, 25% commission)
 - Support ticket system
 - Dashboard API for frontend
@@ -44,7 +44,7 @@ Node.js/Express backend for AhoyVPN, integrating with VPNResellers (Atom VPN) fo
 - **Database**: PostgreSQL with migrations
 - **Authentication**: JWT, bcrypt, TOTP
 - **Payments**: Plisio (cryptocurrency), PaymentsCloud (fiat)
-- **VPN Integration**: VPNResellers (Atom VPN) API
+- **VPN Integration**: PureWL (Atom VPN) API
 - **Email**: SMTP (dual‑domain: `@ahoyvpn.net` transactional, `William@ahoyvpn.com` support)
 
 ## Architecture
@@ -220,7 +220,7 @@ curl -X POST http://localhost:3000/api/payment/webhook/plisio \
 - `recovery_kits` - Single-use recovery kits
 - `subscriptions` - User subscriptions
 - `payments` - Payment records
-- `vpn_accounts` - VPNResellers VPN credentials
+- `vpn_accounts` - PureWL VPN credentials
 
 ### Affiliate Tables
 - `affiliates` - Affiliate accounts
@@ -232,9 +232,9 @@ curl -X POST http://localhost:3000/api/payment/webhook/plisio \
 - `support_tickets` - Customer support tickets
 - `audit_logs` - Security audit logs
 
-## VPNResellers Integration
+## PureWL Integration
 
-The backend uses VPNResellers (Atom VPN) as the VPN provider. When a user subscribes:
+The backend uses PureWL (Atom VPN) as the VPN provider. When a user subscribes:
 
 1. A VPN account is created via `/vam/v3/create` with a unique `uuid`.
 2. Credentials (`vpnUsername`, `vpnPassword`) are stored encrypted.

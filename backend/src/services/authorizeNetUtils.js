@@ -501,4 +501,61 @@ class AuthorizeNetService {
   }
 }
 
-module.exports = { getAuthorizeTransactionDetails, cancelArbSubscription, AuthorizeNetService };
+module.exports = { getAuthorizeTransactionDetails, cancelArbSubscription, AuthorizeNetService, parseHostedPaymentPageResponse };
+
+/**
+ * Parse a hosted payment page callback payload (POST from Authorize.net relay).
+ * Handles two cases:
+ *  - Standard relay POST: has x_response_code, x_trans_id, x_invoice_num directly
+ *  - Accept.js token response: has x_payload (opaque descriptor token)
+ * Returns null if the payload can't be parsed.
+ *
+ * @param {object} payload - req.body from the relay POST
+ * @param {string} relayUrl - The relay URL (used to POST the opaque data back to Authorize.net)
+ * @returns {Promise<object|null>} Parsed fields: { transId, invoiceNumber, amount, responseCode, responseReasonText, cardType, email }
+ */
+async function parseHostedPaymentPageResponse(payload, relayUrl) {
+  const responseCode = String(payload.x_response_code || payload.response_code || '').trim();
+
+  const transId = String(payload.x_trans_id || payload.transId || '').trim();
+  const invoiceNumber = String(payload.x_invoice_num || payload.invoiceNumber || '').trim();
+  const amountRaw = String(payload.x_amount || payload.amount || '').trim();
+
+  // If we have a direct response, return it directly
+  if (responseCode || transId) {
+    return {
+      transId,
+      invoiceNumber,
+      amount: amountRaw,
+      responseCode,
+      responseReasonText: String(payload.x_response_reason_text || payload.response_reason_text || '').trim(),
+      cardType: String(payload.x_card_type || payload.card_type || '').trim(),
+      email: String(payload.x_email || payload.email || '').trim()
+    };
+  }
+
+  // Accept.js token mode: x_payload is a base64-encoded JSON blob
+  const xPayload = payload.x_payload || payload.payload || '';
+  if (!xPayload) {
+    return null;
+  }
+
+  try {
+    // Decode the opaque data token by POSTing it back to Authorize.net's getTransactionDetails
+    const decoded = await AuthorizeNetService.getAuthorizeTransactionDetails(xPayload);
+    if (!decoded) return null;
+
+    return {
+      transId: decoded.transId || '',
+      invoiceNumber: decoded.invoiceNumber || decoded.invoice_number || '',
+      amount: decoded.amount || '',
+      responseCode: decoded.responseCode || decoded.status || '',
+      responseReasonText: decoded.responseReasonText || '',
+      cardType: decoded.cardType || decoded.card_type || '',
+      email: decoded.email || ''
+    };
+  } catch (err) {
+    log.warn('Failed to parse hosted payment page response', { error: err.message });
+    return null;
+  }
+}

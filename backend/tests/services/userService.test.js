@@ -265,9 +265,9 @@ describe('userService', () => {
         rows: [{
           id: 'db-vpn-uuid',
           user_id: 'user-uuid-1',
-          vpnresellers_username: 'user_12345',
-          vpnresellers_password: expect.any(String),
-          vpnresellers_uuid: 'vpn-account-123',
+          purewl_username: 'user_12345',
+          purewl_password: expect.any(String),
+          purewl_uuid: 'vpn-account-123',
           status: 'active'
         }]
       };
@@ -291,9 +291,9 @@ describe('userService', () => {
         rows: [{
           id: 'db-vpn-uuid-2',
           user_id: 'user-uuid-1',
-          vpnresellers_username: expect.stringContaining('user_99999_'),
-          vpnresellers_password: expect.any(String),
-          vpnresellers_uuid: 'vpn-account-456',
+          purewl_username: expect.stringContaining('user_99999_'),
+          purewl_password: expect.any(String),
+          purewl_uuid: 'vpn-account-456',
           status: 'active'
         }]
       };
@@ -326,9 +326,9 @@ describe('userService', () => {
         rows: [{
           id: 'db-vpn-uuid',
           user_id: 'user-uuid-1',
-          vpnresellers_username: 'user_12345',
-          vpnresellers_password: expect.any(String),
-          vpnresellers_uuid: 'vpn-account-789',
+          purewl_username: 'user_12345',
+          purewl_password: expect.any(String),
+          purewl_uuid: 'vpn-account-789',
           status: 'active'
         }]
       };
@@ -353,9 +353,9 @@ describe('userService', () => {
         rows: [{
           id: 'db-vpn-uuid-err',
           user_id: 'user-uuid-1',
-          vpnresellers_username: expect.stringContaining('user_12345_'),
-          vpnresellers_password: expect.any(String),
-          vpnresellers_uuid: 'vpn-account-err',
+          purewl_username: expect.stringContaining('user_12345_'),
+          purewl_password: expect.any(String),
+          purewl_uuid: 'vpn-account-err',
           status: 'active'
         }]
       };
@@ -377,9 +377,9 @@ describe('userService', () => {
       // Existing VPN account for user_id=1
       User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_123', vpnresellers_username: 'user_acc1', vpnresellers_password: 'secret_old' }] }) // existing lookup
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_acc1', purewl_password: 'secret_old' }] }) // existing lookup
         .mockResolvedValueOnce({ rowCount: 1 })   // UPDATE expiry
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_123', vpnresellers_username: 'user_acc1', vpnresellers_password: 'secret_old', expiry_date: '2026-05-19' }] }); // SELECT updated row
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_123', purewl_username: 'user_acc1', purewl_password: 'secret_old', expiry_date: '2026-05-19' }] }); // SELECT updated row
 
       const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
 
@@ -400,9 +400,9 @@ describe('userService', () => {
     it('renew:true — updates local vpn_accounts expiry_date and updated_at', async () => {
       User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_456', vpnresellers_username: 'user_acc2', vpnresellers_password: 'pw456' }] })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_456', purewl_username: 'user_acc2', purewl_password: 'pw456' }] })
         .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_456', vpnresellers_username: 'user_acc2', vpnresellers_password: 'pw456', expiry_date: '2026-06-19' }] });
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_456', purewl_username: 'user_acc2', purewl_password: 'pw456', expiry_date: '2026-06-19' }] });
 
       await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
 
@@ -416,20 +416,20 @@ describe('userService', () => {
     it('renew:true — VPN Resellers setExpiry failure does not throw', async () => {
       User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_789', vpnresellers_username: 'user_acc3', vpnresellers_password: 'pw789' }] })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_789', purewl_username: 'user_acc3', purewl_password: 'pw789' }] })
         .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: 'uuid_789', vpnresellers_username: 'user_acc3', vpnresellers_password: 'pw789', expiry_date: '2026-05-19' }] });
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: 'uuid_789', purewl_username: 'user_acc3', purewl_password: 'pw789', expiry_date: '2026-05-19' }] });
       mockSetExpiry.mockRejectedValueOnce(new Error('VPN Resellers down'));
 
       await expect(userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true })).resolves.toBeDefined();
     });
 
-    it('renew:true — does not call VPN Resellers setExpiry when existing vpnresellers_uuid is null', async () => {
+    it('renew:true — does not call VPN Resellers setExpiry when existing purewl_uuid is null', async () => {
       User.findById.mockResolvedValueOnce({ id: 'user-uuid-1', email: 'test@example.com', account_number: 12345 });
       db.query
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: null, vpnresellers_username: 'user_acc4', vpnresellers_password: 'pw4' }] })
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: null, purewl_username: 'user_acc4', purewl_password: 'pw4' }] })
         .mockResolvedValueOnce({ rowCount: 1 })
-        .mockResolvedValueOnce({ rows: [{ id: 10, vpnresellers_uuid: null, vpnresellers_username: 'user_acc4', vpnresellers_password: 'pw4', expiry_date: '2026-05-19' }] });
+        .mockResolvedValueOnce({ rows: [{ id: 10, purewl_uuid: null, purewl_username: 'user_acc4', purewl_password: 'pw4', expiry_date: '2026-05-19' }] });
 
       const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
 
@@ -445,7 +445,7 @@ describe('userService', () => {
       mockCheckUsername.mockResolvedValueOnce({ data: { message: 'Username not taken' } });
       mockCreateAccount.mockResolvedValueOnce({ data: { id: 'new_vpn_uuid', allowed_countries: ['US'] } });
       mockSetExpiry.mockResolvedValueOnce(undefined);
-      db.query.mockResolvedValueOnce({ rows: [{ id: 20, vpnresellers_uuid: 'new_vpn_uuid' }] });
+      db.query.mockResolvedValueOnce({ rows: [{ id: 20, purewl_uuid: 'new_vpn_uuid' }] });
 
       const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month', { renew: true });
 
@@ -459,7 +459,7 @@ describe('userService', () => {
       mockCheckUsername.mockResolvedValueOnce({ data: { message: 'Username not taken' } });
       mockCreateAccount.mockResolvedValueOnce({ data: { id: 'brand_new_uuid', allowed_countries: ['US'] } });
       mockSetExpiry.mockResolvedValueOnce(undefined);
-      db.query.mockResolvedValueOnce({ rows: [{ id: 99, vpnresellers_uuid: 'brand_new_uuid' }] });
+      db.query.mockResolvedValueOnce({ rows: [{ id: 99, purewl_uuid: 'brand_new_uuid' }] });
 
       const result = await userService.createVpnAccount('user-uuid-1', 12345, 'month');
 
