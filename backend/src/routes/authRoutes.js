@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController_csrf');
-const { protect } = require('../middleware/authMiddleware_new');
+const { protect, loginRateLimiter } = require('../middleware/authMiddleware_new');
 
 // Public routes
 router.post('/register', authController.register);
-router.post('/login', authController.login);
+router.post('/login', loginRateLimiter, authController.login);
 router.post('/refresh-token', authController.refreshToken);
 
 // Protected routes (require authentication)
