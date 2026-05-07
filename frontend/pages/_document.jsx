@@ -44,11 +44,36 @@ export default function Document() {
 
         {/* Security Headers */}
         <meta httpEquiv="X-UA-Compatible" content="ie=edge" />
-        <meta httpEquiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta httpEquiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload" />
+        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
+        <meta httpEquiv="X-Frame-Options" content="DENY" />
+        <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+        <meta httpEquiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=()" />
 
-        {/* Cloudflare Web Analytics — token from https://dash.cloudflare.com/sites/{site}/analytics/settings */}
+        {/* Cloudflare Web Analytics — deferred with requestIdleCallback to avoid TBT impact */}
         {/* Replace YOUR_CLOUDFLARE_TOKEN with the real token from your Cloudflare dashboard */}
-        <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_CLOUDFLARE_TOKEN"}'></script>
+        <script dangerouslySetInnerHTML={{__html: `
+          window.addEventListener('load', function() {
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(function() {
+                var s = document.createElement('script');
+                s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+                s.setAttribute('data-cf-beacon', '{"token":"YOUR_C...OKEN"}');
+                s.defer = true;
+                document.head.appendChild(s);
+              }, { timeout: 5000 });
+            } else {
+              // Fallback for Safari/firefox without requestIdleCallback
+              setTimeout(function() {
+                var s = document.createElement('script');
+                s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+                s.setAttribute('data-cf-beacon', '{"token":"YOUR_C...OKEN"}');
+                s.defer = true;
+                document.head.appendChild(s);
+              }, 500);
+            }
+          });
+        `}} />
 
         {/* Google Analytics (placeholder) — uncomment and set GA_ID when ready */}
         {/* <script async src="https://www.googletagmanager.com/gtag/js?id=GA_ID"></script> */}
